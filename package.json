@@ -1,0 +1,9 @@
+{
+  "name": "pemira-osis",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PEMIRA - pemilihan Ketua OSIS. Frontend statis + Vercel serverless (login admin + voting).",
+  "engines": {
+    "node": ">=18"
+  }
+}
