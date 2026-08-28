@@ -326,17 +326,21 @@
               <p class="muted" style="font-size:12px;margin-top:7px;line-height:1.6">Masukkan nama dan kelas. Data peserta ditampilkan secara anonim kepada panitia.</p>
               <div class="identity-box">
                  <label class="form-label" for="participantName">Nama lengkap peserta</label>
-                  <input id="participantName" placeholder="Contoh: Raka Aditya Putra" autocomplete="off" maxlength="100" aria-describedby="participantNameHint participantNameError" />
-                 <p id="participantNameHint" class="field-hint">Gunakan nama lengkap sesuai data peserta, bukan nama panggilan.</p>
+                 <input id="participantName" placeholder="Contoh: Raka Aditya Putra" autocomplete="off" aria-describedby="participantNameHint participantNameError" />
+                 <p id="participantNameHint" class="field-hint">Gunakan nama lengkap sesuai data peserta (huruf dan spasi saja, tanpa angka/simbol).</p>
                  <p id="participantNameError" class="field-error" role="alert"></p>
-                <label class="form-label" for="participantClass">Kelas</label>
+                <label class="form-label" for="participantClass">Kelas / Unit</label>
                 <select id="participantClass" class="select-input">
-                  <option value="">Pilih kelas kamu</option>
+                  <option value="">Pilih kelas / unit kamu</option>
+                  <optgroup label="Siswa">
                   <option>XA</option><option>XB</option><option>XC</option><option>XD</option><option>XE</option><option>XF</option><option>XG</option><option>XH</option>
                   <option>XI IPA 1</option><option>XI IPA 2</option><option>XI IPA 3</option><option>XI IPA 4</option><option>XI IPA 5</option><option>XI IPA 6</option>
                   <option>XI IPS 1</option><option>XI IPS 2</option><option>XI IPS 3</option>
                   <option>XII Teknik 1</option><option>XII Teknik 2</option><option>XII Kesehatan 1</option><option>XII Kesehatan 2</option><option>XII Sosial 1</option><option>XII Sosial 2</option>
-                   <option>Guru</option><option>Karyawan</option>
+                  </optgroup>
+                  <optgroup label="Non-siswa">
+                  <option>Guru/Karyawan</option>
+                  </optgroup>
                 </select>
                 <button id="startBtn" class="btn primary full" style="margin-top:18px">Lanjut memilih →</button>
               </div>
@@ -350,6 +354,7 @@
                   <article class="candidate" data-candidate="3"><div class="avatar candidate-photo has-photo" role="img" aria-label="Foto Citra Nabila"><img src="Foto/Paslon3.png" alt="Foto Citra Nabila" style="width:100%; height:100%; border-radius:17px; object-fit:cover;"></div><div class="number">03 · Paslon</div><h3 style="margin-top:5px">Citra Nabila</h3><p>XI IPA 2</p><div class="vision">“Suara siswa, aksi bersama.”</div><span class="pick">Pilih calon ini →</span></article>
                   <article class="candidate" data-candidate="4"><div class="avatar candidate-photo has-photo" role="img" aria-label="Foto Dimas Pratama"><img src="Foto/Paslon4.png" alt="Foto Dimas Pratama" style="width:100%; height:100%; border-radius:17px; object-fit:cover;"></div><div class="number">04 · Paslon</div><h3 style="margin-top:5px">Dimas Pratama</h3><p>XI IPS 1</p><div class="vision">“Tumbuh, berdampak, menginspirasi.”</div><span class="pick">Pilih calon ini →</span></article>
               <p class="muted" style="font-size:11px;margin-top:18px;text-align:center">Klik paslon pilihanmu. Suara akan langsung direkam.</p>
+              </div>
             </div>
             <div id="successScreen" class="kiosk-content center hidden">
               <div class="steps"><div class="step done"><b>✓</b> Identitas</div><div class="line"></div><div class="step done"><b>✓</b> Pilih calon</div><div class="line"></div><div class="step done"><b>✓</b> Selesai</div></div>
@@ -368,10 +373,11 @@
            <div class="admin-actions"><span class="pill live"><span class="dot"></span> Sistem online</span><button id="settingsBtn" class="btn">⚙ Pengaturan</button><button id="adminPageLogout" class="btn dark">Keluar</button></div>
         </div>
          <div id="liveVoteAlert" class="live-alert hidden" role="status" aria-live="polite">
-           <div class="live-alert-icon">!</div>
+           <div class="live-alert-icon" id="liveAlertIcon">!</div>
            <div class="live-alert-content">
-             <strong>Duplikasi data terdeteksi</strong>
+             <strong id="liveAlertTitle">Duplikasi data terdeteksi</strong>
              <div class="live-alert-details"><span>Nama: <b id="liveAlertName">—</b></span><span>Kelas: <b id="liveAlertClass">—</b></span><span>Bilik: <b id="liveAlertBooth">—</b></span></div>
+             <div class="live-alert-details" id="liveAlertReasonWrap" style="display:none"><span>Alasan: <b id="liveAlertReason">—</b></span></div>
              <small id="liveAlertTime" class="live-alert-time">Baru saja</small>
            </div>
            <button id="dismissLiveAlertBtn" class="live-alert-close" aria-label="Tutup alert">×</button>
@@ -432,7 +438,6 @@
     const SETTINGS_STORAGE_KEY = 'pemira-settings-v1';
     const NAME_USAGE_KEY = 'pemira-name-usage-v1';
     const LIVE_ALERT_KEY = 'pemira-live-alert-v1';
-    const NAME_ALLOWED_PATTERN = /^\p{L}+(?:\s+\p{L}+)+$/u;
     const state = { selected: null, participantName: '', participantClass: '', resetTimer: null, pollTimer: null, alertTimer: null, adminLoggedIn: false, voting: false };
 
     async function api(path, options) {
@@ -478,15 +483,30 @@
     });
     $('#refreshBoothsBtn')?.addEventListener('click', refreshBooths);
     $('#classRefreshBtn').addEventListener('click', refreshClassBreakdown);
-    $('#participantName').addEventListener('input', () => {
-      const input = $('#participantName');
-      const rawName = input.value;
-      const sanitizedName = rawName.replace(/[^\p{L}\s]/gu, '').replace(/\s{2,}/g, ' ');
-      if (rawName !== sanitizedName) input.value = sanitizedName;
+    // Hanya huruf dan spasi yang boleh masuk ke nama — mencegah trik "Nama123" / "Nama#??"
+    const NAME_ALLOWED_PATTERN = /[^a-zA-Z\u00C0-\u024F\s]/g;
+    let tamperAlertTimer = null;
+    $('#participantName').addEventListener('input', (event) => {
+      const input = event.target;
+      const raw = input.value;
+      const hadDisallowed = NAME_ALLOWED_PATTERN.test(raw);
+      NAME_ALLOWED_PATTERN.lastIndex = 0;
+      if (hadDisallowed) {
+        const cursor = input.selectionStart;
+        const before = raw.slice(0, cursor).replace(NAME_ALLOWED_PATTERN, '');
+        input.value = raw.replace(NAME_ALLOWED_PATTERN, '').replace(/\s{2,}/g, ' ');
+        const newCursor = before.length;
+        input.setSelectionRange(newCursor, newCursor);
+        setParticipantNameError('Nama hanya boleh berisi huruf dan spasi — angka dan simbol tidak diperbolehkan.');
+        // Lapor percobaan manipulasi ke notifikasi admin (di-throttle biar nggak banjir tiap ketikan)
+        clearTimeout(tamperAlertTimer);
+        tamperAlertTimer = setTimeout(() => {
+          publishSecurityAlert(input.value || '(kosong)', $('#participantClass').value, BOOTH_ID, 'Mencoba memasukkan angka/simbol pada nama');
+        }, 600);
+        return;
+      }
       const name = input.value.trim();
-      if (name && !NAME_ALLOWED_PATTERN.test(name)) {
-        setParticipantNameError('Nama hanya boleh berisi huruf dan spasi.');
-      } else if (name && nameAlreadyUsed(name)) {
+      if (name && nameAlreadyUsed(name)) {
         setParticipantNameError('Nama ini sudah pernah digunakan. Masukkan nama lengkap sesuai data peserta.');
       } else {
         clearParticipantNameError();
@@ -559,17 +579,20 @@
     function closeSettings() { $('#settingsModal').classList.remove('open'); }
 
     function normalizeParticipantName(name) {
-      return (name || '').trim().toLocaleLowerCase('id-ID').replace(/\s+/g, ' ');
-    }
-
-    function canonicalParticipantName(name) {
-      return normalizeParticipantName(name).replace(/[^\p{L}]/gu, '');
+      return (name || '')
+        .trim()
+        .toLocaleLowerCase('id-ID')
+        // Buang semua karakter selain huruf & spasi sebelum di-hash, supaya "Andi Susanto123"
+        // atau "Andi Susanto#??" tetap dikenali sebagai nama yang sama dengan "Andi Susanto".
+        .replace(/[^a-z\u00C0-\u024F\s]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
     }
 
     // Hanya fingerprint yang disimpan di browser, bukan nama peserta mentah.
     function nameFingerprint(name) {
       let hash = 2166136261;
-      for (const character of canonicalParticipantName(name)) {
+      for (const character of normalizeParticipantName(name)) {
         hash ^= character.charCodeAt(0);
         hash = Math.imul(hash, 16777619);
       }
@@ -600,12 +623,28 @@
 
     function publishDuplicateAlert(name, className, booth) {
       const alert = {
+        type: 'duplicate',
         name: maskName(name),
         class: className || '—',
         booth: String(booth || '—'),
+        reason: 'Nama yang sama sudah pernah tercatat memilih.',
         createdAt: Date.now(),
       };
       try { localStorage.setItem(LIVE_ALERT_KEY, JSON.stringify(alert)); } catch (e) {}
+    }
+
+    // Percobaan mengakali validasi nama (menyisipkan angka/simbol) juga dilaporkan ke admin.
+    function publishSecurityAlert(name, className, booth, reason) {
+      const alert = {
+        type: 'security',
+        name: maskName(name),
+        class: className || '—',
+        booth: String(booth || '—'),
+        reason: reason || 'Percobaan input tidak sah pada formulir.',
+        createdAt: Date.now(),
+      };
+      try { localStorage.setItem(LIVE_ALERT_KEY, JSON.stringify(alert)); } catch (e) {}
+      // Trigger juga di tab admin yang sedang terbuka pada perangkat yang sama.
       if (state.adminLoggedIn) showLiveVoteAlert(alert);
     }
 
@@ -620,9 +659,18 @@
 
     function showLiveVoteAlert(alert) {
       if (!state.adminLoggedIn || !alert) return;
+      const isSecurity = alert.type === 'security';
+      $('#liveAlertIcon').textContent = isSecurity ? '🔒' : '!';
+      $('#liveAlertTitle').textContent = isSecurity ? 'Percobaan input tidak sah terdeteksi' : 'Duplikasi data terdeteksi';
       $('#liveAlertName').textContent = alert.name || '—';
       $('#liveAlertClass').textContent = alert.class || '—';
       $('#liveAlertBooth').textContent = alert.booth || '—';
+      if (alert.reason) {
+        $('#liveAlertReason').textContent = alert.reason;
+        $('#liveAlertReasonWrap').style.display = '';
+      } else {
+        $('#liveAlertReasonWrap').style.display = 'none';
+      }
       const timestamp = Number(alert.createdAt);
       $('#liveAlertTime').textContent = Number.isFinite(timestamp)
         ? `Masuk pukul ${new Date(timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`
@@ -785,21 +833,10 @@
       }).join('');
     }
 
-    function showKioskScreen(screenId) {
-      $$('.kiosk-content').forEach(screen => {
-        screen.classList.add('hidden');
-        screen.style.removeProperty('display');
-      });
-      const screen = $('#' + screenId);
-      if (screen) {
-        screen.classList.remove('hidden');
-        screen.style.display = 'block';
-      }
-    }
-
     // Flow bilik: SAYA SIAP → nama → kelas → klik paslon → otomatis reset 5 detik.
     $('#readyBtn').addEventListener('click', () => {
-      showKioskScreen('identityScreen');
+      $('#welcomeScreen').classList.add('hidden');
+      $('#identityScreen').classList.remove('hidden');
       setBoothStatus(BOOTH_ID, true);
       showToast(`Bilik ${BOOTH_ID} aktif. Silakan isi nama dan kelas.`);
     });
@@ -809,9 +846,9 @@
       const className = $('#participantClass').value;
       clearParticipantNameError();
       if (name.length < 2) { setParticipantNameError('Masukkan nama lengkap peserta terlebih dahulu.'); $('#participantName').focus(); return; }
-      if (!NAME_ALLOWED_PATTERN.test(name)) {
-        if (nameAlreadyUsed(name)) publishDuplicateAlert(name, className, BOOTH_ID);
-        setParticipantNameError('Nama hanya boleh berisi huruf dan spasi.');
+      if (/[^a-zA-Z\u00C0-\u024F\s]/.test(name)) {
+        setParticipantNameError('Nama hanya boleh berisi huruf dan spasi — angka dan simbol tidak diperbolehkan.');
+        publishSecurityAlert(name, className, BOOTH_ID, 'Mencoba mengirim nama berisi angka/simbol lewat jalur lain');
         $('#participantName').focus();
         return;
       }
@@ -820,7 +857,7 @@
         $('#participantName').focus();
         return;
       }
-      if (!className) { showToast('Pilih kelas terlebih dahulu'); $('#participantClass').focus(); return; }
+      if (!className) { showToast('Pilih kelas / unit terlebih dahulu'); $('#participantClass').focus(); return; }
       if (nameAlreadyUsed(name)) {
         publishDuplicateAlert(name, className, BOOTH_ID);
         setParticipantNameError('Nama lengkap ini sudah pernah digunakan. Periksa kembali nama peserta.');
@@ -829,7 +866,8 @@
       }
       state.participantName = name;
       state.participantClass = className;
-      showKioskScreen('voteScreen');
+      $('#identityScreen').classList.add('hidden');
+      $('#voteScreen').classList.remove('hidden');
       showToast('Data peserta tersimpan secara anonim.');
     });
 
@@ -846,13 +884,7 @@
       state.voting = true;
       const { ok, data } = await api('/api/vote', {
         method: 'POST',
-        body: JSON.stringify({
-          candidate: state.selected,
-          name: state.participantName,
-          normalizedName: canonicalParticipantName(state.participantName),
-          class: state.participantClass,
-          booth: BOOTH_ID,
-        }),
+        body: JSON.stringify({ candidate: state.selected, name: state.participantName, class: state.participantClass, booth: BOOTH_ID }),
       });
       state.voting = false;
       if (!ok || !data || !data.ok) {
@@ -860,7 +892,8 @@
         state.selected = null;
         if (isDuplicateNameError(data)) {
           publishDuplicateAlert(state.participantName, state.participantClass, BOOTH_ID);
-          showKioskScreen('identityScreen');
+          $('#voteScreen').classList.add('hidden');
+          $('#identityScreen').classList.remove('hidden');
           setParticipantNameError('Nama ini sudah terdaftar. Gunakan nama lengkap sesuai data peserta.');
           $('#participantName').focus();
           state.participantName = '';
@@ -870,7 +903,8 @@
         return;
       }
       rememberName(state.participantName);
-      showKioskScreen('successScreen');
+      $('#voteScreen').classList.add('hidden');
+      $('#successScreen').classList.remove('hidden');
       $('#receipt').textContent = data.receipt || 'PM-000000';
       startAutoReset();
       showToast('Suara berhasil direkam secara anonim.');
@@ -889,7 +923,8 @@
 
     function resetBooth() {
       clearInterval(state.resetTimer);
-      showKioskScreen('welcomeScreen');
+      $('#successScreen').classList.add('hidden');
+      $('#welcomeScreen').classList.remove('hidden');
       $('#participantName').value = '';
       $('#participantClass').value = '';
       $$('.candidate').forEach(c => c.classList.remove('selected'));
@@ -947,7 +982,6 @@
       const toast = $('#toast'); toast.textContent = message; toast.classList.add('show');
       clearTimeout(window.toastTimer); window.toastTimer = setTimeout(() => toast.classList.remove('show'), 2800);
     }
-    showKioskScreen('welcomeScreen');
     applySettings();
     syncBoothStatuses();
     restoreSession();
