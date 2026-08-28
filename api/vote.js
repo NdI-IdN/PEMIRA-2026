@@ -1,19 +1,15 @@
 // POST /api/vote  { candidate, name, class, booth }
-// Rekam suara + catat aktivitas (nama di-mask). Storage: KV atau file JSON.
+// Rekam suara + catat aktivitas (nama utuh tanpa sensor). Storage: KV atau file JSON.
 const { readBody } = require('./_lib');
 const store = require('./_store');
 
 const VALID = ['1', '2', '3', '4'];
 
-function maskName(name) {
+// Fungsi diubah hanya untuk membersihkan spasi berlebih, tanpa menyensor nama
+function cleanName(name) {
   const clean = (name || '').toString().trim();
   if (!clean) return 'Anonim';
-  return clean
-    .split(/\s+/)
-    .slice(0, 3)
-    .map((w) => (w[0] ? w[0].toUpperCase() + '****' : ''))
-    .join(' ')
-    .trim();
+  return clean;
 }
 
 function jakartaTime() {
@@ -40,7 +36,7 @@ module.exports = async (req, res) => {
   }
 
   const entry = {
-    name: maskName(body.name),
+    name: cleanName(body.name), // Menggunakan nama asli
     class: (body.class || '-').toString().slice(0, 24),
     booth: (body.booth || '-').toString().slice(0, 4),
     time: jakartaTime(),
