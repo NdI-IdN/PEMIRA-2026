@@ -238,12 +238,12 @@
      .stat-icon { box-shadow:0 6px 15px rgba(105,72,39,.12); }
      .booth.busy { box-shadow:0 0 0 3px rgba(185,121,69,.10),0 12px 26px rgba(185,121,69,.12); }
      .pill.live { box-shadow:0 0 0 4px rgba(94,125,114,.08); }
-    .candidate-photo { width:128px; height:156px; position:relative; overflow:hidden; margin:0 auto 12px; background:linear-gradient(145deg,#d7c4a7,#8a6749); border-radius:22px; box-shadow:inset 0 -28px 34px rgba(32,41,54,.22),0 10px 20px rgba(55,45,31,.16); }
+      .candidate-photo { width:128px; height:156px; position:relative; overflow:hidden; margin:0 auto 12px; background:linear-gradient(145deg,#d7c4a7,#8a6749); border-radius:22px; box-shadow:inset 0 -28px 34px rgba(32,41,54,.22),0 10px 20px rgba(55,45,31,.16); }
      
      /* Default: Siluet muncul */
      .candidate-photo:before { content:""; position:absolute; width:46px; height:46px; left:50%; top:31px; transform:translateX(-50%); border-radius:50%; background:#f0d5b6; box-shadow:0 0 0 6px rgba(255,252,244,.24); z-index: 2; }
      .candidate-photo:after { content:""; position:absolute; width:106px; height:80px; left:50%; bottom:-14px; transform:translateX(-50%); border-radius:54px 54px 12px 12px; background:#354052; z-index: 2; }
-      
+
      /* Kalau ada kelas has-image, siluetnya disembunyikan, fotonya (z-index 3) naik ke atas */
      .candidate-photo.has-image:before,
      .candidate-photo.has-image:after {
@@ -326,7 +326,7 @@
               <p class="muted" style="font-size:12px;margin-top:7px;line-height:1.6">Masukkan nama dan kelas. Data peserta ditampilkan secara anonim kepada panitia.</p>
               <div class="identity-box">
                  <label class="form-label" for="participantName">Nama lengkap peserta</label>
-                 <input id="participantName" placeholder="Contoh: Raka Aditya Putra" autocomplete="off" aria-describedby="participantNameHint participantNameError" />
+                  <input id="participantName" placeholder="Contoh: Raka Aditya Putra" autocomplete="off" maxlength="100" aria-describedby="participantNameHint participantNameError" />
                  <p id="participantNameHint" class="field-hint">Gunakan nama lengkap sesuai data peserta, bukan nama panggilan.</p>
                  <p id="participantNameError" class="field-error" role="alert"></p>
                 <label class="form-label" for="participantClass">Kelas</label>
@@ -336,6 +336,7 @@
                   <option>XI IPA 1</option><option>XI IPA 2</option><option>XI IPA 3</option><option>XI IPA 4</option><option>XI IPA 5</option><option>XI IPA 6</option>
                   <option>XI IPS 1</option><option>XI IPS 2</option><option>XI IPS 3</option>
                   <option>XII Teknik 1</option><option>XII Teknik 2</option><option>XII Kesehatan 1</option><option>XII Kesehatan 2</option><option>XII Sosial 1</option><option>XII Sosial 2</option>
+                   <option>Guru</option><option>Karyawan</option>
                 </select>
                 <button id="startBtn" class="btn primary full" style="margin-top:18px">Lanjut memilih →</button>
               </div>
@@ -431,6 +432,7 @@
     const SETTINGS_STORAGE_KEY = 'pemira-settings-v1';
     const NAME_USAGE_KEY = 'pemira-name-usage-v1';
     const LIVE_ALERT_KEY = 'pemira-live-alert-v1';
+    const NAME_ALLOWED_PATTERN = /^\p{L}+(?:\s+\p{L}+)+$/u;
     const state = { selected: null, participantName: '', participantClass: '', resetTimer: null, pollTimer: null, alertTimer: null, adminLoggedIn: false, voting: false };
 
     async function api(path, options) {
@@ -477,8 +479,14 @@
     $('#refreshBoothsBtn')?.addEventListener('click', refreshBooths);
     $('#classRefreshBtn').addEventListener('click', refreshClassBreakdown);
     $('#participantName').addEventListener('input', () => {
-      const name = $('#participantName').value.trim();
-      if (name && nameAlreadyUsed(name)) {
+      const input = $('#participantName');
+      const rawName = input.value;
+      const sanitizedName = rawName.replace(/[^\p{L}\s]/gu, '').replace(/\s{2,}/g, ' ');
+      if (rawName !== sanitizedName) input.value = sanitizedName;
+      const name = input.value.trim();
+      if (name && !NAME_ALLOWED_PATTERN.test(name)) {
+        setParticipantNameError('Nama hanya boleh berisi huruf dan spasi.');
+      } else if (name && nameAlreadyUsed(name)) {
         setParticipantNameError('Nama ini sudah pernah digunakan. Masukkan nama lengkap sesuai data peserta.');
       } else {
         clearParticipantNameError();
@@ -554,10 +562,14 @@
       return (name || '').trim().toLocaleLowerCase('id-ID').replace(/\s+/g, ' ');
     }
 
+    function canonicalParticipantName(name) {
+      return normalizeParticipantName(name).replace(/[^\p{L}]/gu, '');
+    }
+
     // Hanya fingerprint yang disimpan di browser, bukan nama peserta mentah.
     function nameFingerprint(name) {
       let hash = 2166136261;
-      for (const character of normalizeParticipantName(name)) {
+      for (const character of canonicalParticipantName(name)) {
         hash ^= character.charCodeAt(0);
         hash = Math.imul(hash, 16777619);
       }
@@ -594,6 +606,7 @@
         createdAt: Date.now(),
       };
       try { localStorage.setItem(LIVE_ALERT_KEY, JSON.stringify(alert)); } catch (e) {}
+      if (state.adminLoggedIn) showLiveVoteAlert(alert);
     }
 
     function readLiveVoteAlert() {
@@ -772,10 +785,21 @@
       }).join('');
     }
 
+    function showKioskScreen(screenId) {
+      $$('.kiosk-content').forEach(screen => {
+        screen.classList.add('hidden');
+        screen.style.removeProperty('display');
+      });
+      const screen = $('#' + screenId);
+      if (screen) {
+        screen.classList.remove('hidden');
+        screen.style.display = 'block';
+      }
+    }
+
     // Flow bilik: SAYA SIAP → nama → kelas → klik paslon → otomatis reset 5 detik.
     $('#readyBtn').addEventListener('click', () => {
-      $('#welcomeScreen').classList.add('hidden');
-      $('#identityScreen').classList.remove('hidden');
+      showKioskScreen('identityScreen');
       setBoothStatus(BOOTH_ID, true);
       showToast(`Bilik ${BOOTH_ID} aktif. Silakan isi nama dan kelas.`);
     });
@@ -785,6 +809,12 @@
       const className = $('#participantClass').value;
       clearParticipantNameError();
       if (name.length < 2) { setParticipantNameError('Masukkan nama lengkap peserta terlebih dahulu.'); $('#participantName').focus(); return; }
+      if (!NAME_ALLOWED_PATTERN.test(name)) {
+        if (nameAlreadyUsed(name)) publishDuplicateAlert(name, className, BOOTH_ID);
+        setParticipantNameError('Nama hanya boleh berisi huruf dan spasi.');
+        $('#participantName').focus();
+        return;
+      }
       if (name.split(/\s+/).filter(Boolean).length < 2) {
         setParticipantNameError('Gunakan nama lengkap, minimal nama depan dan nama belakang.');
         $('#participantName').focus();
@@ -799,8 +829,7 @@
       }
       state.participantName = name;
       state.participantClass = className;
-      $('#identityScreen').classList.add('hidden');
-      $('#voteScreen').classList.remove('hidden');
+      showKioskScreen('voteScreen');
       showToast('Data peserta tersimpan secara anonim.');
     });
 
@@ -817,7 +846,13 @@
       state.voting = true;
       const { ok, data } = await api('/api/vote', {
         method: 'POST',
-        body: JSON.stringify({ candidate: state.selected, name: state.participantName, class: state.participantClass, booth: BOOTH_ID }),
+        body: JSON.stringify({
+          candidate: state.selected,
+          name: state.participantName,
+          normalizedName: canonicalParticipantName(state.participantName),
+          class: state.participantClass,
+          booth: BOOTH_ID,
+        }),
       });
       state.voting = false;
       if (!ok || !data || !data.ok) {
@@ -825,8 +860,7 @@
         state.selected = null;
         if (isDuplicateNameError(data)) {
           publishDuplicateAlert(state.participantName, state.participantClass, BOOTH_ID);
-          $('#voteScreen').classList.add('hidden');
-          $('#identityScreen').classList.remove('hidden');
+          showKioskScreen('identityScreen');
           setParticipantNameError('Nama ini sudah terdaftar. Gunakan nama lengkap sesuai data peserta.');
           $('#participantName').focus();
           state.participantName = '';
@@ -836,8 +870,7 @@
         return;
       }
       rememberName(state.participantName);
-      $('#voteScreen').classList.add('hidden');
-      $('#successScreen').classList.remove('hidden');
+      showKioskScreen('successScreen');
       $('#receipt').textContent = data.receipt || 'PM-000000';
       startAutoReset();
       showToast('Suara berhasil direkam secara anonim.');
@@ -856,8 +889,7 @@
 
     function resetBooth() {
       clearInterval(state.resetTimer);
-      $('#successScreen').classList.add('hidden');
-      $('#welcomeScreen').classList.remove('hidden');
+      showKioskScreen('welcomeScreen');
       $('#participantName').value = '';
       $('#participantClass').value = '';
       $$('.candidate').forEach(c => c.classList.remove('selected'));
@@ -915,6 +947,7 @@
       const toast = $('#toast'); toast.textContent = message; toast.classList.add('show');
       clearTimeout(window.toastTimer); window.toastTimer = setTimeout(() => toast.classList.remove('show'), 2800);
     }
+    showKioskScreen('welcomeScreen');
     applySettings();
     syncBoothStatuses();
     restoreSession();
