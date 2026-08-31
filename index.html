@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<html lang="id" style=""><head>
+<html lang="id"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
 <title>PEMIRA — Pemilihan Raya Ketua OSIS</title>
@@ -73,8 +73,12 @@
     .mode-switch button.active { color: var(--blue); background: var(--white); box-shadow: 0 3px 10px rgba(105,87,65,.15); }
     
     main { max-width: 1400px; margin: 0 auto; padding: 34px; }
-    .view { display: none; animation: enter .35s ease both; }
-    .view.active { display: block !important; }
+    
+    /* View Logic */
+    .view { display: none; }
+    .view.active { display: block; animation: enter .35s ease both; }
+    .hidden { display: none !important; }
+    
     @keyframes enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
     
     .eyebrow { color: var(--red); font-size: 12px; letter-spacing: .15em; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid var(--red); display: inline-block; padding-bottom: 2px; margin-bottom: 8px; }
@@ -247,8 +251,6 @@
     .live-alert-close { flex:0 0 auto; padding:8px 16px; color:#fff; background:rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius:4px; font-size:11px; font-weight:bold; font-family: var(--typewriter); position: relative; z-index: 2; }
     .live-alert-close:hover { background: rgba(0,0,0,0.5); }
     @keyframes alert-in { from { opacity:0; transform:translateY(-10px) rotate(-1deg); } to { opacity:1; transform:none; } }
-    
-    .hidden { display:none !important; }
     
     @media (max-width: 900px) {
       main { padding:24px 18px; } .topbar { padding:0 18px; }
