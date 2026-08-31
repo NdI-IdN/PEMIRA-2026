@@ -223,7 +223,7 @@
     .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(25,37,60,.7); z-index:40; place-items:center; padding:20px; backdrop-filter: blur(4px); }
     .modal-backdrop.open { display:grid; }
     .modal { width:min(480px,100%); background:#faf6ed; border:1px solid var(--blue); border-radius:8px; padding:30px; box-shadow:var(--shadow); text-align:center; position: relative; }
-    .modal:before { content:""; position:absolute; top:-10px; left:50%; margin-left:-30px; width:60px; height:20px; background: rgba(255,255,255,0.6); border: 1px solid rgba(0,0,0,0.1); transform: rotate(2deg); }
+    .modal:before { content:"closest"; position:absolute; top:-10px; left:50%; margin-left:-30px; width:60px; height:20px; background: rgba(255,255,255,0.6); border: 1px solid rgba(0,0,0,0.1); transform: rotate(2deg); }
     .modal.large-modal { width:min(800px,100%); text-align:left; }
     .modal p { font-size:14px; color:var(--muted); line-height:1.6; margin:10px 0 25px; }
     .modal-actions { display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top: 20px; }
@@ -543,7 +543,7 @@
 </div>
 <div class="table-wrap">
 <table>
-<thead><tr><th class="">KODE RECEIPT</th><th class="">ID / NISN PEMILIH</th><th class="">DEPARTEMEN</th><th class="">STATUS</th><th class="">WAKTU LAPORAN</th><th class="">POS (BILIK)</th></tr></thead>
+<thead><tr><th class="">KODE RECEIPT</th><th class="">ID / NISN PEMILIH</th><th class="">DEPARTEMEN / KELAS</th><th class="">STATUS</th><th class="">WAKTU LAPORAN</th><th class="">POS (BILIK)</th></tr></thead>
 <tbody id="participantTableBody"></tbody>
 </table>
 </div>
@@ -601,7 +601,7 @@
 </div>
 <div class="table-wrap" style="max-height:400px; border: 1px solid var(--line);">
 <table>
-<thead><tr><th class="">KODE RECEIPT</th><th class="">ID / NISN PEMILIH</th><th class="">DEPARTEMEN</th><th class="">STATUS</th><th class="">WAKTU LAPORAN</th><th class="">POS (BILIK)</th></tr></thead>
+<thead><tr><th class="">KODE RECEIPT</th><th class="">ID / NISN PEMILIH</th><th class="">DEPARTEMEN / KELAS</th><th class="">STATUS</th><th class="">WAKTU LAPORAN</th><th class="">POS (BILIK)</th></tr></thead>
 <tbody id="allParticipantsTableBody"></tbody>
 </table>
 </div>
@@ -1057,14 +1057,14 @@
 
     function activityRowHtml(a) {
       const timeDisplay = a.fullTime || a.time || formatTimestamp(a.timestamp);
-      return `<tr><td><div class="person"><div class="person-avatar">?</div> ${maskName(a.name)}</div></td><td>${a.class || '-'}</td><td><span class="badge green">Terverifikasi</span></td><td>${timeDisplay}</td><td>Pos ${a.booth || '-'}</td></tr>`;
+      return `<tr><td><strong style="color:var(--navy);">${a.receipt || '-'}</strong></td><td><div class="person"><div class="person-avatar">?</div> ${maskName(a.name)}</div></td><td>${a.class || '-'}</td><td><span class="badge green">Terverifikasi</span></td><td>${timeDisplay}</td><td>Pos ${a.booth || '-'}</td></tr>`;
     }
 
     function renderActivity(list) {
       const tbodyEl = $('#participantTableBody');
       if (tbodyEl) {
         const filtered = filterByClass(list, state.classFilter);
-        tbodyEl.innerHTML = filtered.length ? filtered.slice(0, 10).map(activityRowHtml).join('') : '<tr><td colspan="5" class="muted" style="text-align:center;padding:16px; font-style: italic;">Arsip kosong. Menunggu data masuk.</td></tr>';
+        tbodyEl.innerHTML = filtered.length ? filtered.slice(0, 10).map(activityRowHtml).join('') : '<tr><td colspan="6" class="muted" style="text-align:center;padding:16px; font-style: italic;">Arsip kosong. Menunggu data masuk.</td></tr>';
       }
     }
 
@@ -1073,7 +1073,7 @@
       const filterValue = $('#allParticipantsClassFilter').value;
       const list = filterByClass(state.allActivityData, filterValue);
       if (tbodyEl) {
-        tbodyEl.innerHTML = list.length ? list.map(activityRowHtml).join('') : '<tr><td colspan="5" class="muted" style="text-align:center;padding:16px; font-style: italic;">Arsip kosong. Menunggu data masuk.</td></tr>';
+        tbodyEl.innerHTML = list.length ? list.map(activityRowHtml).join('') : '<tr><td colspan="6" class="muted" style="text-align:center;padding:16px; font-style: italic;">Arsip kosong. Menunggu data masuk.</td></tr>';
       }
     }
 
