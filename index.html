@@ -1,208 +1,264 @@
-<!doctype html>
-<html lang="id">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>PEMIRA — Pemilihan Raya Ketua OSIS</title>
-  <style>
+<!DOCTYPE html>
+
+<html lang="id" style=""><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>PEMIRA — Pemilihan Raya Ketua OSIS</title>
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<style>
     :root {
-      --navy: #101a37;
-      --ink: #17213e;
-      --muted: #71809e;
-      --line: #e6ebf4;
-      --bg: #f6f8fc;
-      --white: #ffffff;
-      --blue: #4d6bff;
-      --blue-soft: #edf0ff;
-      --mint: #19bd95;
-      --mint-soft: #e8faf4;
-      --orange: #ee9a42;
-      --orange-soft: #fff4e7;
-      --red: #ec6c75;
-      --shadow: 0 20px 60px rgba(37, 53, 94, .10);
-      --radius: 20px;
+      --navy: #19253c;
+      --ink: #26211c;
+      --muted: #6b6255;
+      --line: rgba(105, 87, 65, 0.25);
+      --bg: #ebd8bd;
+      --white: rgba(250, 246, 237, 0.95);
+      --blue: #8b5b32;
+      --blue-soft: #ebdcc9;
+      --mint: #4a665b;
+      --mint-soft: #d3dfda;
+      --orange: #a8622c;
+      --orange-soft: #eed6c2;
+      --red: #9e363b;
+      --shadow: 0 20px 60px rgba(55, 45, 31, .20);
+      --radius: 12px;
+      --typewriter: 'Courier Prime', monospace;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
       color: var(--ink);
-      background: var(--bg);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at 8% 8%,#f7f0e2 0,transparent 30%),radial-gradient(circle at 92% 6%,#dce8e2 0,transparent 27%),repeating-linear-gradient(0deg,rgba(105,87,65,.03) 0,rgba(105,87,65,.03) 1px,transparent 1px,transparent 5px),#ebd8bd;
+      font-family: Georgia, 'Times New Roman', Times, serif;
     }
+    h1, h2, h3, .eyebrow, .number, th { font-family: var(--typewriter); }
     button, input { font: inherit; }
     button { cursor: pointer; border: 0; }
-    .app { min-height: 100vh; }
-    .topbar {
-      height: 76px; padding: 0 34px; background: var(--white); border-bottom: 1px solid var(--line);
-      display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10;
-    }
-    .brand { display: flex; align-items: center; gap: 12px; font-weight: 850; letter-spacing: -.03em; }
-    .brand-mark {
-      width: 40px; height: 40px; display: grid; place-items: center; color: #fff;
-      border-radius: 13px; background: linear-gradient(140deg, #6178ff, #354ed0);
-      box-shadow: 0 8px 18px rgba(77,107,255,.3); font-size: 20px;
-    }
-    .brand small { display: block; color: var(--muted); font-weight: 600; letter-spacing: 0; font-size: 11px; margin-top: 2px; }
-    .mode-switch { background: #f0f3fa; border: 1px solid #e8edf6; padding: 4px; border-radius: 12px; display: flex; gap: 3px; }
-    .mode-switch button { color: var(--muted); background: transparent; border-radius: 99px; padding: 9px 15px; font-size: 12px; font-weight: 800; }
-    .mode-switch button.active { color: var(--navy); background: #fff; box-shadow: 0 3px 10px rgba(20,35,75,.08); }
-    main { max-width: 1400px; margin: 0 auto; padding: 34px; }
-    .view { display: none; animation: enter .35s ease both; }
-    .view.active { display: block; }
-    @keyframes enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-    .eyebrow { color: var(--blue); font-size: 11px; letter-spacing: .12em; font-weight: 850; text-transform: uppercase; }
-    h1, h2, h3, p { margin: 0; }
-    h1 { font-size: clamp(29px, 4vw, 45px); letter-spacing: -.055em; line-height: 1.05; }
-    h2 { font-size: 22px; letter-spacing: -.035em; }
-    h3 { font-size: 15px; letter-spacing: -.02em; }
-    .muted { color: var(--muted); }
-    .hero { display:flex; align-items:flex-end; justify-content:space-between; gap: 20px; margin: 18px 0 28px; }
-    .hero p { margin-top: 11px; font-size: 14px; color: var(--muted); max-width: 630px; line-height: 1.6; }
-    .pill { display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px; border-radius: 99px; font-weight: 800; font-size: 11px; }
-    .pill.live { color: #128264; background: var(--mint-soft); }
-    .dot { width: 7px; height: 7px; background: currentColor; border-radius: 50%; display: inline-block; }
-    .btn { padding: 12px 17px; border-radius: 11px; color: var(--navy); background: #eef1f8; font-size: 12px; font-weight: 850; transition: .18s ease; }
-    .btn:hover { transform: translateY(-1px); filter: brightness(.98); }
-    .btn:disabled { cursor:wait; opacity:.58; transform:none; }
-    .btn.primary { color: #fff; background: linear-gradient(135deg, #5b74ff, #3f56dc); box-shadow: 0 8px 19px rgba(77,107,255,.25); }
-    .btn.dark { color: #fff; background: var(--navy); }
-    .btn.full { width: 100%; padding: 15px; font-size: 13px; }
-    .panel, .stat, .candidate, .booth, .kiosk-card { background: var(--white); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 7px 28px rgba(31,49,94,.04); }
-    .panel-head { padding: 21px 23px; border-bottom: 1px solid var(--line); display:flex; align-items:center; justify-content:space-between; gap: 12px; }
-    .panel-body { padding: 22px 23px; }
-
-    /* client */
-    .kiosk-layout { display: grid; grid-template-columns: minmax(0,780px); justify-content: center; gap: 26px; align-items: start; }
-    .kiosk-card { padding: 28px; min-height: 610px; position: relative; overflow: hidden; }
-    .kiosk-card:before { content:""; position:absolute; width:240px; height:240px; border-radius:50%; background:#f0f3ff; right:-85px; top:-85px; }
-    .kiosk-content { position: relative; max-width: 590px; margin: 72px auto 0; }
-    .kiosk-content.center { text-align:center; }
-    .kiosk-content h1 { font-size: 42px; }
-    .kiosk-content .lead { line-height:1.65; color:var(--muted); font-size:14px; margin: 15px auto 27px; max-width: 440px; }
-    .form-label { display:block; font-size:11px; font-weight:850; color:#546383; margin: 0 0 8px; text-align:left; }
-    input, select { width:100%; border:1px solid var(--line); background:#fbfcff; color:var(--ink); border-radius:11px; padding:14px; outline: none; font-size:13px; }
-    input:focus { border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-soft); }
-    select:focus { border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-soft); }
-    .select-input { appearance:none; background-image:linear-gradient(45deg,transparent 50%,#7583a0 50%),linear-gradient(135deg,#7583a0 50%,transparent 50%); background-position:calc(100% - 17px) 19px,calc(100% - 12px) 19px; background-size:5px 5px,5px 5px; background-repeat:no-repeat; }
-    .welcome-mark { width:82px; height:82px; display:grid; place-items:center; color:#fff; font-size:34px; border-radius:27px; margin:0 auto 22px; background:linear-gradient(140deg,#6178ff,#354ed0); box-shadow:0 16px 28px rgba(77,107,255,.24); }
-    .identity-box { max-width:420px; margin:0 auto; text-align:left; }
-    .identity-box .form-label { margin-top:18px; }
-    .candidate-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap: 14px; margin-top: 21px; }
-    .candidate { padding: 15px; cursor:pointer; transition:.18s; position:relative; }
-    .candidate:hover { transform:translateY(-3px); border-color:#aab6ff; box-shadow:0 13px 27px rgba(55,71,174,.12); }
-    .candidate.selected { border:2px solid var(--blue); padding:14px; background:#fbfcff; }
-    .candidate.selected:after { content:"✓"; position:absolute; right:12px; top:12px; background:var(--blue); color:#fff; width:24px; height:24px; display:grid; place-items:center; border-radius:50%; font-size:13px; font-weight:900; }
-    .number { color:var(--blue); font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:.08em; }
-    .candidate p { color:var(--muted); font-size:11px; margin-top:5px; }
-    .candidate .vision { margin-top:12px; color:#53617d; line-height:1.5; font-size:11px; }
-    .candidate .pick { display:block; color:var(--blue); font-weight:850; font-size:11px; margin-top:12px; }
-    .steps { display:flex; gap:7px; align-items:center; margin: 0 0 28px; }
-    .step { display:flex; align-items:center; gap:6px; color:#a1acc2; font-size:10px; font-weight:800; }
-    .step b { width:22px; height:22px; border-radius:50%; display:grid; place-items:center; background:#edf0f6; color:#8793ab; }
-    .step.current { color:var(--blue); } .step.current b { color:#fff; background:var(--blue); }
-    .step.done { color:var(--mint); } .step.done b { color:#fff; background:var(--mint); }
-    .line { width:25px; height:1px; background:#e2e7f1; }
-    .success-countdown { color:var(--blue); font-size:12px; font-weight:850; margin-top:15px; }
-
-    /* admin */
-    .admin-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px; }
-    .stat { padding:18px 19px; }
-    .stat-top { display:flex; justify-content:space-between; align-items:center; color:var(--muted); font-size:11px; font-weight:800; }
-    .stat-icon { width:31px; height:31px; display:grid; place-items:center; border-radius:10px; background:var(--blue-soft); color:var(--blue); font-size:15px; }
-    .stat strong { display:block; margin-top:13px; font-size:27px; letter-spacing:-.05em; }
-    .stat small { color:var(--mint); font-weight:800; font-size:10px; }
-    .two-col { display:grid; grid-template-columns:1.25fr .75fr; gap:20px; margin-bottom:20px; }
-    .booths { display:grid; grid-template-columns:repeat(5,1fr); gap:9px; }
-    .booth { padding:14px 12px; border-radius:14px; }
-    .booth-head { display:flex; align-items:center; justify-content:space-between; }
-    .booth-number { font-size:17px; font-weight:900; }
-    .booth-icon { width:29px; height:29px; display:grid; place-items:center; border-radius:9px; background:var(--mint-soft); color:var(--mint); font-size:14px; }
-    .booth.busy .booth-icon { background:var(--orange-soft); color:var(--orange); }
-    .booth p { color:var(--muted); font-size:10px; margin-top:10px; }
-    .booth .bar { height:4px; background:#ecf0f7; border-radius:9px; margin-top:13px; overflow:hidden; }
-    .booth .bar i { display:block; height:100%; background:var(--mint); border-radius:9px; }
-    .booth.busy .bar i { background:var(--orange); }
-    .result { display:grid; gap:14px; }
-    .result-row { display:grid; grid-template-columns:42px 1fr 42px; align-items:center; gap:10px; font-size:11px; font-weight:850; }
-    .result-avatar { width:34px; height:34px; border-radius:10px; display:grid; place-items:center; color:#fff; font-weight:900; }
-    .result-track { height:8px; border-radius:9px; background:#edf0f6; overflow:hidden; margin-top:5px; }
-    .result-track i { display:block; height:100%; border-radius:9px; background:var(--blue); }
-    .result-row:nth-child(2) .result-track i { background:#b97945; } .result-row:nth-child(3) .result-track i { background:#5e7d72; } .result-row:nth-child(4) .result-track i { background:#8b617d; }
-    .table-wrap { overflow:auto; max-height:300px; }
-    table { width:100%; border-collapse:collapse; font-size:11px; }
-    th { text-align:left; color:#8792aa; font-size:10px; font-weight:850; padding:12px; border-bottom:1px solid var(--line); position:sticky; top:0; background:var(--white); }
-    td { padding:14px 12px; border-bottom:1px solid #eef1f6; font-weight:650; white-space:nowrap; }
-    .badge { border-radius:99px; padding:5px 8px; font-size:9px; font-weight:850; }
-    .badge.green { color:#128264; background:var(--mint-soft); } .badge.gray { color:#78849d; background:#f0f2f6; }
-    .person { display:flex; align-items:center; gap:8px; }
-    .person-avatar { width:27px; height:27px; display:grid; place-items:center; color:var(--blue); background:var(--blue-soft); border-radius:9px; font-size:10px; font-weight:900; }
-    .admin-actions { display:flex; gap:8px; align-items:center; }
-    .select { border:1px solid var(--line); padding:9px 10px; border-radius:9px; color:var(--muted); background:#fff; font-size:10px; }
-    .toast { position:fixed; right:23px; bottom:23px; background:var(--navy); color:#fff; border-radius:12px; padding:13px 16px; font-size:12px; font-weight:750; box-shadow:var(--shadow); opacity:0; transform:translateY(12px); pointer-events:none; transition:.25s; z-index:20; }
-    .toast.show { opacity:1; transform:none; }
-    .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(13,21,47,.48); z-index:15; place-items:center; padding:20px; }
-    .modal-backdrop.open { display:grid; }
-    .modal { width:min(430px,100%); background:#fff; border-radius:20px; padding:26px; box-shadow:var(--shadow); text-align:center; }
-    .modal.large-modal { width:min(760px,100%); text-align:left; }
-    .modal p { font-size:12px; color:var(--muted); line-height:1.6; margin:9px 0 21px; }
-    .modal-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-    .login-modal { text-align:left; }
-    .login-modal .form-label { margin-top:20px; }
-    .login-error { color:#c25768; font-size:10px; font-weight:800; min-height:15px; margin-top:8px; }
-    .settings-modal { text-align:left; }
-    .settings-saved { min-height:15px; color:var(--mint); font-size:10px; font-weight:800; margin-top:8px; }
-    .field-hint { color:var(--muted); font-size:10px; line-height:1.5; margin-top:6px; }
-    .field-error { min-height:15px; color:var(--red); font-size:10px; font-weight:800; line-height:1.5; margin-top:6px; }
-    input.input-error { border-color:var(--red); background:#fff8f6; box-shadow:0 0 0 3px rgba(169,83,86,.10); }
-    .live-alert { display:flex; align-items:flex-start; gap:13px; margin-bottom:20px; padding:16px 18px; color:#fff8e9; background:linear-gradient(115deg,#283747,#425b58); border:1px solid rgba(189,144,85,.38); border-radius:16px; box-shadow:0 14px 28px rgba(55,45,31,.14); animation:alert-in .3s ease both; }
-    .live-alert-icon { flex:0 0 34px; width:34px; height:34px; display:grid; place-items:center; color:#fff8e9; background:linear-gradient(135deg,#bd9055,#79522f); border-radius:11px; font-size:16px; font-weight:900; }
-    .live-alert-content { flex:1; min-width:0; }
-    .live-alert-content strong { display:block; font-size:12px; }
-    .live-alert-details { display:flex; flex-wrap:wrap; gap:7px 16px; margin-top:7px; color:#e8e0cf; font-size:10px; line-height:1.5; }
-    .live-alert-details b { color:#fff8e9; }
-    .live-alert-time { display:block; color:#b7c7bf; font-size:9px; margin-top:6px; }
-    .live-alert-close { flex:0 0 auto; padding:6px 12px; color:#fff; background:var(--red); border-radius:8px; font-size:11px; font-weight:800; }
-    @keyframes alert-in { from { opacity:0; transform:translateY(-7px); } to { opacity:1; transform:none; } }
-    .hidden { display:none !important; }
-    :root { --navy:#202936; --ink:#2d3540; --muted:#77766f; --line:rgba(91,76,54,.18); --bg:#eee9df; --blue:#9a6b3d; --blue-soft:#f2e8d6; --mint:#5e7d72; --mint-soft:#e4eee9; --orange:#b97945; --orange-soft:#f5e5d5; --red:#a95356; --shadow:0 24px 70px rgba(55,45,31,.16); }
-    body { background:radial-gradient(circle at 8% 8%,#f7f0e2 0,transparent 30%),radial-gradient(circle at 92% 6%,#dce8e2 0,transparent 27%),repeating-linear-gradient(0deg,rgba(91,76,54,.018) 0,rgba(91,76,54,.018) 1px,transparent 1px,transparent 5px),#eee9df; }
-    .app { position:relative; z-index:1; }
+    .app { min-height: 100vh; position: relative; z-index: 1; }
+    
     .detective-background { position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
-    .bg-magnifier { position:absolute; width:430px; height:430px; right:-120px; top:120px; border:2px solid rgba(154,107,61,.085); border-radius:50%; transform:rotate(-38deg); }
-    .bg-magnifier:before { content:""; position:absolute; inset:28px; border:1px solid rgba(94,125,114,.08); border-radius:50%; }
-    .bg-magnifier:after { content:""; position:absolute; width:230px; height:2px; right:-174px; bottom:-62px; background:rgba(154,107,61,.10); border-radius:99px; }
-    .bg-case-label { position:absolute; right:34px; top:585px; color:rgba(91,76,54,.14); font-size:10px; font-weight:900; letter-spacing:.22em; transform:rotate(-38deg); }
-    .bg-case-label:after { content:""; display:block; width:170px; height:1px; margin-top:8px; background:rgba(91,76,54,.12); }
-    .bg-thread { position:absolute; height:1px; background:rgba(94,125,114,.12); transform-origin:left center; }
+    .bg-magnifier { position:absolute; width:430px; height:430px; right:-120px; top:120px; border:2px solid rgba(139,91,50,.15); border-radius:50%; transform:rotate(-38deg); }
+    .bg-magnifier:before { content:""; position:absolute; inset:28px; border:1px solid rgba(74,102,91,.15); border-radius:50%; }
+    .bg-magnifier:after { content:""; position:absolute; width:230px; height:2px; right:-174px; bottom:-62px; background:rgba(139,91,50,.20); border-radius:99px; }
+    .bg-case-label { position:absolute; right:34px; top:585px; color:rgba(105,87,65,.3); font-size:12px; font-weight:900; letter-spacing:.22em; transform:rotate(-38deg); font-family: var(--typewriter); }
+    .bg-case-label:after { content:""; display:block; width:170px; height:1px; margin-top:8px; background:rgba(105,87,65,.2); }
+    .bg-thread { position:absolute; height:2px; background:rgba(158,54,59,.3); transform-origin:left center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     .bg-thread.one { width:260px; right:250px; top:290px; transform:rotate(27deg); }
     .bg-thread.two { width:190px; right:150px; top:470px; transform:rotate(-21deg); }
-    .bg-pin { position:absolute; width:9px; height:9px; border:2px solid rgba(169,83,86,.18); border-radius:50%; }
-    .bg-pin.one { right:242px; top:282px; }
-    .bg-pin.two { right:142px; top:462px; }
-    .topbar { background:rgba(255,252,244,.78); border-bottom-color:rgba(91,76,54,.16); backdrop-filter:blur(18px); }
-    .topbar-actions { display:flex; align-items:center; gap:10px; }
-    .admin-login { color:var(--blue); background:rgba(242,232,214,.85); border:1px solid rgba(154,107,61,.20); }
-    .brand-mark, .welcome-mark { color:#fff6e5; background:linear-gradient(135deg,#bd9055,#79522f); box-shadow:0 0 0 5px rgba(154,107,61,.10),0 10px 26px rgba(105,72,39,.30); }
+    .bg-thread.three { width:300px; left:100px; top:200px; transform:rotate(15deg); }
+    .bg-pin { position:absolute; width:12px; height:12px; background: radial-gradient(circle at 30% 30%, #ec6c75, #9e363b); border-radius:50%; box-shadow: 2px 4px 6px rgba(0,0,0,0.3); }
+    .bg-pin.one { right:244px; top:284px; }
+    .bg-pin.two { right:144px; top:464px; }
+    .bg-pin.three { left:94px; top:194px; }
+
+    .topbar {
+      height: 76px; padding: 0 34px; background: rgba(250, 246, 237, 0.85); border-bottom: 1px solid var(--line); backdrop-filter: blur(12px);
+      display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 850; letter-spacing: -.03em; font-family: var(--typewriter); }
+    .brand-mark {
+      width: 40px; height: 40px; display: grid; place-items: center; color: #fff6e5;
+      border-radius: 8px; background: linear-gradient(135deg,#bd9055,#79522f);
+      box-shadow: 0 0 0 3px rgba(139,91,50,.10), 0 4px 12px rgba(105,72,39,.30); font-size: 20px;
+    }
+    .brand small { display: block; color: var(--muted); font-weight: 600; letter-spacing: 0; font-size: 11px; margin-top: 2px; font-family: Georgia, serif; }
     .detective-icon { width:58%; height:58%; display:block; }
     .detective-icon circle, .detective-icon path { fill:none; stroke:currentColor; stroke-linecap:round; stroke-linejoin:round; }
     .detective-icon circle { stroke-width:2.4; }
     .detective-icon path { stroke-width:2.8; }
-    .mode-switch { background:rgba(232,224,209,.82); border-color:rgba(91,76,54,.16); }
-    .mode-switch button.active { color:var(--blue); background:rgba(255,252,244,.96); box-shadow:0 4px 18px rgba(91,76,54,.15); }
-    .hero h1 { background:linear-gradient(110deg,#202936 15%,#8b6037 62%,#3e746d); -webkit-background-clip:text; background-clip:text; color:transparent; }
-    .panel, .stat, .candidate, .booth, .kiosk-card { border-color:rgba(91,76,54,.18); box-shadow:0 12px 38px rgba(55,45,31,.08); }
-    .kiosk-card { background:linear-gradient(145deg,rgba(255,252,244,.98),rgba(246,240,228,.96)); box-shadow:0 24px 70px rgba(55,45,31,.14),0 0 0 1px rgba(255,255,255,.85) inset; }
-    .kiosk-card:before { background:linear-gradient(135deg,rgba(242,226,196,.86),rgba(213,232,224,.52)); }
-    .btn.primary { background:linear-gradient(115deg,#b17b46,#86572f 58%,#4e8277); box-shadow:0 10px 24px rgba(120,78,39,.28),0 0 18px rgba(78,130,119,.10); }
-    .btn.dark { background:linear-gradient(115deg,#303947,#202936); box-shadow:0 9px 20px rgba(32,41,54,.22); }
-    .candidate:hover { border-color:rgba(154,107,61,.52); box-shadow:0 16px 30px rgba(105,72,39,.14),0 0 0 4px rgba(154,107,61,.06); }
-    .candidate.selected { box-shadow:0 12px 28px rgba(105,72,39,.16),0 0 0 4px rgba(154,107,61,.07); }
-    .candidate-photo { width:128px; height:156px; position:relative; overflow:hidden; margin:0 auto 12px; background:linear-gradient(145deg,#d7c4a7,#8a6749); border-radius:22px; box-shadow:inset 0 -28px 34px rgba(32,41,54,.22),0 10px 20px rgba(55,45,31,.16); }
-    .candidate-photo:before { content:""; position:absolute; width:46px; height:46px; left:50%; top:31px; transform:translateX(-50%); border-radius:50%; background:#f0d5b6; box-shadow:0 0 0 6px rgba(255,252,244,.24); z-index: 2; }
-    .candidate-photo:after { content:""; position:absolute; width:106px; height:80px; left:50%; bottom:-14px; transform:translateX(-50%); border-radius:54px 54px 12px 12px; background:#354052; z-index: 2; }
-    .candidate-photo.has-image:before, .candidate-photo.has-image:after { display: none !important; }
-    .candidate-photo img { position: relative; z-index: 3; }
+    
+    .mode-switch { background:rgba(232,224,209,.82); border: 1px solid var(--line); padding: 4px; border-radius: 8px; display: flex; gap: 3px; }
+    .mode-switch button { color: var(--muted); background: transparent; border-radius: 4px; padding: 9px 15px; font-size: 12px; font-weight: 800; font-family: var(--typewriter); }
+    .mode-switch button.active { color: var(--blue); background: var(--white); box-shadow: 0 3px 10px rgba(105,87,65,.15); }
+    
+    main { max-width: 1400px; margin: 0 auto; padding: 34px; }
+    .view { display: none; animation: enter .35s ease both; }
+    .view.active { display: block; }
+    @keyframes enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    
+    .eyebrow { color: var(--red); font-size: 12px; letter-spacing: .15em; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid var(--red); display: inline-block; padding-bottom: 2px; margin-bottom: 8px; }
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: clamp(29px, 4vw, 45px); letter-spacing: -.02em; line-height: 1.1; color: var(--navy); text-shadow: 1px 1px 0 rgba(255,255,255,0.5); }
+    h2 { font-size: 24px; letter-spacing: -.02em; color: var(--navy); }
+    h3 { font-size: 16px; font-weight: bold; }
+    .muted { color: var(--muted); }
+    
+    .hero { display:flex; align-items:flex-end; justify-content:space-between; gap: 20px; margin: 18px 0 28px; }
+    .hero p { margin-top: 11px; font-size: 15px; color: var(--muted); max-width: 630px; line-height: 1.6; }
+    
+    .pill { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 11px; border: 1px dashed currentColor; font-family: var(--typewriter); }
+    .pill.live { color: var(--red); background: rgba(158,54,59,0.1); }
+    .pill.info { color: var(--navy); background: rgba(25,37,60,0.1); }
+    .dot { width: 8px; height: 8px; background: currentColor; border-radius: 50%; display: inline-block; box-shadow: 0 0 4px currentColor; }
+    .dot.pulse { animation: dot-pulse 1.6s ease-in-out infinite; }
+    @keyframes dot-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+    
+    .btn { padding: 12px 20px; border-radius: 4px; color: var(--navy); background: #e3d3bd; border: 1px solid #c9b59c; font-size: 13px; font-weight: bold; font-family: var(--typewriter); transition: .18s ease; text-transform: uppercase; letter-spacing: .05em; }
+    .btn:hover { transform: translateY(-1px); filter: brightness(.95); box-shadow: 0 4px 8px rgba(105,87,65,.15); }
+    .btn:disabled { cursor:wait; opacity:.58; transform:none; }
+    .btn.primary { color: #fff6e5; background: linear-gradient(115deg,#8b5b32,#634021); border-color: #4a2f18; box-shadow: 0 6px 16px rgba(99,64,33,.3); }
+    .btn.dark { color: #fff6e5; background: var(--navy); border-color: #0c121e; }
+    .btn.full { width: 100%; padding: 15px; font-size: 14px; }
+    
+    .panel, .stat, .candidate, .booth, .kiosk-card { background: var(--white); border: 1px solid var(--line); border-radius: 8px; box-shadow: 2px 4px 12px rgba(105,87,65,.15); position: relative; }
+    .panel:before, .stat:before, .candidate:before { content:""; position:absolute; top:-4px; left:16px; width:40px; height:12px; background: rgba(255,255,255,0.4); border: 1px solid rgba(0,0,0,0.05); transform: rotate(-2deg); z-index: 2; pointer-events: none; }
+    
+    .panel-head { padding: 21px 23px; border-bottom: 1px solid var(--line); display:flex; align-items:center; justify-content:space-between; gap: 12px; background: rgba(0,0,0,0.02); border-radius: 8px 8px 0 0; }
+    .panel-body { padding: 22px 23px; }
+
+    /* client */
+    .kiosk-layout { display: grid; grid-template-columns: minmax(0,840px); justify-content: center; gap: 26px; align-items: start; }
+    .kiosk-card { padding: 40px; min-height: 610px; background: #faf6ed url('data:image/svg+xml;utf8,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="none"/><path d="M0 100 L100 0" stroke="rgba(105,87,65,0.05)" stroke-width="1"/></svg>'); }
+    .kiosk-card-footer { position: absolute; bottom: 15px; right: 25px; font-family: var(--typewriter); font-size: 10px; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 5px; width: calc(100% - 50px); text-align: right; }
+    .kiosk-card-footer span.confidential { color: var(--red); font-weight: bold; border: 1px solid var(--red); padding: 2px 4px; border-radius: 2px; transform: rotate(-3deg); display: inline-block; }
+    
+    .kiosk-content { position: relative; max-width: 680px; margin: 40px auto 30px; z-index: 10; }
+    .kiosk-content.center { text-align:center; }
+    .kiosk-content h1 { font-size: 42px; margin-bottom: 15px; }
+    .kiosk-content .lead { line-height:1.65; color:var(--ink); font-size:15px; margin: 15px auto 27px; max-width: 520px; font-style: italic; }
+    
+    .form-label { display:block; font-size:12px; font-weight:bold; color:var(--navy); margin: 0 0 8px; text-align:left; font-family: var(--typewriter); text-transform: uppercase; }
+    input, select { width:100%; border:1px solid var(--line); background:rgba(255,255,255,0.6); color:var(--ink); border-radius:4px; padding:14px; outline: none; font-size:14px; font-family: var(--typewriter); }
+    input:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(139,91,50,.15); background: #fff; }
+    select:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(139,91,50,.15); background: #fff; }
+    
+    .welcome-mark { width:82px; height:82px; display:grid; place-items:center; color:#fff6e5; font-size:34px; border-radius:8px; margin:0 auto 22px; background:linear-gradient(135deg,#bd9055,#79522f); box-shadow:0 0 0 5px rgba(139,91,50,.10),0 10px 26px rgba(105,72,39,.30); transform: rotate(-5deg); }
+    
+    .identity-box { max-width:460px; margin:0 auto; text-align:left; background: rgba(255,255,255,0.4); padding: 30px; border: 1px solid var(--line); border-radius: 4px; box-shadow: inset 0 0 20px rgba(0,0,0,0.02); }
+    .identity-box .form-label { margin-top:18px; }
+    
+    .candidate-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap: 20px; margin-top: 25px; }
+    .candidate { padding: 20px; cursor:pointer; transition:.2s; position:relative; background: #faf6ed; border: 1px solid #d3c3a9; border-radius: 4px; }
+    .candidate:hover { transform:translateY(-4px) rotate(1deg); border-color:var(--blue); box-shadow: 4px 12px 24px rgba(105,87,65,.2); }
+    .candidate.selected { border:2px solid var(--red); padding:19px; background:#fffdf9; box-shadow: 0 0 0 4px rgba(158,54,59,0.1); transform: rotate(0deg) scale(1.02); }
+    .candidate.selected:after { content:"CONFIRMED"; position:absolute; right:10px; top:10px; border: 2px solid var(--red); color:var(--red); padding: 4px 8px; font-family: var(--typewriter); font-weight:bold; font-size: 11px; transform: rotate(15deg); background: rgba(255,255,255,0.9); }
+    
+    .number { color:var(--navy); font-size:12px; font-weight:bold; letter-spacing:.1em; border-bottom: 1px dashed var(--line); padding-bottom: 5px; margin-bottom: 10px; }
+    .candidate h3 { font-size: 18px; margin-top: 5px; }
+    .candidate p.class-info { color:var(--muted); font-size:13px; font-style: italic; margin-bottom: 10px; }
+    .candidate-photo { width:100px; height:120px; position:relative; overflow:hidden; margin:0 auto 15px; border: 4px solid #fff; box-shadow: 2px 4px 8px rgba(0,0,0,0.15); transform: rotate(-2deg); }
+    .candidate-photo:nth-child(2) { transform: rotate(2deg) translateY(5px); }
+    .candidate-photo img { width:100%; height:100%; object-fit:cover; filter: sepia(0.3) contrast(1.1); }
+    
+    .dossier-details { margin-top: 15px; font-size: 12px; line-height: 1.5; padding: 10px; background: rgba(0,0,0,0.03); border: 1px solid var(--line); font-family: var(--typewriter); }
+    .dossier-details strong { color: var(--navy); display: block; margin-top: 5px; font-size: 10px; text-transform: uppercase; }
+    
+    .candidate .pick { display:block; color:var(--red); font-weight:bold; font-size:12px; margin-top:15px; text-align: center; text-transform: uppercase; font-family: var(--typewriter); border-top: 1px solid var(--line); padding-top: 10px; }
+    
+    .steps { display:flex; gap:10px; align-items:center; margin: 0 0 30px; font-family: var(--typewriter); }
+    .step { display:flex; align-items:center; gap:8px; color:var(--muted); font-size:11px; font-weight:bold; text-transform: uppercase; }
+    .step b { width:24px; height:24px; border-radius:50%; display:grid; place-items:center; background:rgba(0,0,0,0.05); color:var(--muted); border: 1px solid var(--line); }
+    .step.current { color:var(--navy); } .step.current b { color:#fff; background:var(--navy); border-color: var(--navy); box-shadow: 0 0 0 3px rgba(25,37,60,0.1); }
+    .step.done { color:var(--red); } .step.done b { color:var(--red); background:rgba(158,54,59,0.1); border-color: var(--red); }
+    .line { width:30px; height:1px; background:var(--line); stroke-dasharray: 4; border-bottom: 1px dashed var(--line); }
+    
+    .success-countdown { color:var(--navy); font-size:13px; font-family: var(--typewriter); margin-top:20px; font-style: italic; }
+
+    /* admin */
+    .admin-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+    .stat { padding:20px; border-top: 3px solid var(--navy); }
+    .stat-top { display:flex; justify-content:space-between; align-items:center; color:var(--muted); font-size:11px; font-weight:bold; text-transform: uppercase; font-family: var(--typewriter); }
+    .stat-icon { width:32px; height:32px; display:grid; place-items:center; border-radius:4px; background:rgba(25,37,60,0.05); color:var(--navy); font-size:16px; border: 1px solid var(--line); }
+    .stat strong { display:block; margin-top:15px; font-size:32px; font-family: var(--typewriter); color: var(--navy); }
+    .stat small { font-weight:bold; font-size:10px; font-family: var(--typewriter); margin-top: 5px; display: block; }
+    
+    .two-col { display:grid; grid-template-columns:1.25fr .75fr; gap:24px; margin-bottom:24px; }
+    
+    .booths { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; }
+    .booth { padding:15px; border-radius:4px; background: #faf6ed; }
+    .booth-head { display:flex; align-items:center; justify-content:space-between; margin-bottom: 10px; }
+    .booth-number { font-size:18px; font-weight:bold; font-family: var(--typewriter); color: var(--navy); }
+    .booth-icon { width:26px; height:26px; display:grid; place-items:center; border-radius:50%; background:rgba(74,102,91,0.1); color:var(--mint); font-size:12px; border: 1px solid rgba(74,102,91,0.3); }
+    .booth.busy .booth-icon { background:rgba(168,98,44,0.1); color:var(--orange); border-color: rgba(168,98,44,0.3); }
+    .booth p { color:var(--muted); font-size:11px; font-family: var(--typewriter); text-transform: uppercase; }
+    .booth .bar { height:6px; background:rgba(0,0,0,0.05); border-radius:2px; margin-top:10px; overflow:hidden; border: 1px solid var(--line); }
+    .booth .bar i { display:block; height:100%; background:var(--mint); }
+    .booth.busy .bar i { background:var(--orange); }
+    
+    .result { display:grid; gap:16px; }
+    .result-row { display:grid; grid-template-columns:46px 1fr 50px; align-items:center; gap:12px; font-size:13px; font-weight:bold; }
+    .result-avatar { width:40px; height:40px; border-radius:4px; display:grid; place-items:center; color:#fff; font-weight:bold; font-family: var(--typewriter); border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transform: rotate(var(--rot, -3deg)); }
+    .result-row:nth-child(1) .result-avatar { --rot: -3deg; background: #6b4d35; }
+    .result-row:nth-child(2) .result-avatar { --rot: 2deg; background: #8c644c; }
+    .result-row:nth-child(3) .result-avatar { --rot: -1deg; background: #5a756b; }
+    .result-row:nth-child(4) .result-avatar { --rot: 4deg; background: #855b72; }
+    .result-track { height:12px; border-radius:2px; background:rgba(0,0,0,0.05); overflow:hidden; margin-top:6px; border: 1px solid var(--line); position: relative; }
+    .result-track i { display:block; height:100%; background:var(--navy); background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px); }
+    .result-row:nth-child(1) .result-track i { background-color: #6b4d35; } 
+    .result-row:nth-child(2) .result-track i { background-color: #8c644c; } 
+    .result-row:nth-child(3) .result-track i { background-color: #5a756b; } 
+    .result-row:nth-child(4) .result-track i { background-color: #855b72; }
+    .result-row strong { font-family: var(--typewriter); font-size: 16px; text-align: right; }
+    
+    /* Vintage Bar Chart for Demographics */
+    .demo-chart { display: flex; align-items: flex-end; height: 160px; gap: 20px; padding: 20px 10px 0; border-bottom: 2px solid var(--navy); margin-bottom: 10px; }
+    .demo-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; position: relative; }
+    .demo-bar { width: 100%; max-width: 40px; background: repeating-linear-gradient(0deg, var(--navy), var(--navy) 2px, transparent 2px, transparent 4px); transition: height 0.5s; position: relative; border: 1px solid var(--navy); border-bottom: none; }
+    .demo-bar.g11 { background: repeating-linear-gradient(0deg, var(--blue), var(--blue) 2px, transparent 2px, transparent 4px); border-color: var(--blue); }
+    .demo-bar.g12 { background: repeating-linear-gradient(0deg, var(--red), var(--red) 2px, transparent 2px, transparent 4px); border-color: var(--red); }
+    .demo-val { font-family: var(--typewriter); font-size: 12px; font-weight: bold; position: absolute; top: -20px; }
+    .demo-label { font-family: var(--typewriter); font-size: 11px; font-weight: bold; margin-top: 10px; text-align: center; color: var(--navy); text-transform: uppercase; }
+
+    /* Typewriter Evidence Log */
+    .evidence-log { background: #fdfaf4; border: 1px solid var(--line); padding: 15px; height: 220px; overflow-y: auto; font-family: var(--typewriter); font-size: 11px; line-height: 1.6; color: #333; position: relative; }
+    .evidence-log:before { content: ""; position: absolute; left: 20px; top: 0; bottom: 0; width: 1px; background: rgba(158,54,59,0.2); }
+    .log-entry { margin-bottom: 8px; padding-left: 30px; position: relative; border-bottom: 1px dashed rgba(0,0,0,0.05); padding-bottom: 4px; }
+    .log-time { color: var(--muted); margin-right: 8px; }
+    .log-sys { color: var(--navy); font-weight: bold; }
+    .log-entry.warn { color: var(--red); }
+    .log-entry.warn .log-sys { color: var(--red); }
+
+    .table-wrap { overflow:auto; max-height:300px; background: #faf6ed; }
+    table { width:100%; border-collapse:collapse; font-size:12px; }
+    th { text-align:left; color:var(--navy); font-size:11px; padding:15px; border-bottom:2px solid var(--navy); position:sticky; top:0; background:var(--white); text-transform: uppercase; }
+    td { padding:14px 15px; border-bottom:1px dashed var(--line); font-family: Georgia, serif; }
+    
+    .badge { border-radius:2px; padding:4px 8px; font-size:10px; font-weight:bold; font-family: var(--typewriter); text-transform: uppercase; border: 1px solid currentColor; }
+    .badge.green { color:var(--mint); background:rgba(74,102,91,0.1); } .badge.gray { color:var(--muted); background:rgba(0,0,0,0.05); }
+    
+    .person { display:flex; align-items:center; gap:10px; }
+    .person-avatar { width:30px; height:30px; display:grid; place-items:center; color:var(--navy); background:rgba(25,37,60,0.1); border-radius:50%; font-size:11px; font-weight:bold; font-family: var(--typewriter); border: 1px solid var(--line); }
+    
+    .admin-actions { display:flex; gap:10px; align-items:center; }
+    .select { border:1px solid var(--line); padding:10px 12px; border-radius:4px; color:var(--ink); background:rgba(255,255,255,0.7); font-size:12px; font-family: var(--typewriter); }
+    
+    .toast { position:fixed; right:25px; bottom:25px; background:var(--navy); color:#fff; border-radius:4px; padding:15px 20px; font-size:13px; font-weight:bold; font-family: var(--typewriter); box-shadow:var(--shadow); opacity:0; transform:translateY(12px); pointer-events:none; transition:.25s; z-index:50; border: 1px solid #334; }
+    .toast.show { opacity:1; transform:none; }
+    
+    .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(25,37,60,.7); z-index:40; place-items:center; padding:20px; backdrop-filter: blur(4px); }
+    .modal-backdrop.open { display:grid; }
+    .modal { width:min(480px,100%); background:#faf6ed; border:1px solid var(--blue); border-radius:8px; padding:30px; box-shadow:var(--shadow); text-align:center; position: relative; }
+    .modal:before { content:""; position:absolute; top:-10px; left:50%; margin-left:-30px; width:60px; height:20px; background: rgba(255,255,255,0.6); border: 1px solid rgba(0,0,0,0.1); transform: rotate(2deg); }
+    .modal.large-modal { width:min(800px,100%); text-align:left; }
+    .modal p { font-size:14px; color:var(--muted); line-height:1.6; margin:10px 0 25px; }
+    .modal-actions { display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top: 20px; }
+    
+    .login-modal { text-align:left; }
+    .login-modal .form-label { margin-top:20px; }
+    .login-error { color:var(--red); font-size:11px; font-weight:bold; font-family: var(--typewriter); min-height:16px; margin-top:10px; }
+    
+    .settings-modal { text-align:left; }
+    .settings-saved { min-height:16px; color:var(--mint); font-size:11px; font-weight:bold; font-family: var(--typewriter); margin-top:10px; }
+    
+    .field-hint { color:var(--muted); font-size:11px; line-height:1.5; margin-top:8px; font-style: italic; }
+    .field-error { min-height:16px; color:var(--red); font-size:11px; font-weight:bold; line-height:1.5; margin-top:8px; font-family: var(--typewriter); }
+    input.input-error { border-color:var(--red); background:#fcf0f0; box-shadow:0 0 0 3px rgba(158,54,59,.15); }
+    
+    .live-alert { display:flex; align-items:flex-start; gap:16px; margin-bottom:24px; padding:20px; color:#fff6e5; background:linear-gradient(115deg,#9e363b,#6a1f23); border:1px solid #4a1316; border-radius:8px; box-shadow:0 14px 28px rgba(0,0,0,.2); animation:alert-in .3s ease both; position: relative; overflow: hidden; }
+    .live-alert:after { content:"URGENT"; position:absolute; right:-20px; bottom:-10px; font-size: 60px; font-family: var(--typewriter); opacity: 0.1; font-weight: bold; transform: rotate(-10deg); pointer-events: none; }
+    .live-alert-icon { flex:0 0 40px; width:40px; height:40px; display:grid; place-items:center; color:var(--red); background:#fff6e5; border-radius:4px; font-size:20px; font-weight:900; font-family: var(--typewriter); }
+    .live-alert-content { flex:1; min-width:0; position: relative; z-index: 2; }
+    .live-alert-content strong { display:block; font-size:14px; font-family: var(--typewriter); text-transform: uppercase; letter-spacing: 1px; }
+    .live-alert-details { display:flex; flex-wrap:wrap; gap:10px 20px; margin-top:10px; color:#f0d8da; font-size:12px; font-family: var(--typewriter); }
+    .live-alert-details b { color:#fff; }
+    .live-alert-time { display:block; color:#d6a3a5; font-size:11px; margin-top:10px; font-style: italic; }
+    .live-alert-close { flex:0 0 auto; padding:8px 16px; color:#fff; background:rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius:4px; font-size:11px; font-weight:bold; font-family: var(--typewriter); position: relative; z-index: 2; }
+    .live-alert-close:hover { background: rgba(0,0,0,0.5); }
+    @keyframes alert-in { from { opacity:0; transform:translateY(-10px) rotate(-1deg); } to { opacity:1; transform:none; } }
+    
+    .hidden { display:none !important; }
+    
     @media (max-width: 900px) {
       main { padding:24px 18px; } .topbar { padding:0 18px; }
       .kiosk-layout, .two-col { grid-template-columns:1fr; }
@@ -211,112 +267,401 @@
     @media (max-width: 560px) {
       .topbar { height:auto; min-height:72px; gap:12px; flex-wrap:wrap; padding:13px 16px; }
       .mode-switch button { padding:8px 9px; } .hero { display:block; }
-      .kiosk-card { padding:20px; } .kiosk-content { margin-top:45px; } .kiosk-content h1 { font-size:34px; }
-      .candidate-grid { grid-template-columns:1fr; } .stat { padding:14px; }
-      .stat strong { font-size:23px; } .booths { grid-template-columns:repeat(2,1fr); }
+      .kiosk-card { padding:25px; } .kiosk-content { margin-top:30px; } .kiosk-content h1 { font-size:30px; }
+      .candidate-grid { grid-template-columns:1fr; } .stat { padding:15px; }
+      .stat strong { font-size:26px; } .booths { grid-template-columns:repeat(2,1fr); }
     }
   </style>
 </head>
 <body>
-  <div class="detective-background" aria-hidden="true">
-    <div class="bg-magnifier"></div>
-    <div class="bg-case-label">CASE FILE · PEMIRA 2026</div>
-    <div class="bg-thread one"></div>
-    <div class="bg-thread two"></div>
-    <div class="bg-pin one"></div>
-    <div class="bg-pin two"></div>
-  </div>
-  <div class="app">
-    <header class="topbar">
-      <div class="brand">
-         <div class="brand-mark">
-           <svg class="detective-icon" viewBox="0 0 24 24">
-             <circle cx="10.8" cy="10.8" r="6.1"></circle>
-             <path d="m15.4 15.4 5 5"></path>
-           </svg>
-         </div>
-        <div>PEMIRA <small>Nurul Fikri Islamic Senior High School</small></div>
-      </div>
-    </header>
+<div aria-hidden="true" class="detective-background">
+<div class="bg-magnifier"></div>
+<div class="bg-case-label">21 SEPTEMBER 2026</div>
+<div class="bg-thread one"></div>
+<div class="bg-thread two"></div>
+<div class="bg-thread three"></div>
+<div class="bg-pin one"></div>
+<div class="bg-pin two"></div>
+<div class="bg-pin three"></div>
+</div>
+<div class="app">
+<header class="topbar">
+<div class="brand">
+<div class="brand-mark">
+<svg class="detective-icon" viewbox="0 0 24 24">
+<circle cx="10.8" cy="10.8" r="6.1"></circle>
+<path d="m15.4 15.4 5 5"></path>
+</svg>
+</div>
+<div class="">PEMIRA <small>Nurul Fikri Islamic Senior High School</small></div>
+</div>
+<div class="pill hidden" id="modeBadge">
+<span class="dot pulse" id="modeBadgeDot"></span>
+<span id="modeBadgeText"></span>
+</div>
+</header>
+<main>
+<section class="view active" id="clientView">
+<div class="kiosk-layout">
+<div class="kiosk-card">
+<div class="kiosk-content center" id="welcomeScreen">
+<div class="welcome-mark">
+<svg class="detective-icon" viewbox="0 0 24 24">
+<circle cx="10.8" cy="10.8" r="6.1"></circle>
+<path d="m15.4 15.4 5 5"></path>
+</svg>
+</div>
+<div class="eyebrow">Pemilihan Raya 2026</div>
+<h1 class="">SELAMAT DATANG<br/>DI PEMILIHAN RAYA</h1>
+<p class="muted" style="font-size: 13px; margin-bottom: 5px; font-family: var(--typewriter); text-transform: uppercase;"><strong>Presented by Dewan Perwakilan Siswa</strong></p>
+<p class="lead">“Smart Voters, Strong Leader”</p>
+<button class="btn primary full" id="briefingBtn" style="margin-top: 20px; max-width: 300px; margin-left: auto; margin-right: auto;">MULAI MEMILIH →</button>
+</div>
+<div class="kiosk-content hidden" id="briefingScreen">
+<div class="eyebrow">Briefing Kasus</div>
+<h2 class="">Misi: Memilih Pemimpin Masa Depan</h2>
+<div class="identity-box" style="margin-top: 20px; font-family: Georgia, serif; font-size: 15px; line-height: 1.7;">
+<p class="">Detektif,</p>
+<p class="" style="margin-top: 10px;">Kita sedang menghadapi kasus penting. Masa depan sekolah kita berada di persimpangan jalan, dan kita membutuhkan pemimpin yang tepat untuk memandu kita melewati tantangan yang ada.</p>
+<p class="" style="margin-top: 10px;">Empat kandidat telah mengajukan diri. Tugasmu adalah menganalisis profil mereka dan memberikan suaramu untuk kandidat yang paling layak. Keputusanmu akan menentukan arah kebijakan OSIS satu tahun ke depan.</p>
+<p class="" style="margin-top: 10px; font-family: var(--typewriter); font-style: italic; color: var(--red);">Setiap suara adalah petunjuk krusial.</p>
+<button class="btn primary full" id="readyBtn" style="margin-top: 25px;">SAYA SIAP MEMILIH →</button>
+</div>
+</div>
+<div class="kiosk-content hidden" id="identityScreen">
+<div class="steps"><div class="step current"><b class="">1</b> Identitas Pemilih</div><div class="line"></div><div class="step"><b class="">2</b> Profil Paslon</div><div class="line"></div><div class="step"><b class="">3</b> Selesai</div></div>
+<div class="eyebrow">Langkah 1 dari 3</div>
+<h2 class="">Verifikasi Identitas</h2>
+<p class="muted" style="font-size: 14px; margin-top: 10px; line-height: 1.6; font-style: italic;">Silakan identifikasi dirimu untuk mengakses data Paslon. Masukkan Nomor Induk Siswa Nasional (NISN) dan Kelas.</p>
+<div class="identity-box" style="margin-top: 20px;">
+<label class="form-label" for="participantName">Nomor Induk Siswa Nasional Peserta</label>
+<input autocomplete="off" class="input-error" id="participantName" inputmode="numeric" maxlength="10" placeholder="Contoh: 0123456780" type="text"/>
+<p class="field-hint" id="participantNameHint">Gunakan 10 digit NISN sesuai data peserta.</p>
+<p class="field-error" id="participantNameError" role="alert">Nomor Induk Siswa Nasional (NISN) tidak valid.</p>
+<label class="form-label" for="participantClass" style="margin-top: 20px;">KELAS / UNIT</label>
+<select class="select-input" id="participantClass">
+<option value="">Pilih Paslon</option>
+<optgroup label="Grade 10">
+<option>XA</option><option>XB</option><option>XC</option><option>XD</option><option>XE</option><option>XF</option><option>XG</option><option>XH</option>
+</optgroup>
+<optgroup label="Grade 11">
+<option>XI IPA 1</option><option>XI IPA 2</option><option>XI IPA 3</option><option>XI IPA 4</option><option>XI IPA 5</option><option>XI IPA 6</option>
+<option>XI IPS 1</option><option>XI IPS 2</option><option>XI IPS 3</option>
+</optgroup>
+<optgroup label="Grade 12">
+<option>XII Teknik 1</option><option>XII Teknik 2</option><option>XII Kesehatan 1</option><option>XII Kesehatan 2</option><option>XII Sosial 1</option><option>XII Sosial 2</option>
+</optgroup>
+<optgroup label="Staf">
+<option>Guru/Karyawan</option>
+</optgroup>
+</select>
+<button class="btn primary full" id="startBtn" style="margin-top: 25px;">Akses Arsip Calon →</button>
+</div>
+</div>
+<div class="kiosk-content hidden" id="voteScreen" style="max-width: 800px;">
+<div class="steps"><div class="step done"><b class="">✓</b> Identitas Pemilih</div><div class="line"></div><div class="step current"><b class="">2</b> Profil Paslon</div><div class="line"></div><div class="step"><b class="">3</b> Selesai</div></div>
+<div class="eyebrow">Langkah 2 dari 3</div>
+<h2 class="">Pilih Paslon terbaik pilihanmu</h2>
+<p class="muted" style="font-size: 14px; margin-top: 10px; font-style: italic;">Pilih salah satu Paslon sebagai Ketua OSIS. Klik kartu untuk memberikan suara Anda.</p>
+<div class="candidate-grid" id="candidateGridContainer">
+<!-- Content will be populated by JS -->
+</div>
+</div>
+<div class="kiosk-content center hidden" id="successScreen">
+<div class="steps" style="justify-content: center;"><div class="step done"><b>✓</b> Identitas</div><div class="line"></div><div class="step done"><b>✓</b> Analisis</div><div class="line"></div><div class="step done"><b>✓</b> Selesai</div></div>
+<div class="check" style="margin: 45px auto 25px; width: 80px; height: 80px; border-radius: 50%; background: rgba(74, 102, 91, 0.1); color: var(--mint); display: grid; place-items: center; font-size: 36px; font-weight: 900; border: 2px solid var(--mint);">✓</div>
+<h1 class="">Kasus Ditutup.</h1>
+<p class="lead">Laporanmu telah diterima di markas besar. Suaramu direkam dengan aman dan dirahasiakan.</p>
+<div class="" style="background: rgba(255, 255, 255, 0.5); padding: 15px; border-radius: 4px; font-size: 12px; color: var(--muted); border: 1px dashed var(--line); font-family: var(--typewriter); max-width: 300px; margin: 0px auto;">
+                Nomor Referensi Kasus:<br/>
+<b id="receipt" style="color:var(--navy); font-size: 16px; display: block; margin-top: 5px;">PM-000000</b>
+</div>
+<div class="success-countdown">Berkas ini akan disegel dalam <strong id="resetCountdown">5</strong> detik...</div>
+</div>
+<div class="kiosk-card-footer">
+              Case File: <span class="" id="currentDateFooter">Senin, 21 September 2026</span> | <span class="confidential">CONFIDENTIAL</span>
+</div>
+</div>
+</div>
+</section>
+<section class="view hidden" id="panitiaView">
+<div class="kiosk-layout" id="panitiaLoginScreen">
+<div class="kiosk-card" style="min-height:auto;">
+<div class="kiosk-content center" style="margin-top:20px;">
+<div class="welcome-mark">
+<svg class="detective-icon" viewbox="0 0 24 24">
+<circle cx="10.8" cy="10.8" r="6.1"></circle>
+<path d="m15.4 15.4 5 5"></path>
+</svg>
+</div>
+<div class="eyebrow">Area Terbatas</div>
+<h1 class="">Otorisasi Akses</h1>
+<div class="identity-box" style="margin-top:20px;">
+<label class="form-label" for="panitiaUsername">Kredensial Penyelidik</label>
+<input autocomplete="username" id="panitiaUsername" placeholder="Masukkan ID Penyelidik" type="text"/>
+<label class="form-label" for="panitiaPassword" style="margin-top: 15px;">Kata Sandi</label>
+<input autocomplete="current-password" id="panitiaPassword" placeholder="Masukkan Kata Sandi" type="password"/>
+<div class="login-error" id="panitiaLoginError"></div>
+<button class="btn primary full" id="panitiaLoginBtn" style="margin-top: 20px;">Buka Akses Data</button>
+</div>
+</div>
+<div class="kiosk-card-footer">
+              Security Level: Maximum | <span class="confidential">AUTHORIZED PERSONNEL ONLY</span>
+</div>
+</div>
+</div>
+<div class="hidden" id="panitiaDashboard">
+<div class="hero">
+<div><div class="eyebrow">Markas Besar · Live monitoring</div><h1 class="" id="panitiaDashboardTitle">Dashboard Investigasi.</h1><p class="">Pantau seluruh aktivitas pengumpulan bukti dan data saksi secara real-time.</p></div>
+<div class="admin-actions">
+<span class="pill live"><span class="dot"></span> Jaringan Aman</span>
+<button class="btn" id="panitiaSettingsBtn">⚙ Konfigurasi</button>
+<button class="btn dark" id="panitiaLogoutBtn">Tutup Akses</button>
+</div>
+</div>
+<div class="live-alert hidden" id="liveVoteAlert" role="status">
+<div class="live-alert-icon" id="liveAlertIcon">!</div>
+<div class="live-alert-content">
+<strong id="liveAlertTitle">ANOMALI TERDETEKSI: Duplikasi Saksi!</strong>
+<div class="live-alert-details">
+<span class="">ID/NISN: <b id="liveAlertName">—</b></span>
+<span class="">Departemen: <b id="liveAlertClass">—</b></span>
+<span class="">Lokasi/Bilik: <b id="liveAlertBooth">—</b></span>
+</div>
+<small class="live-alert-time" id="liveAlertTime">Peringatan: Subjek mencoba mengakses sistem lebih dari satu kali.</small>
+</div>
+<button class="live-alert-close" id="dismissLiveAlertBtn">Abaikan Peringatan</button>
+</div>
+<div class="admin-grid">
+<div class="stat"><div class="stat-top"><span class="">Target Saksi</span><span class="stat-icon">
+<svg class="detective-icon" style="width: 20px; height: 20px;" viewbox="0 0 24 24">
+<circle cx="10.8" cy="10.8" r="6.1"></circle>
+<path d="m15.4 15.4 5 5"></path>
+</svg>
+</span></div><strong id="adminTotal">240</strong><small>Kapasitas Maksimal</small></div>
+<div class="stat"><div class="stat-top"><span class="">Bukti Masuk</span><span class="stat-icon" style="color: var(--mint); background: rgba(74, 102, 91, 0.1); border-color: rgba(74, 102, 91, 0.3);">✓</span></div><strong id="adminCount">0</strong><small>Terverifikasi</small></div>
+<div class="stat"><div class="stat-top"><span class="">Progres Kasus</span><span class="stat-icon" style="color: var(--orange); background: rgba(168, 98, 44, 0.1); border-color: rgba(168, 98, 44, 0.3);">◔</span></div><strong id="adminPercent">0%</strong><small style="color:var(--orange)">Penyelidikan Aktif</small></div>
+<div class="stat"><div class="stat-top"><span class="">Pos Aktif</span><span class="stat-icon" style="color: var(--red); background: rgba(158, 54, 59, 0.1); border-color: rgba(158, 54, 59, 0.3);">▣</span></div><strong id="activeBoothCount">0/5</strong><small style="color:var(--red)">Koneksi Stabil</small></div>
+</div>
+<div class="two-col">
+<div class="panel" style="border: 1px solid rgba(91,76,54,.18); box-shadow: 2px 4px 12px rgba(105,87,65,.15);">
+<div class="panel-head">
+<div><h3 class="">Status Pos Penyelidikan (Bilik)</h3></div>
+<button class="btn" id="refreshBoothsBtn" style="padding: 6px 12px; font-size: 11px;">↻ Pindai Ulang</button>
+</div>
+<div class="panel-body">
+<div class="booths">
+<div class="booth" data-booth="1"><div class="booth-head"><span class="booth-number">POS 01</span><span class="booth-icon">✓</span></div><p class="">Standby</p><div class="bar"><i style="width:0%"></i></div></div>
+<div class="booth" data-booth="2"><div class="booth-head"><span class="booth-number">POS 02</span><span class="booth-icon">✓</span></div><p class="">Standby</p><div class="bar"><i style="width:0%"></i></div></div>
+<div class="booth" data-booth="3"><div class="booth-head"><span class="booth-number">POS 03</span><span class="booth-icon">✓</span></div><p class="">Standby</p><div class="bar"><i style="width:0%"></i></div></div>
+<div class="booth" data-booth="4"><div class="booth-head"><span class="booth-number">POS 04</span><span class="booth-icon">✓</span></div><p class="">Standby</p><div class="bar"><i style="width:0%"></i></div></div>
+<div class="booth" data-booth="5"><div class="booth-head"><span class="booth-number">POS 05</span><span class="booth-icon">✓</span></div><p class="">Standby</p><div class="bar"><i style="width:0%"></i></div></div>
+</div>
+</div>
+</div>
+<div class="panel" style="border: 1px solid rgba(91,76,54,.18); box-shadow: 2px 4px 12px rgba(105,87,65,.15);">
+<div class="panel-head">
+<div><h3 class="">Log Aktivitas Sistem</h3></div>
+<div class="admin-actions"><span class="pill live">Live</span></div>
+</div>
+<div class="panel-body" style="padding: 15px;">
+<div class="evidence-log" id="systemLogs">
+<div class="log-entry"><span class="log-time">[07:00:00]</span> <span class="log-sys">SYSTEM:</span> Inisialisasi protokol keamanan markas besar.</div>
+<div class="log-entry"><span class="log-time">[07:00:15]</span> <span class="log-sys">ENCRYPTION:</span> Algoritma SHA-256 aktif untuk penyimpanan bukti.</div>
+<div class="log-entry"><span class="log-time">[07:01:05]</span> <span class="log-sys">NETWORK:</span> Menghubungkan ke 5 Pos Penyelidikan (Bilik)... Berhasil.</div>
+<div class="log-entry"><span class="log-time">[07:05:22]</span> <span class="log-sys">DATA:</span> Sinkronisasi daftar saksi (NISN) selesai.</div>
+<!-- New logs appended here via JS -->
+</div>
+</div>
+</div>
+</div>
+<div class="two-col" style="grid-template-columns: 1fr 1fr;">
+<div class="panel" style="border: 1px solid rgba(91,76,54,.18); box-shadow: 2px 4px 12px rgba(105,87,65,.15);">
+<div class="panel-head"><div><h3 class="">Distribusi Bukti Sementara</h3></div></div>
+<div class="panel-body">
+<div class="result" id="resultList">
+<!-- Results populated via JS -->
+</div>
+</div>
+</div>
+<div class="panel" style="border: 1px solid rgba(91,76,54,.18); box-shadow: 2px 4px 12px rgba(105,87,65,.15);">
+<div class="panel-head">
+<div><h3 class="">Partisipasi per Kelas</h3></div>
+</div>
+<div class="panel-body">
+<div class="demo-chart">
+<div class="demo-bar-wrap">
+<div class="demo-val" id="g10-val">0%</div>
+<div class="demo-bar" id="g10-bar" style="height: 5%;"></div>
+<div class="demo-label">Grade 10</div>
+</div>
+<div class="demo-bar-wrap">
+<div class="demo-val" id="g11-val">0%</div>
+<div class="demo-bar g11" id="g11-bar" style="height: 5%;"></div>
+<div class="demo-label">Grade 11</div>
+</div>
+<div class="demo-bar-wrap">
+<div class="demo-val" id="g12-val">0%</div>
+<div class="demo-bar g12" id="g12-bar" style="height: 5%;"></div>
+<div class="demo-label">Grade 12</div>
+</div>
+</div>
+<p class="muted" style="font-size: 11px; text-align: center; margin-top: 10px; font-family: var(--typewriter);">Visualisasi partisipasi antar tingkat. Staf tidak ditampilkan.</p>
+</div>
+</div>
+</div>
+<div class="panel" style="border: 1px solid rgba(91,76,54,.18); box-shadow: 2px 4px 12px rgba(105,87,65,.15);">
+<div class="panel-head">
+<div><h3 class="">Riwayat Suara Terkini</h3></div>
+<div class="admin-actions">
+<select class="select" id="participantClassFilter">
+<option value="">Seluruh Departemen</option>
+<optgroup label="Grade 10">
+<option value="XA">XA</option><option value="XB">XB</option><option value="XC">XC</option><option value="XD">XD</option><option value="XE">XE</option><option value="XF">XF</option><option value="XG">XG</option><option value="XH">XH</option>
+</optgroup>
+<optgroup label="Grade 11">
+<option value="XI IPA 1">XI IPA 1</option><option value="XI IPA 2">XI IPA 2</option><option value="XI IPA 3">XI IPA 3</option><option value="XI IPA 4">XI IPA 4</option><option value="XI IPA 5">XI IPA 5</option><option value="XI IPA 6">XI IPA 6</option>
+<option value="XI IPS 1">XI IPS 1</option><option value="XI IPS 2">XI IPS 2</option><option value="XI IPS 3">XI IPS 3</option>
+</optgroup>
+<optgroup label="Grade 12">
+<option value="XII Teknik 1">XII Teknik 1</option><option value="XII Teknik 2">XII Teknik 2</option><option value="XII Kesehatan 1">XII Kesehatan 1</option><option value="XII Kesehatan 2">XII Kesehatan 2</option><option value="XII Sosial 1">XII Sosial 1</option><option value="XII Sosial 2">XII Sosial 2</option>
+</optgroup>
+<optgroup label="Staf">
+<option value="Guru/Karyawan">Guru/Karyawan</option>
+</optgroup>
+</select>
+<button class="btn" id="viewAllParticipantsBtn">Arsip Lengkap</button>
+</div>
+</div>
+<div class="table-wrap">
+<table>
+<thead><tr><th class="">ID / NISN PEMILIH</th><th class="">PASLON</th><th class="">STATUS</th><th class="">WAKTU LAPORAN</th><th class="">POS (BILIK)</th></tr></thead>
+<tbody id="participantTableBody"></tbody>
+</table>
+</div>
+</div>
+</div>
+</section>
+</main>
+</div>
+<div class="toast" id="toast"></div>
+<!-- MODAL UNTUK MELIHAT SEMUA DATA PESERTA -->
+<div class="modal-backdrop" id="allParticipantsModal">
+<div class="modal large-modal">
+<div class="panel-head" style="padding:0 0 16px; margin-bottom:16px; background: transparent; border-bottom: 2px solid var(--navy);">
+<h2 class="">Data Peserta Pemilihan</h2>
+<div class="admin-actions">
+<select class="select" id="allParticipantsClassFilter">
+<option value="">Seluruh Departemen</option>
+<optgroup label="Grade 10">
+<option value="XA">XA</option><option value="XB">XB</option><option value="XC">XC</option><option value="XD">XD</option><option value="XE">XE</option><option value="XF">XF</option><option value="XG">XG</option><option value="XH">XH</option>
+</optgroup>
+<optgroup label="Grade 11">
+<option value="XI IPA 1">XI IPA 1</option><option value="XI IPA 2">XI IPA 2</option><option value="XI IPA 3">XI IPA 3</option><option value="XI IPA 4">XI IPA 4</option><option value="XI IPA 5">XI IPA 5</option><option value="XI IPA 6">XI IPA 6</option>
+<option value="XI IPS 1">XI IPS 1</option><option value="XI IPS 2">XI IPS 2</option><option value="XI IPS 3">XI IPS 3</option>
+</optgroup>
+<optgroup label="Grade 12">
+<option value="XII Teknik 1">XII Teknik 1</option><option value="XII Teknik 2">XII Teknik 2</option><option value="XII Kesehatan 1">XII Kesehatan 1</option><option value="XII Kesehatan 2">XII Kesehatan 2</option><option value="XII Sosial 1">XII Sosial 1</option><option value="XII Sosial 2">XII Sosial 2</option>
+</optgroup>
+<optgroup label="Staf">
+<option value="Guru/Karyawan">Guru/Karyawan</option>
+</optgroup>
+</select>
+<button class="btn" id="closeAllParticipantsBtn">Tutup Arsip</button>
+</div>
+</div>
+<div class="table-wrap" style="max-height:400px; border: 1px solid var(--line);">
+<table>
+<thead><tr><th class="">ID / NISN PEMILIH</th><th class="">PASLON</th><th class="">STATUS</th><th class="">WAKTU LAPORAN</th><th class="">POS (BILIK)</th></tr></thead>
+<tbody id="allParticipantsTableBody"></tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="modal-backdrop" id="settingsModal">
+<div class="modal settings-modal">
+<div class="eyebrow">Konfigurasi Sistem</div>
+<h2 class="">Pengaturan Operasi</h2>
+<label class="form-label" for="settingsSessionName">Nama Sandi Operasi</label>
+<input id="settingsSessionName" placeholder="PEMIRA 2026" type="text"/>
+<label class="form-label" for="settingsTotalVoters" style="margin-top: 15px;">Target Kapasitas Saksi</label>
+<input id="settingsTotalVoters" placeholder="240" type="number"/>
+<div class="settings-saved" id="settingsSaved"></div>
+<div class="modal-actions">
+<button class="btn" id="cancelSettingsBtn">Batal</button>
+<button class="btn primary" id="saveSettingsBtn">Simpan Konfigurasi</button>
+</div>
+</div>
+</div>
+<script>
+    const CANDIDATES_CONFIG = [
+      { id: 1, ketua: "Alya", wakil: "Rahma", team: "TEAM ALRA", vision: "Sekolah aktif, kreatif, dan inklusif.", focus: "Pengembangan program literasi dan debat.", color: "#6b4d35" },
+      { id: 2, ketua: "Bagas", wakil: "Mahendra", team: "TEAM BAMA", vision: "Disiplin dan berprestasi.", focus: "Peningkatan fasilitas olahraga dan kedisiplinan.", color: "#8c644c" },
+      { id: 3, ketua: "Citra", wakil: "Nabila", team: "TEAM CINA", vision: "Ramah lingkungan dan inovatif.", focus: "Program penghijauan dan kewirausahaan siswa.", color: "#5a756b" },
+      { id: 4, ketua: "Dimas", wakil: "Pratama", team: "TEAM DIPA", vision: "Teknologi dan seni berpadu.", focus: "Digitalisasi mading dan festival seni tahunan.", color: "#855b72" }
+    ];
 
-    <main>
-      <section id="clientView" class="view active">
-        <div class="hero">
-          <div><div class="eyebrow">Pemilihan Raya 2026</div><h1>Suaramu, masa depanmu.</h1><p>Pilih calon pasangan Ketua/Wakil Ketua OSIS yang paling mewakili suara dan harapanmu. Satu suara untuk perubahan yang berarti.</p></div>
-        </div>
-        <div class="kiosk-layout">
-          <div class="kiosk-card">
-            <div id="welcomeScreen" class="kiosk-content center">
-               <div class="welcome-mark">
-                 <svg class="detective-icon" viewBox="0 0 24 24">
-                   <circle cx="10.8" cy="10.8" r="6.1"></circle>
-                   <path d="m15.4 15.4 5 5"></path>
-                 </svg>
-               </div>
-              <div class="eyebrow">Pemilihan Raya 2026</div>
-              <h1 style="font-size:36px;margin-top:8px">SELAMAT DATANG<br>DI PEMILIHAN RAYA<br></h1>
-<p style="font-size: 11px; margin-bottom: 2px;" class="muted"><strong>Presented by Dewan Perwakilan Siswa</strong></p>
-<p class="lead" style="margin-top: 0;">“Smart Voters, Strong Leader”</p>
-              <button id="readyBtn" class="btn primary full" style="margin-top:10px">SAYA SIAP →</button>
-            </div>
-            <div id="identityScreen" class="kiosk-content hidden">
-              <div class="steps"><div class="step current"><b>1</b> Identitas</div><div class="line"></div><div class="step"><b>2</b> Pilih calon</div><div class="line"></div><div class="step"><b>3</b> Selesai</div></div>
-              <div class="eyebrow">Langkah 1 dari 3</div><h2 style="margin-top:5px">Kenalkan dirimu</h2>
-              <p class="muted" style="font-size:12px;margin-top:7px;line-height:1.6">Masukkan Nomor Induk Siswa Nasional (NISN) dan Kelas.</p>
-              <div class="identity-box">
-                 <label class="form-label" for="participantName">Nomor Induk Siswa Nasional Peserta</label>
-                 <input id="participantName" type="text" maxlength="10" placeholder="Contoh: 0123456780" autocomplete="off" inputmode="numeric" />
-                 <p id="participantNameHint" class="field-hint">Gunakan 10 digit NISN sesuai data peserta.</p>
-                 <p id="participantNameError" class="field-error" role="alert"></p>
-                <label class="form-label" for="participantClass">Kelas / Unit</label>
-                <select id="participantClass" class="select-input">
-                  <option value="">Pilih kelas / unit kamu</option>
-                  <optgroup label="Siswa">
-                  <option>XA</option><option>XB</option><option>XC</option><option>XD</option><option>XE</option><option>XF</option><option>XG</option><option>XH</option>
-                  <option>XI IPA 1</option><option>XI IPA 2</option><option>XI IPA 3</option><option>XI IPA 4</option><option>XI IPA 5</option><option>XI IPA 6</option>
-                  <option>XI IPS 1</option><option>XI IPS 2</option><option>XI IPS 3</option>
-                  <option>XII Teknik 1</option><option>XII Teknik 2</option><option>XII Kesehatan 1</option><option>XII Kesehatan 2</option><option>XII Sosial 1</option><option>XII Sosial 2</option>
-                  </optgroup>
-                  <optgroup label="Non-siswa">
-                  <option>Guru/Karyawan</option>
-                  </optgroup>
-                </select>
-                <button id="startBtn" class="btn primary full" style="margin-top:18px">Lanjut memilih →</button>
-              </div>
-            </div>
-            <div id="voteScreen" class="kiosk-content hidden">
-              <div class="steps"><div class="step done"><b>✓</b> Identitas</div><div class="line"></div><div class="step current"><b>2</b> Pilih calon</div><div class="line"></div><div class="step"><b>3</b> Selesai</div></div>
-              <div class="eyebrow">Langkah 2 dari 3</div><h2 style="margin-top:5px">Siapa pilihanmu?</h2><p class="muted" style="font-size:12px;margin-top:7px">Pilih satu calon Ketua OSIS. Klik kartu calon untuk melihat pilihanmu sebelum waktu habis.</p>
-              <div class="candidate-grid">
-                  <article class="candidate" data-candidate="1"><div class="avatar candidate-photo has-photo"><img src="Foto/Paslon1.png" alt="Alya Rahma" style="width:100%; height:100%; border-radius:17px; object-fit:cover;"></div><div class="number">01 · Paslon</div><h3 style="margin-top:5px">Alya Rahma</h3><p>XII IPA 1</p><div class="vision">“Sekolah aktif, kreatif, dan inklusif.”</div><span class="pick">Pilih calon ini →</span></article>
-                  <article class="candidate" data-candidate="2"><div class="avatar candidate-photo has-photo"><img src="Foto/Paslon2.png" alt="Bagas Mahendra" style="width:100%; height:100%; border-radius:17px; object-fit:cover;"></div><div class="number">02 · Paslon</div><h3 style="margin-top:5px">Bagas Mahendra</h3><p>XII IPS 2</p><div class="vision">“Bergerak bersama, berprestasi nyata.”</div><span class="pick">Pilih calon ini →</span></article>
-                  <article class="candidate" data-candidate="3"><div class="avatar candidate-photo has-photo"><img src="Foto/Paslon3.png" alt="Citra Nabila" style="width:100%; height:100%; border-radius:17px; object-fit:cover;"></div><div class="number">03 · Paslon</div><h3 style="margin-top:5px">Citra Nabila</h3><p>XI IPA 2</p><div class="vision">“Suara siswa, aksi bersama.”</div><span class="pick">Pilih calon ini →</span></article>
-                  <article class="candidate" data-candidate="4"><div class="avatar candidate-photo has-photo"><img src="Foto/Paslon4.png" alt="Dimas Pratama" style="width:100%; height:100%; border-radius:17px; object-fit:cover;"></div><div class="number">04 · Paslon</div><h3 style="margin-top:5px">Dimas Pratama</h3><p>XI IPS 1</p><div class="vision">“Tumbuh, berdampak, menginspirasi.”</div><span class="pick">Pilih calon ini →</span></article>
-              </div>
-            </div>
-            <div id="successScreen" class="kiosk-content center hidden">
-              <div class="steps"><div class="step done"><b>✓</b> Identitas</div><div class="line"></div><div class="step done"><b>✓</b> Pilih calon</div><div class="line"></div><div class="step done"><b>✓</b> Selesai</div></div>
-              <div class="check" style="margin:45px auto 20px;width:68px;height:68px;border-radius:22px;background:var(--mint-soft);color:var(--mint);display:grid;place-items:center;font-size:31px;font-weight:900">✓</div>
-              <h1 style="font-size:34px">Suara terekam!</h1><p class="lead">Terima kasih sudah berpartisipasi. Suaramu telah disimpan secara aman dan anonim.</p>
-              <div style="background:#f7f9fd;padding:12px;border-radius:11px;font-size:11px;color:var(--muted)">Kode tanda terima: <b id="receipt" style="color:var(--navy)">PM-000000</b></div>
-              <div class="success-countdown">Bilik akan kembali ke halaman awal dalam <strong id="resetCountdown">5</strong> detik</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-    </main>
-  </div>
-  <div id="toast" class="toast"></div>
-
-  <script>
     const $ = (s) => document.querySelector(s);
     const $$ = (s) => [...document.querySelectorAll(s)];
     const BOOTH_ID = new URLSearchParams(location.search).get('booth') || 'Pribadi';
+    const PANITIA_MODE = new URLSearchParams(location.search).has('panitia');
     const POLL_MS = 5000;
+    const SETTINGS_STORAGE_KEY = 'pemira-settings-v1';
     const NAME_USAGE_KEY = 'pemira-name-usage-v1';
     const LIVE_ALERT_KEY = 'pemira-live-alert-v1';
-    const state = { selected: null, participantName: '', participantClass: '', resetTimer: null, voting: false };
+    const state = { selected: null, participantName: '', participantClass: '', resetTimer: null, voting: false, pollTimer: null, allActivityData: [], classFilter: '' };
+
+    // Setup candidate cards
+    function setupCandidates() {
+      const grid = $('#candidateGridContainer');
+      const resultsContainer = $('#resultList');
+      if (grid) {
+        grid.innerHTML = CANDIDATES_CONFIG.map(c => `
+          <article class="candidate" data-candidate="${c.id}">
+            <div class="number">BERKAS NO. 0${c.id}</div>
+            <div style="display:flex; justify-content:center; gap:10px; margin-bottom:15px;">
+              <div class="candidate-photo"><img alt="${c.ketua}" src="Foto/Paslon${c.id}A.png" onerror="this.src='https://ui-avatars.com/api/?name=${c.ketua}&background=random'"/></div>
+              <div class="candidate-photo"><img alt="${c.wakil}" src="Foto/Paslon${c.id}B.png" onerror="this.src='https://ui-avatars.com/api/?name=${c.wakil}&background=random'"/></div>
+            </div>
+            <h3 style="color: var(--red); font-size: 14px; margin-bottom: 2px;">${c.team}</h3>
+            <h3 style="font-size: 18px;">${c.ketua} & ${c.wakil}</h3>
+            <p class="class-info">Pasangan Calon 0${c.id}</p>
+            <div class="dossier-details">
+              <strong>Visi:</strong> “${c.vision}”
+              <strong>Fokus:</strong> ${c.focus}
+            </div>
+            <span class="pick">Konfirmasi Pilihan →</span>
+          </article>
+        `).join('');
+      }
+      if (resultsContainer) {
+        resultsContainer.innerHTML = CANDIDATES_CONFIG.map((c, i) => {
+          const rot = [-3, 2, -1, 4][i % 4];
+          return `
+            <div class="result-row">
+              <div class="result-avatar" style="--rot:${rot}deg; background-color: ${c.color}">0${c.id}</div>
+              <div><span>${c.ketua} & ${c.wakil}</span><div class="result-track"><i style="width:0%; background-color: ${c.color}"></i></div></div>
+              <strong>0</strong>
+            </div>
+          `;
+        }).join('');
+      }
+      
+      $$('.candidate').forEach(card => card.addEventListener('click', () => {
+        if (state.voting) return;
+        $$('.candidate').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        state.selected = card.dataset.candidate;
+        recordVote();
+      }));
+    }
+    
+    setupCandidates();
+
+    // Set current date in footer
+    const dateOpts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    const dateStr = new Date().toLocaleDateString('id-ID', dateOpts);
+    if ($('#currentDateFooter')) $('#currentDateFooter').textContent = dateStr;
 
     async function api(path, options) {
       try {
@@ -329,24 +674,338 @@
       }
     }
 
-    $('#participantName').addEventListener('input', (event) => {
-      const input = event.target;
-      const raw = input.value;
-      const cleanValue = raw.replace(/[^0-9]/g, '');
-      
-      if (raw !== cleanValue) {
-        input.value = cleanValue;
-        setParticipantNameError('NISN hanya boleh berisi angka.');
+    // ===== Badge mode di pojok kanan atas =====
+    (function setupModeBadge() {
+      const boothParam = new URLSearchParams(location.search).get('booth');
+      const badge = $('#modeBadge');
+      const dot = $('#modeBadgeDot');
+      const text = $('#modeBadgeText');
+      if (PANITIA_MODE) {
+        badge.classList.add('info');
+        dot.classList.add('hidden');
+        text.textContent = 'Admin Akses';
+        badge.classList.remove('hidden');
+      } else if (boothParam) {
+        badge.classList.add('live');
+        dot.classList.remove('hidden');
+        text.textContent = 'Pos ' + boothParam;
+        badge.classList.remove('hidden');
+      }
+    })();
+
+    // ===== Mode panitia (diakses lewat ?panitia, bukan endpoint terpisah) =====
+    if (PANITIA_MODE) {
+      $('#clientView').classList.remove('active');
+      $('#panitiaView').classList.add('active');
+      initPanitia();
+    }
+
+    function initPanitia() {
+      $('#panitiaLoginBtn').addEventListener('click', loginPanitia);
+      $('#panitiaPassword').addEventListener('keydown', (e) => { if (e.key === 'Enter') loginPanitia(); });
+      $('#panitiaLogoutBtn').addEventListener('click', logoutPanitia);
+      $('#panitiaSettingsBtn').addEventListener('click', openSettings);
+      $('#cancelSettingsBtn').addEventListener('click', () => $('#settingsModal').classList.remove('open'));
+      $('#saveSettingsBtn').addEventListener('click', saveSettings);
+      $('#dismissLiveAlertBtn').addEventListener('click', () => {
+        localStorage.removeItem(LIVE_ALERT_KEY);
+        $('#liveVoteAlert').classList.add('hidden');
+        addSystemLog('WARN', 'Peringatan anomali (duplikasi NISN) telah diabaikan oleh operator.');
+      });
+      $('#viewAllParticipantsBtn').addEventListener('click', () => {
+        $('#allParticipantsClassFilter').value = state.classFilter;
+        renderAllParticipantsModal();
+        $('#allParticipantsModal').classList.add('open');
+      });
+      $('#closeAllParticipantsBtn').addEventListener('click', () => $('#allParticipantsModal').classList.remove('open'));
+      $('#participantClassFilter').addEventListener('change', (e) => {
+        state.classFilter = e.target.value;
+        renderActivity(state.allActivityData);
+      });
+      $('#allParticipantsClassFilter').addEventListener('change', () => renderAllParticipantsModal());
+
+      checkPanitiaAuth();
+    }
+
+    function addSystemLog(type, msg) {
+      const logsEl = $('#systemLogs');
+      if (!logsEl) return;
+      const now = new Date();
+      const timeStr = `[${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}]`;
+      const div = document.createElement('div');
+      div.className = type === 'WARN' ? 'log-entry warn' : 'log-entry';
+      div.innerHTML = `<span class="log-time">${timeStr}</span> <span class="log-sys">${type}:</span> ${msg}`;
+      logsEl.appendChild(div);
+      logsEl.scrollTop = logsEl.scrollHeight;
+    }
+
+    async function checkPanitiaAuth() {
+      const { ok } = await api('/api/results');
+      if (ok) {
+        showPanitiaDashboard();
+      } else {
+        showPanitiaLogin();
+      }
+    }
+
+    function showPanitiaLogin() {
+      $('#panitiaLoginScreen').classList.remove('hidden');
+      $('#panitiaDashboard').classList.add('hidden');
+      clearInterval(state.pollTimer);
+    }
+
+    function showPanitiaDashboard() {
+      $('#panitiaLoginScreen').classList.add('hidden');
+      $('#panitiaDashboard').classList.remove('hidden');
+      applySettings();
+      checkLiveAlerts();
+      startResultsPolling();
+      addSystemLog('INFO', 'Otorisasi berhasil. Mengakses data...');
+    }
+
+    async function loginPanitia() {
+      const username = $('#panitiaUsername').value.trim();
+      const password = $('#panitiaPassword').value;
+      $('#panitiaLoginError').textContent = '';
+      if (!username || !password) { $('#panitiaLoginError').textContent = 'Kredensial tidak lengkap.'; return; }
+      $('#panitiaLoginBtn').disabled = true;
+      const { ok, data } = await api('/api/login', { method: 'POST', body: JSON.stringify({ username, password }) });
+      $('#panitiaLoginBtn').disabled = false;
+      if (!ok || !data || !data.ok) {
+        $('#panitiaLoginError').textContent = (data && data.error) || 'Akses Ditolak. Kredensial tidak valid.';
         return;
       }
+      $('#panitiaUsername').value = '';
+      $('#panitiaPassword').value = '';
+      showPanitiaDashboard();
+    }
+
+    async function logoutPanitia() {
+      await api('/api/logout', { method: 'POST' });
+      clearInterval(state.pollTimer);
+      showPanitiaLogin();
+    }
+
+    function readSettings() {
+      const defaults = { sessionName: 'PEMIRA 2026', totalVoters: 240 };
+      try {
+        const saved = JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY) || 'null');
+        return saved || defaults;
+      } catch (e) { return defaults; }
+    }
+
+    function applySettings() {
+      const settings = readSettings();
+      if ($('#panitiaDashboardTitle')) $('#panitiaDashboardTitle').textContent = `Operasi ${settings.sessionName.toLowerCase()}.`;
+      if ($('#adminTotal')) $('#adminTotal').textContent = settings.totalVoters;
+    }
+
+    function openSettings() {
+      const settings = readSettings();
+      $('#settingsSessionName').value = settings.sessionName;
+      $('#settingsTotalVoters').value = settings.totalVoters;
+      $('#settingsSaved').textContent = '';
+      $('#settingsModal').classList.add('open');
+    }
+
+    function saveSettings() {
+      const sessionName = $('#settingsSessionName').value.trim();
+      const totalVoters = Number($('#settingsTotalVoters').value);
+      if (!sessionName || !totalVoters) return;
+      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify({ sessionName, totalVoters }));
+      applySettings();
+      $('#settingsModal').classList.remove('open');
+      showToast('Konfigurasi sistem diperbarui.');
+      addSystemLog('SYSTEM', 'Parameter operasi telah diperbarui oleh operator.');
+    }
+
+    function checkLiveAlerts() {
+      try {
+        const rawAlert = localStorage.getItem(LIVE_ALERT_KEY);
+        if (rawAlert) {
+          const alertData = JSON.parse(rawAlert);
+          $('#liveAlertName').textContent = alertData.name || '—';
+          $('#liveAlertClass').textContent = alertData.class || '—';
+          $('#liveAlertBooth').textContent = alertData.booth || '—';
+          $('#liveVoteAlert').classList.remove('hidden');
+          // Add to log if it's new (simple check by seeing if it's already visible might not work perfectly, but okay for demo)
+        } else {
+          $('#liveVoteAlert').classList.add('hidden');
+        }
+      } catch (e) {}
+    }
+
+    function startResultsPolling() {
+      fetchResults();
+      clearInterval(state.pollTimer);
+      state.pollTimer = setInterval(fetchResults, POLL_MS);
+    }
+
+    function updateDemographics(list) {
+      let g10 = 0, g11 = 0, g12 = 0;
+      list.forEach(a => {
+        if (!a.class) return;
+        if (a.class.startsWith('X') && !a.class.startsWith('XI')) g10++;
+        else if (a.class.startsWith('XI') && !a.class.startsWith('XII')) g11++;
+        else if (a.class.startsWith('XII')) g12++;
+      });
       
-      const nisn = input.value.trim();
-      if (nisn.length > 0 && nisn.length < 10) {
-        setParticipantNameError('NISN harus berisi tepat 10 digit angka.');
-      } else if (nameAlreadyUsed(nisn)) {
-        setParticipantNameError('NISN ini sudah pernah digunakan untuk memilih.');
+      const total = list.length || 1; // avoid division by zero
+      
+      const p10 = Math.round((g10 / total) * 100) || 0;
+      const p11 = Math.round((g11 / total) * 100) || 0;
+      const p12 = Math.round((g12 / total) * 100) || 0;
+      
+      // Update heights (min 5% so it's visible)
+      if($('#g10-bar')) $('#g10-bar').style.height = Math.max(5, p10) + '%';
+      if($('#g11-bar')) $('#g11-bar').style.height = Math.max(5, p11) + '%';
+      if($('#g12-bar')) $('#g12-bar').style.height = Math.max(5, p12) + '%';
+      
+      if($('#g10-val')) $('#g10-val').textContent = p10 + '%';
+      if($('#g11-val')) $('#g11-val').textContent = p11 + '%';
+      if($('#g12-val')) $('#g12-val').textContent = p12 + '%';
+    }
+
+    async function fetchResults() {
+      checkLiveAlerts();
+      const { ok, data } = await api('/api/results');
+      if (ok && data) {
+        renderResults(data);
+        // Simulate booth activity
+        simulateBoothActivity();
+      } else if (!ok) {
+        showPanitiaLogin();
+      }
+    }
+    
+    function simulateBoothActivity() {
+      const activeCount = Math.floor(Math.random() * 3) + 1; // 1 to 3 active
+      if($('#activeBoothCount')) $('#activeBoothCount').textContent = `${activeCount}/5`;
+      
+      $$('.booth').forEach((b, i) => {
+        const isBusy = Math.random() > 0.6;
+        if (isBusy) {
+          b.classList.add('busy');
+          b.querySelector('p').textContent = 'Analisis...';
+          b.querySelector('.bar i').style.width = (Math.random() * 60 + 20) + '%';
+        } else {
+          b.classList.remove('busy');
+          b.querySelector('p').textContent = 'Standby';
+          b.querySelector('.bar i').style.width = '0%';
+        }
+      });
+    }
+
+    function renderResults(d) {
+      const counts = d.counts || {};
+      const total = d.totalVoters || readSettings().totalVoters;
+      const votesIn = d.votesIn || 0;
+      if ($('#adminTotal')) $('#adminTotal').textContent = total;
+      if ($('#adminCount')) $('#adminCount').textContent = votesIn;
+      if ($('#adminPercent')) $('#adminPercent').textContent = (total ? (votesIn / total * 100) : 0).toFixed(1) + '%';
+      const max = Math.max(1, ...CANDIDATES_CONFIG.map(c => counts[c.id] || 0));
+      $$('#resultList .result-row').forEach((row, idx) => {
+        const c = counts[idx + 1] || 0;
+        const bar = row.querySelector('.result-track i');
+        const num = row.querySelector('strong');
+        if (bar) bar.style.width = Math.round(c / max * 100) + '%';
+        if (num) num.textContent = c;
+      });
+      state.allActivityData = d.activity || [];
+      renderActivity(state.allActivityData);
+      updateDemographics(state.allActivityData);
+      
+      // Simulate new vote log occasionally
+      if (Math.random() > 0.8 && state.allActivityData.length > 0) {
+        addSystemLog('DATA', `Data saksi baru terenkripsi dari Pos ${Math.floor(Math.random() * 5) + 1}.`);
+      }
+    }
+
+    function maskName(name) {
+      const str = String(name || '').trim();
+      if (str.length < 10) return str;
+      return str.slice(0, 3) + '****' + str.slice(-3);
+    }
+
+    function filterByClass(list, className) {
+      if (!className) return list;
+      return list.filter(a => (a.class || '') === className);
+    }
+
+    function activityRowHtml(a) {
+      return `<tr><td><div class="person"><div class="person-avatar">?</div> ${maskName(a.name)}</div></td><td>${a.class || '-'}</td><td><span class="badge green">Terverifikasi</span></td><td>${a.time || ''}</td><td>Pos ${a.booth || '-'}</td></tr>`;
+    }
+
+    function renderActivity(list) {
+      const tbodyEl = $('#participantTableBody');
+      if (tbodyEl) {
+        const filtered = filterByClass(list, state.classFilter);
+        tbodyEl.innerHTML = filtered.length ? filtered.slice(0, 10).map(activityRowHtml).join('') : '<tr><td colspan="5" class="muted" style="text-align:center;padding:16px; font-style: italic;">Arsip kosong. Menunggu data masuk.</td></tr>';
+      }
+    }
+
+    function renderAllParticipantsModal() {
+      const tbodyEl = $('#allParticipantsTableBody');
+      const filterValue = $('#allParticipantsClassFilter').value;
+      const list = filterByClass(state.allActivityData, filterValue);
+      if (tbodyEl) {
+        tbodyEl.innerHTML = list.length ? list.map(activityRowHtml).join('') : '<tr><td colspan="5" class="muted" style="text-align:center;padding:16px; font-style: italic;">Arsip kosong. Menunggu data masuk.</td></tr>';
+      }
+    }
+
+    $('#participantClass').addEventListener('change', (e) => {
+      const isStaff = e.target.value === 'Guru/Karyawan';
+      const label = $('label[for="participantName"]');
+      const input = $('#participantName');
+      const hint = $('#participantNameHint');
+      
+      if (isStaff) {
+        label.textContent = 'Nomor Induk Guru (NIG) / Karyawan';
+        input.placeholder = 'Masukkan NIG atau No. Karyawan';
+        hint.textContent = 'Gunakan Nomor Induk Guru atau Karyawan sesuai data.';
+        input.removeAttribute('inputmode');
+        input.removeAttribute('maxlength');
       } else {
-        clearParticipantNameError();
+        label.textContent = 'Nomor Induk Siswa Nasional Peserta';
+        input.placeholder = 'Contoh: 0123456780';
+        hint.textContent = 'Gunakan 10 digit NISN sesuai data peserta.';
+        input.setAttribute('inputmode', 'numeric');
+        input.setAttribute('maxlength', '10');
+      }
+      clearParticipantNameError();
+    });
+
+    $('#participantName').addEventListener('input', (event) => {
+      const input = event.target;
+      const isStaff = $('#participantClass').value === 'Guru/Karyawan';
+      
+      if (!isStaff) {
+        const raw = input.value;
+        const cleanValue = raw.replace(/[^0-9]/g, '');
+        
+        if (raw !== cleanValue) {
+          input.value = cleanValue;
+          setParticipantNameError('Identitas (NISN) hanya berisi angka numerik.');
+          return;
+        }
+        
+        const nisn = input.value.trim();
+        if (nisn.length > 0 && nisn.length < 10) {
+          setParticipantNameError('NISN tidak lengkap (harus 10 digit).');
+        } else if (nameAlreadyUsed(nisn)) {
+          setParticipantNameError('Akses Ditolak: NISN ini telah terekam di sistem.');
+        } else {
+          clearParticipantNameError();
+        }
+      } else {
+        const val = input.value.trim();
+        if (val.length > 0 && (val.length < 5 || val.length > 20)) {
+          setParticipantNameError('NIG/No. Karyawan harus antara 5-20 karakter.');
+        } else if (nameAlreadyUsed(val)) {
+          setParticipantNameError('Akses Ditolak: Identitas ini telah terekam di sistem.');
+        } else {
+          clearParticipantNameError();
+        }
       }
     });
 
@@ -390,41 +1049,50 @@
       $('#participantNameError').textContent = '';
     }
 
-    $('#readyBtn').addEventListener('click', () => {
+    $('#briefingBtn').addEventListener('click', () => {
       $('#welcomeScreen').classList.add('hidden');
+      $('#briefingScreen').classList.remove('hidden');
+    });
+
+    $('#readyBtn').addEventListener('click', () => {
+      $('#briefingScreen').classList.add('hidden');
       $('#identityScreen').classList.remove('hidden');
     });
 
     $('#startBtn').addEventListener('click', () => {
       const name = $('#participantName').value.trim();
       const className = $('#participantClass').value;
+      const isStaff = className === 'Guru/Karyawan';
       clearParticipantNameError();
 
-      if (!/^\d{10}$/.test(name)) { 
-        setParticipantNameError('Nomor Induk Siswa Nasional (NISN) harus berupa 10 digit angka.'); 
-        $('#participantName').focus(); 
-        return; 
+      if (!className) { showToast('Klasifikasi departemen/kelas belum dipilih.'); $('#participantClass').focus(); return; }
+
+      if (isStaff) {
+        if (name.length < 5 || name.length > 20) {
+          setParticipantNameError('NIG/No. Karyawan harus antara 5-20 karakter.'); 
+          $('#participantName').focus(); 
+          return;
+        }
+      } else {
+        if (!/^\d{10}$/.test(name)) { 
+          setParticipantNameError('Nomor Induk Siswa Nasional (NISN) tidak valid.'); 
+          $('#participantName').focus(); 
+          return; 
+        }
       }
-      if (!className) { showToast('Pilih kelas / unit terlebih dahulu'); $('#participantClass').focus(); return; }
+      
       if (nameAlreadyUsed(name)) {
         publishDuplicateAlert(name, className, BOOTH_ID);
-        setParticipantNameError('NISN ini sudah pernah digunakan untuk memilih.');
+        setParticipantNameError('Akses Ditolak: Identitas ini telah memberikan suara.');
         $('#participantName').focus();
         return;
       }
+      
       state.participantName = name;
       state.participantClass = className;
       $('#identityScreen').classList.add('hidden');
       $('#voteScreen').classList.remove('hidden');
     });
-
-    $$('.candidate').forEach(card => card.addEventListener('click', () => {
-      if (state.voting) return;
-      $$('.candidate').forEach(c => c.classList.remove('selected'));
-      card.classList.add('selected');
-      state.selected = card.dataset.candidate;
-      recordVote();
-    }));
 
     async function recordVote() {
       if (state.voting) return;
@@ -435,13 +1103,14 @@
       });
       state.voting = false;
       if (!ok || !data || !data.ok) {
-        showToast((data && data.error) || 'Gagal merekam suara.');
+        showToast((data && data.error) || 'Gagal mengenkripsi suara ke server.');
+        $$('.candidate').forEach(c => c.classList.remove('selected'));
         return;
       }
       rememberName(state.participantName);
       $('#voteScreen').classList.add('hidden');
       $('#successScreen').classList.remove('hidden');
-      $('#receipt').textContent = data.receipt || 'PM-000000';
+      $('#receipt').textContent = data.receipt || 'PM-' + Math.floor(Math.random() * 900000 + 100000);
       startAutoReset();
     }
 
@@ -464,5 +1133,4 @@
     }
 
   </script>
-</body>
-</html>
+</body></html>
