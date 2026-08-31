@@ -191,15 +191,6 @@
     .result-row:nth-child(4) .result-track i { background-color: #855b72; }
     .result-row strong { font-family: var(--typewriter); font-size: 16px; text-align: right; }
     
-    /* Vintage Bar Chart for Demographics */
-    .demo-chart { display: flex; align-items: flex-end; height: 160px; gap: 20px; padding: 20px 10px 0; border-bottom: 2px solid var(--navy); margin-bottom: 10px; }
-    .demo-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; position: relative; }
-    .demo-bar { width: 100%; max-width: 40px; background: repeating-linear-gradient(0deg, var(--navy), var(--navy) 2px, transparent 2px, transparent 4px); transition: height 0.5s; position: relative; border: 1px solid var(--navy); border-bottom: none; }
-    .demo-bar.g11 { background: repeating-linear-gradient(0deg, var(--blue), var(--blue) 2px, transparent 2px, transparent 4px); border-color: var(--blue); }
-    .demo-bar.g12 { background: repeating-linear-gradient(0deg, var(--red), var(--red) 2px, transparent 2px, transparent 4px); border-color: var(--red); }
-    .demo-val { font-family: var(--typewriter); font-size: 12px; font-weight: bold; position: absolute; top: -20px; }
-    .demo-label { font-family: var(--typewriter); font-size: 11px; font-weight: bold; margin-top: 10px; text-align: center; color: var(--navy); text-transform: uppercase; }
-
     /* Typewriter Evidence Log */
     .evidence-log { background: #fdfaf4; border: 1px solid var(--line); padding: 15px; height: 220px; overflow-y: auto; font-family: var(--typewriter); font-size: 11px; line-height: 1.6; color: #333; position: relative; }
     .evidence-log:before { content: ""; position: absolute; left: 20px; top: 0; bottom: 0; width: 1px; background: rgba(158,54,59,0.2); }
@@ -270,6 +261,42 @@
       .kiosk-card { padding:25px; } .kiosk-content { margin-top:30px; } .kiosk-content h1 { font-size:30px; }
       .candidate-grid { grid-template-columns:1fr; } .stat { padding:15px; }
       .stat strong { font-size:26px; } .booths { grid-template-columns:repeat(2,1fr); }
+    }
+
+    .class-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 10px;
+        padding: 10px 0;
+    }
+    .class-stat-item {
+        background: rgba(25,37,60,0.05);
+        border: 1px solid var(--line);
+        padding: 8px 12px;
+        border-radius: 4px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-family: var(--typewriter);
+        font-size: 12px;
+    }
+    .class-stat-item strong {
+        color: var(--navy);
+    }
+    
+    .evidence-box {
+        background: #fdfaf4;
+        border: 1px solid var(--blue);
+        padding: 25px;
+        border-radius: 8px;
+        margin-top: 20px;
+    }
+    .evidence-result {
+        margin-top: 20px;
+        padding: 15px;
+        background: #fff;
+        border: 1px dashed var(--line);
+        border-radius: 4px;
     }
   </style>
 </head>
@@ -364,66 +391,6 @@
 <h2 class="">Pilih Paslon terbaik pilihanmu</h2>
 <p class="muted" style="font-size: 14px; margin-top: 10px; font-style: italic;">Pilih salah satu Paslon sebagai Ketua OSIS. Klik kartu untuk memberikan suara Anda.</p>
 <div class="candidate-grid" id="candidateGridContainer">
-<article class="candidate" data-candidate="1">
-<div class="number">BERKAS NO. 01</div>
-<div style="display:flex; justify-content:center; gap:10px; margin-bottom:15px;">
-<div class="candidate-photo"><img alt="Alya" class="" onerror="this.src='https://ui-avatars.com/api/?name=Alya&amp;background=random'" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVvl2lOAP2O9leEl_uLnlI0-WBADM8Z7BSii2452NXiVSQIcj780hS8tbxGw_fHc20lDLfrq4BnaWChO9_bIowPQ4X0wBPvUtafmIUCtcnm1MtUW4jTgo3YLMXYqHtCzE6Mwpn6b0sgFxnnfWSNq3xXetH2aiBVO4xc49KTykhhu-lV9IfaCbpb94EMWMEgC5Gk0HYwoktX98-5VHIFEQTMyCNNH24fO_Thnt2xtnfVl4EaE30nUoQ"/></div>
-<div class="candidate-photo"><img alt="Rahma" class="" onerror="this.src='https://ui-avatars.com/api/?name=Rahma&amp;background=random'" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdNDQNdW79CuLfO8EtWGSR3taF7s2ahxhKUNmldomY2deJ4y5hJObIb6AkfLdvMXJ5K_GMYMqXrJQDP10ssI8ot3tJUKYTCdphTUNDXbEqrm9uIklDcKMlHuVsFwIubpaEREBsRWv0_LyaOgkjpxGc9TXO-SxUn5bQc_QesV1ZILeQqI4ZrXgTcWROrNqp4PJbn-bIjdnfjaIgVaEymgM_Rvu_ADJIDR9XTMhl3yZ1XVitty7pL1zR"/></div>
-</div>
-<h3 class="" style="color: var(--red); font-size: 14px; margin-bottom: 2px;">TEAM ALRA</h3>
-<h3 class="" style="font-size: 18px;">Alya &amp; Rahma</h3>
-<p class="class-info">Pasangan Calon 01</p>
-<div class="dossier-details">
-<strong>Visi:</strong> “Sekolah aktif, kreatif, dan inklusif.”
-              <strong>Fokus:</strong> Pengembangan program literasi dan debat.
-            </div>
-<span class="pick">Konfirmasi Pilihan →</span>
-</article>
-<article class="candidate" data-candidate="2">
-<div class="number">BERKAS NO. 02</div>
-<div style="display:flex; justify-content:center; gap:10px; margin-bottom:15px;">
-<div class="candidate-photo"><img alt="Bagas" class="" onerror="this.src='https://ui-avatars.com/api/?name=Bagas&amp;background=random'" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB9SULmoK5EmwfYDM25nkDCsevwED4iI1vSHbDpCFZb3VqKblLjcI75Ia-bKw6J7rKxSAVMVM3IyOh74nOWTSHrNW9iuyYtr0UaEX5X7OYvYlW6YuQixcc5KMhArjlhdt9_SBvjJY54eswHk2r39K9kEsUCY4gYsuDIgcpJU9_ACNhSsRSVEmsLKrPRnBN7iKTKHnQwHzo-pdVhSlSaaaf0NwBALOeW_5yjeSph6bHzecIQT07eUF0h"/></div>
-<div class="candidate-photo"><img alt="Mahendra" class="" onerror="this.src='https://ui-avatars.com/api/?name=Mahendra&amp;background=random'" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA3Pot3PHydXBVwVn5aNzC2RcxOivdKumqOrCA62eUL_tigtCST7zJqQqVfVR9zlgTZw6Km5nKhASb5gLku5AGUjTbl6BwyxVulvUncCAFFpRZk5bbpkaurIcamcqVSEFvFebQ0pmIDJeCNiItBeZTqjQfzWt8pSB74UpJCcjww4gvEYb6894LsQIt8EKLdjHOxdhxERQNjDwyJp03ls-vsQ_2LA2j8YYcBkS1pORSEHVEaySp29JyJ"/></div>
-</div>
-<h3 class="" style="color: var(--red); font-size: 14px; margin-bottom: 2px;">TEAM BAMA</h3>
-<h3 class="" style="font-size: 18px;">Bagas &amp; Mahendra</h3>
-<p class="class-info">Pasangan Calon 02</p>
-<div class="dossier-details">
-<strong>Visi:</strong> “Disiplin dan berprestasi.”
-              <strong>Fokus:</strong> Peningkatan fasilitas olahraga dan kedisiplinan.
-            </div>
-<span class="pick">Konfirmasi Pilihan →</span>
-</article>
-<article class="candidate" data-candidate="3">
-<div class="number">BERKAS NO. 03</div>
-<div style="display:flex; justify-content:center; gap:10px; margin-bottom:15px;">
-<div class="candidate-photo"><img alt="Citra" class="" onerror="this.src='https://ui-avatars.com/api/?name=Citra&amp;background=random'" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgtj0aaMopZzFAD3RISYEtPqixCVIfoqsXsbQ9Vl0dQppYonS3XqFNXAoCfmnUb4mqqZhTO-MIZvrp0fsO7EL_g6B4GVTSK03xySnsEvF0x7G9ztkFDgLeD9szCW-VkzjJ_DUx93df-xRTr5GDAvvZ-hlGKAQ6qlXEagIYu67vz2xuwfZ4DZ4stvpDpG3TPNGP25ExTc5UCfafE7KcGOCVEv3FKRwRIyB_bpN1RJJseoUsxYYi2iny"/></div>
-<div class="candidate-photo"><img alt="Nabila" class="" onerror="this.src='https://ui-avatars.com/api/?name=Nabila&amp;background=random'" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAaRq0MFRMBKbO0mMq7awkYnhW38s8wZYxcBzKfBh0prLFvjdFn-DCFkyTDj49laUuvKpZo7UDdyT2v_ORzI-G27kdT41Frt6KRpFYcfI9on8xV73SM2af6fzOe39VyVGdbCT4kx1M9F5Gj327UpT3wnzhjTSfVU0pPa0g5SYd93j0zu1E26V3-UabKnb5i4VUSYGg_vfOR2VmCoDCsih06SCsR3SQk-Unv9OqV-LyUgCoJD25dQB6B"/></div>
-</div>
-<h3 class="" style="color: var(--red); font-size: 14px; margin-bottom: 2px;">TEAM CINA</h3>
-<h3 class="" style="font-size: 18px;">Citra &amp; Nabila</h3>
-<p class="class-info">Pasangan Calon 03</p>
-<div class="dossier-details">
-<strong>Visi:</strong> “Ramah lingkungan dan inovatif.”
-              <strong>Fokus:</strong> Program penghijauan dan kewirausahaan siswa.
-            </div>
-<span class="pick">Konfirmasi Pilihan →</span>
-</article>
-<article class="candidate" data-candidate="4">
-<div class="number">BERKAS NO. 04</div>
-<div style="display:flex; justify-content:center; gap:10px; margin-bottom:15px;">
-<div class="candidate-photo"><img alt="Dimas" class="" onerror="this.src='https://ui-avatars.com/api/?name=Dimas&amp;background=random'" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqMVdO_xPROAZJPc9b7BuFF8yP-z0jve0dD_p1br_5xuOkYNYy3shqG3ARxZT2Ii0gqkG22dR6mfVYyufAJL6LXr6RZHuCfnUuwp9QXOZwDRAqU2tS_w_q4p5AcqG6ugxVXLuCN2m6mrW2rgBqj5KJJ_USx4KvbJTX_tltFDI7zI7eNbMvjwaO6OVM2Uf1BH4r4HS1Y0t4FRi2070rlKC2pdeC8xBsdIHIgOMjOl0hxdV0IYrzCp6R"/></div>
-<div class="candidate-photo"><img alt="Pratama" class="" onerror="this.src='https://ui-avatars.com/api/?name=Pratama&amp;background=random'" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC1dvxWlEp19CWEnonjg4azL9WABfedNBdwkbLZ-H4pOFgJSSh9mxLTuaD_iQr6Ycg7NiqsVL3C1h3lHJoHs4YaCds7I7e6NWXHV9BXc1BBLkb7TZRzjrRhIqHN5k3eBsd3Uun4EGoWU5FL-0Q4dyaqhzxzPE4gWct7PGykGxsjzcJF-PSg9u9T9R3hljpW5LXneqtKANJY9ZygqHmfDH_LRhbywJ4ZBmbyMM4bjT8Joi06SCWIZuk7"/></div>
-</div>
-<h3 class="" style="color: var(--red); font-size: 14px; margin-bottom: 2px;">TEAM DIPA</h3>
-<h3 class="" style="font-size: 18px;">Dimas &amp; Pratama</h3>
-<p class="class-info">Pasangan Calon 04</p>
-<div class="dossier-details">
-<strong>Visi:</strong> “Teknologi dan seni berpadu.”
-              <strong>Fokus:</strong> Digitalisasi mading dan festival seni tahunan.
-            </div>
-<span class="pick">Konfirmasi Pilihan →</span>
-</article>
 </div>
 </div>
 <div class="kiosk-content center hidden" id="successScreen">
@@ -525,11 +492,7 @@
 </div>
 <div class="panel-body" style="padding: 15px;">
 <div class="evidence-log" id="systemLogs">
-<div class="log-entry"><span class="log-time">[07:00:00]</span> <span class="log-sys">SYSTEM:</span> Inisialisasi protokol keamanan markas besar.</div>
-<div class="log-entry"><span class="log-time">[07:00:15]</span> <span class="log-sys">ENCRYPTION:</span> Algoritma SHA-256 aktif untuk penyimpanan bukti.</div>
-<div class="log-entry"><span class="log-time">[07:01:05]</span> <span class="log-sys">NETWORK:</span> Menghubungkan ke 5 Pos Penyelidikan (Bilik)... Berhasil.</div>
-<div class="log-entry"><span class="log-time">[07:05:22]</span> <span class="log-sys">DATA:</span> Sinkronisasi daftar saksi (NISN) selesai.</div>
-<!-- New logs appended here via JS -->
+<!-- Logs appended here via JS -->
 </div>
 </div>
 </div>
@@ -539,26 +502,6 @@
 <div class="panel-head"><div><h3 class="">Distribusi Bukti Sementara</h3></div></div>
 <div class="panel-body">
 <div class="result" id="resultList">
-<div class="result-row">
-<div class="result-avatar" style="--rot: -3deg; background-color: rgb(107, 77, 53);">01</div>
-<div><span class="">Alya &amp; Rahma</span><div class="result-track"><i style="width:0%; background-color: #6b4d35"></i></div></div>
-<strong>0</strong>
-</div>
-<div class="result-row">
-<div class="result-avatar" style="--rot: 2deg; background-color: rgb(140, 100, 76);">02</div>
-<div><span class="">Bagas &amp; Mahendra</span><div class="result-track"><i style="width:0%; background-color: #8c644c"></i></div></div>
-<strong>0</strong>
-</div>
-<div class="result-row">
-<div class="result-avatar" style="--rot: -1deg; background-color: rgb(90, 117, 107);">03</div>
-<div><span class="">Citra &amp; Nabila</span><div class="result-track"><i style="width:0%; background-color: #5a756b"></i></div></div>
-<strong>0</strong>
-</div>
-<div class="result-row">
-<div class="result-avatar" style="--rot: 4deg; background-color: rgb(133, 91, 114);">04</div>
-<div><span class="">Dimas &amp; Pratama</span><div class="result-track"><i style="width:0%; background-color: #855b72"></i></div></div>
-<strong>0</strong>
-</div>
 </div>
 </div>
 </div>
@@ -567,24 +510,10 @@
 <div><h3 class="">Partisipasi per Kelas</h3></div>
 </div>
 <div class="panel-body">
-<div class="demo-chart">
-<div class="demo-bar-wrap">
-<div class="demo-val" id="g10-val">0%</div>
-<div class="demo-bar" id="g10-bar" style="height: 5%;"></div>
-<div class="demo-label">Grade 10</div>
+<div class="class-stats-grid" id="classStatsGrid">
+<!-- Class stats will be injected here -->
 </div>
-<div class="demo-bar-wrap">
-<div class="demo-val" id="g11-val">0%</div>
-<div class="demo-bar g11" id="g11-bar" style="height: 5%;"></div>
-<div class="demo-label">Grade 11</div>
-</div>
-<div class="demo-bar-wrap">
-<div class="demo-val" id="g12-val">0%</div>
-<div class="demo-bar g12" id="g12-bar" style="height: 5%;"></div>
-<div class="demo-label">Grade 12</div>
-</div>
-</div>
-<p class="muted" style="font-size: 11px; text-align: center; margin-top: 10px; font-family: var(--typewriter);">Visualisasi partisipasi antar tingkat. Staf tidak ditampilkan.</p>
+<p class="muted" style="font-size: 11px; text-align: center; margin-top: 10px; font-family: var(--typewriter);">Data partisipasi spesifik per departemen (kelas).</p>
 </div>
 </div>
 </div>
@@ -613,9 +542,30 @@
 </div>
 <div class="table-wrap">
 <table>
-<thead><tr><th class="">ID / NISN PEMILIH</th><th class="">PASLON</th><th class="">STATUS</th><th class="">WAKTU LAPORAN</th><th class="">POS (BILIK)</th></tr></thead>
+<thead><tr><th class="">ID / NISN PEMILIH</th><th class="">DEPARTEMEN</th><th class="">STATUS</th><th class="">WAKTU LAPORAN</th><th class="">POS (BILIK)</th></tr></thead>
 <tbody id="participantTableBody"></tbody>
 </table>
+</div>
+</div>
+</div>
+<div class="hidden" id="evidenceDashboard">
+<div class="hero">
+<div><div class="eyebrow">Markas Besar · Verifikasi</div><h1 class="" id="">Verifikasi Bukti</h1><p class="">Periksa validitas tanda terima (receipt) suara yang masuk.</p></div>
+<div class="admin-actions">
+<button class="btn dark" id="evidenceLogoutBtn">Tutup Akses</button>
+</div>
+</div>
+<div class="panel" style="border: 1px solid rgba(91,76,54,.18); box-shadow: 2px 4px 12px rgba(105,87,65,.15); max-width: 600px; margin: 0 auto;">
+<div class="panel-head"><div><h3 class="">Cari Bukti Suara</h3></div></div>
+<div class="panel-body">
+<div class="identity-box" style="margin:0;">
+<label class="form-label" for="receiptSearch">Nomor Referensi Kasus (Receipt)</label>
+<input id="receiptSearch" placeholder="Contoh: PM-123456" type="text"/>
+<button class="btn primary full" id="searchEvidenceBtn" style="margin-top: 15px;">Verifikasi Bukti</button>
+</div>
+<div class="evidence-result hidden" id="evidenceResult">
+<!-- Injected via JS -->
+</div>
 </div>
 </div>
 </div>
@@ -650,7 +600,7 @@
 </div>
 <div class="table-wrap" style="max-height:400px; border: 1px solid var(--line);">
 <table>
-<thead><tr><th class="">ID / NISN PEMILIH</th><th class="">PASLON</th><th class="">STATUS</th><th class="">WAKTU LAPORAN</th><th class="">POS (BILIK)</th></tr></thead>
+<thead><tr><th class="">ID / NISN PEMILIH</th><th class="">DEPARTEMEN</th><th class="">STATUS</th><th class="">WAKTU LAPORAN</th><th class="">POS (BILIK)</th></tr></thead>
 <tbody id="allParticipantsTableBody"></tbody>
 </table>
 </div>
@@ -683,11 +633,26 @@
     const $$ = (s) => [...document.querySelectorAll(s)];
     const BOOTH_ID = new URLSearchParams(location.search).get('booth') || 'Pribadi';
     const PANITIA_MODE = new URLSearchParams(location.search).has('panitia');
+    const EVIDENCE_MODE = new URLSearchParams(location.search).has('evidence');
     const POLL_MS = 5000;
     const SETTINGS_STORAGE_KEY = 'pemira-settings-v1';
     const NAME_USAGE_KEY = 'pemira-name-usage-v1';
     const LIVE_ALERT_KEY = 'pemira-live-alert-v1';
     const state = { selected: null, participantName: '', participantClass: '', resetTimer: null, voting: false, pollTimer: null, allActivityData: [], classFilter: '' };
+
+    function formatTimestamp(dateObj) {
+        if (!dateObj) return '';
+        const d = new Date(dateObj);
+        if (isNaN(d)) return dateObj;
+        
+        const dateOpts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        const dateStr = d.toLocaleDateString('en-GB', dateOpts); // Using en-GB for consistent Day, Date Month Year format if preferred, or 'id-ID'
+        
+        const pad = (n) => n.toString().padStart(2, '0');
+        const timeStr = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+        
+        return `${dateStr} - ${timeStr}`;
+    }
 
     // Setup candidate cards
     function setupCandidates() {
@@ -758,7 +723,7 @@
       const badge = $('#modeBadge');
       const dot = $('#modeBadgeDot');
       const text = $('#modeBadgeText');
-      if (PANITIA_MODE) {
+      if (PANITIA_MODE || EVIDENCE_MODE) {
         badge.classList.add('info');
         dot.classList.add('hidden');
         text.textContent = 'Admin Akses';
@@ -772,7 +737,7 @@
     })();
 
     // ===== Mode panitia (diakses lewat ?panitia, bukan endpoint terpisah) =====
-    if (PANITIA_MODE) {
+    if (PANITIA_MODE || EVIDENCE_MODE) {
       $('#clientView').classList.remove('active');
       $('#clientView').classList.add('hidden');
       $('#panitiaView').classList.remove('hidden');
@@ -784,6 +749,7 @@
       $('#panitiaLoginBtn').addEventListener('click', loginPanitia);
       $('#panitiaPassword').addEventListener('keydown', (e) => { if (e.key === 'Enter') loginPanitia(); });
       $('#panitiaLogoutBtn').addEventListener('click', logoutPanitia);
+      if($('#evidenceLogoutBtn')) $('#evidenceLogoutBtn').addEventListener('click', logoutPanitia);
       $('#panitiaSettingsBtn').addEventListener('click', openSettings);
       $('#cancelSettingsBtn').addEventListener('click', () => $('#settingsModal').classList.remove('open'));
       $('#saveSettingsBtn').addEventListener('click', saveSettings);
@@ -804,6 +770,11 @@
       });
       $('#allParticipantsClassFilter').addEventListener('change', () => renderAllParticipantsModal());
 
+      if(EVIDENCE_MODE) {
+          if($('#searchEvidenceBtn')) $('#searchEvidenceBtn').addEventListener('click', searchEvidence);
+          if($('#receiptSearch')) $('#receiptSearch').addEventListener('keydown', (e) => { if(e.key === 'Enter') searchEvidence(); });
+      }
+
       checkPanitiaAuth();
     }
 
@@ -811,7 +782,7 @@
       const logsEl = $('#systemLogs');
       if (!logsEl) return;
       const now = new Date();
-      const timeStr = `[${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}]`;
+      const timeStr = `[${formatTimestamp(now)}]`;
       const div = document.createElement('div');
       div.className = type === 'WARN' ? 'log-entry warn' : 'log-entry';
       div.innerHTML = `<span class="log-time">${timeStr}</span> <span class="log-sys">${type}:</span> ${msg}`;
@@ -831,16 +802,34 @@
     function showPanitiaLogin() {
       $('#panitiaLoginScreen').classList.remove('hidden');
       $('#panitiaDashboard').classList.add('hidden');
+      $('#evidenceDashboard').classList.add('hidden');
       clearInterval(state.pollTimer);
     }
 
     function showPanitiaDashboard() {
       $('#panitiaLoginScreen').classList.add('hidden');
-      $('#panitiaDashboard').classList.remove('hidden');
-      applySettings();
-      checkLiveAlerts();
-      startResultsPolling();
-      addSystemLog('INFO', 'Otorisasi berhasil. Mengakses data...');
+      if(EVIDENCE_MODE) {
+          $('#evidenceDashboard').classList.remove('hidden');
+          $('#panitiaDashboard').classList.add('hidden');
+      } else {
+          $('#panitiaDashboard').classList.remove('hidden');
+          $('#evidenceDashboard').classList.add('hidden');
+          applySettings();
+          checkLiveAlerts();
+          startResultsPolling();
+          
+          // Initialize system logs if empty
+          const logsEl = $('#systemLogs');
+          if (logsEl && logsEl.children.length === 0) {
+              const startNow = new Date();
+              addSystemLog('SYSTEM', 'Inisialisasi protokol keamanan markas besar.');
+              setTimeout(() => addSystemLog('ENCRYPTION', 'Algoritma SHA-256 aktif untuk penyimpanan bukti.'), 500);
+              setTimeout(() => addSystemLog('NETWORK', 'Menghubungkan ke 5 Pos Penyelidikan (Bilik)... Berhasil.'), 1500);
+              setTimeout(() => addSystemLog('INFO', 'Otorisasi berhasil. Mengakses data...'), 2000);
+          } else {
+             addSystemLog('INFO', 'Otorisasi berhasil. Mengakses data...');
+          }
+      }
     }
 
     async function loginPanitia() {
@@ -907,8 +896,8 @@
           $('#liveAlertName').textContent = alertData.name || '—';
           $('#liveAlertClass').textContent = alertData.class || '—';
           $('#liveAlertBooth').textContent = alertData.booth || '—';
+          $('#liveAlertTime').textContent = `Peringatan terekam pada: ${formatTimestamp(alertData.createdAt)}`;
           $('#liveVoteAlert').classList.remove('hidden');
-          // Add to log if it's new (simple check by seeing if it's already visible might not work perfectly, but okay for demo)
         } else {
           $('#liveVoteAlert').classList.add('hidden');
         }
@@ -921,29 +910,29 @@
       state.pollTimer = setInterval(fetchResults, POLL_MS);
     }
 
-    function updateDemographics(list) {
-      let g10 = 0, g11 = 0, g12 = 0;
-      list.forEach(a => {
-        if (!a.class) return;
-        if (a.class.startsWith('X') && !a.class.startsWith('XI')) g10++;
-        else if (a.class.startsWith('XI') && !a.class.startsWith('XII')) g11++;
-        else if (a.class.startsWith('XII')) g12++;
-      });
-      
-      const total = list.length || 1; // avoid division by zero
-      
-      const p10 = Math.round((g10 / total) * 100) || 0;
-      const p11 = Math.round((g11 / total) * 100) || 0;
-      const p12 = Math.round((g12 / total) * 100) || 0;
-      
-      // Update heights (min 5% so it's visible)
-      if($('#g10-bar')) $('#g10-bar').style.height = Math.max(5, p10) + '%';
-      if($('#g11-bar')) $('#g11-bar').style.height = Math.max(5, p11) + '%';
-      if($('#g12-bar')) $('#g12-bar').style.height = Math.max(5, p12) + '%';
-      
-      if($('#g10-val')) $('#g10-val').textContent = p10 + '%';
-      if($('#g11-val')) $('#g11-val').textContent = p11 + '%';
-      if($('#g12-val')) $('#g12-val').textContent = p12 + '%';
+    function updateClassStats(list) {
+        const grid = $('#classStatsGrid');
+        if(!grid) return;
+        
+        const counts = {};
+        list.forEach(a => {
+            if(a.class) {
+                counts[a.class] = (counts[a.class] || 0) + 1;
+            }
+        });
+        
+        if(Object.keys(counts).length === 0) {
+            grid.innerHTML = '<div class="muted" style="font-size:12px; font-style:italic;">Belum ada data.</div>';
+            return;
+        }
+
+        const sortedClasses = Object.keys(counts).sort();
+        grid.innerHTML = sortedClasses.map(cls => `
+            <div class="class-stat-item">
+                <span>${cls}</span>
+                <strong>${counts[cls]}</strong>
+            </div>
+        `).join('');
     }
 
     async function fetchResults() {
@@ -993,7 +982,7 @@
       });
       state.allActivityData = d.activity || [];
       renderActivity(state.allActivityData);
-      updateDemographics(state.allActivityData);
+      updateClassStats(state.allActivityData);
       
       // Simulate new vote log occasionally
       if (Math.random() > 0.8 && state.allActivityData.length > 0) {
@@ -1013,7 +1002,8 @@
     }
 
     function activityRowHtml(a) {
-      return `<tr><td><div class="person"><div class="person-avatar">?</div> ${maskName(a.name)}</div></td><td>${a.class || '-'}</td><td><span class="badge green">Terverifikasi</span></td><td>${a.time || ''}</td><td>Pos ${a.booth || '-'}</td></tr>`;
+      const timeDisplay = a.fullTime || a.time || '';
+      return `<tr><td><div class="person"><div class="person-avatar">?</div> ${maskName(a.name)}</div></td><td>${a.class || '-'}</td><td><span class="badge green">Terverifikasi</span></td><td>${timeDisplay}</td><td>Pos ${a.booth || '-'}</td></tr>`;
     }
 
     function renderActivity(list) {
@@ -1031,6 +1021,35 @@
       if (tbodyEl) {
         tbodyEl.innerHTML = list.length ? list.map(activityRowHtml).join('') : '<tr><td colspan="5" class="muted" style="text-align:center;padding:16px; font-style: italic;">Arsip kosong. Menunggu data masuk.</td></tr>';
       }
+    }
+
+    async function searchEvidence() {
+        const receipt = $('#receiptSearch').value.trim();
+        const resEl = $('#evidenceResult');
+        if(!receipt) return;
+        
+        const { ok, data } = await api('/api/evidence?receipt=' + encodeURIComponent(receipt));
+        
+        if(ok && data && data.found) {
+            const v = data.voter;
+            resEl.innerHTML = `
+                <div class="eyebrow" style="color:var(--mint); border-color:var(--mint);">Bukti Valid</div>
+                <h3 style="font-size:20px; margin-bottom:15px; font-family:var(--typewriter);">${receipt}</h3>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; font-family:var(--typewriter); font-size:13px; line-height:1.5;">
+                    <div><span class="muted">ID/NISN:</span><br/><strong>${v.name}</strong></div>
+                    <div><span class="muted">Departemen:</span><br/><strong>${v.class}</strong></div>
+                    <div><span class="muted">Pos Asal:</span><br/><strong>Pos ${v.booth}</strong></div>
+                    <div><span class="muted">Waktu Rekam:</span><br/><strong>${formatTimestamp(v.timestamp)}</strong></div>
+                </div>
+            `;
+            resEl.classList.remove('hidden');
+        } else {
+            resEl.innerHTML = `
+                <div class="eyebrow" style="color:var(--red); border-color:var(--red);">Tidak Ditemukan</div>
+                <p style="margin-top:10px; font-family:var(--typewriter); font-size:13px; color:var(--red);">Receipt <strong>${receipt}</strong> tidak terdaftar dalam arsip kasus.</p>
+            `;
+            resEl.classList.remove('hidden');
+        }
     }
 
     $('#participantClass').addEventListener('change', (e) => {
@@ -1074,6 +1093,7 @@
           setParticipantNameError('NISN tidak lengkap (harus 10 digit).');
         } else if (nameAlreadyUsed(nisn)) {
           setParticipantNameError('Akses Ditolak: NISN ini telah terekam di sistem.');
+          publishDuplicateAlert(nisn, $('#participantClass').value, BOOTH_ID);
         } else {
           clearParticipantNameError();
         }
@@ -1083,6 +1103,7 @@
           setParticipantNameError('NIG/No. Karyawan harus antara 5-20 karakter.');
         } else if (nameAlreadyUsed(val)) {
           setParticipantNameError('Akses Ditolak: Identitas ini telah terekam di sistem.');
+          publishDuplicateAlert(val, $('#participantClass').value, BOOTH_ID);
         } else {
           clearParticipantNameError();
         }
@@ -1177,9 +1198,10 @@
     async function recordVote() {
       if (state.voting) return;
       state.voting = true;
+      const timestamp = Date.now();
       const { ok, data } = await api('/api/vote', {
         method: 'POST',
-        body: JSON.stringify({ candidate: state.selected, name: state.participantName, class: state.participantClass, booth: BOOTH_ID }),
+        body: JSON.stringify({ candidate: state.selected, name: state.participantName, class: state.participantClass, booth: BOOTH_ID, timestamp: timestamp }),
       });
       state.voting = false;
       if (!ok || !data || !data.ok) {
