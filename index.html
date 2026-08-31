@@ -4,6 +4,7 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
 <title>PEMIRA — Pemilihan Raya Ketua OSIS</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
 <style>
     :root {
@@ -72,7 +73,7 @@
     .mode-switch button { color: var(--muted); background: transparent; border-radius: 4px; padding: 9px 15px; font-size: 12px; font-weight: 800; font-family: var(--typewriter); }
     .mode-switch button.active { color: var(--blue); background: var(--white); box-shadow: 0 3px 10px rgba(105,87,65,.15); }
     
-    main { max-width: 1400px; margin: 0 auto; padding: 34px; }
+    main { max-width: 1400px; margin: 0 auto; padding: 34px; position: relative; z-index: 1; }
     
     /* View Logic */
     .view { display: none; }
@@ -105,7 +106,7 @@
     .btn.dark { color: #fff6e5; background: var(--navy); border-color: #0c121e; }
     .btn.full { width: 100%; padding: 15px; font-size: 14px; }
     
-    .panel, .stat, .candidate, .booth, .kiosk-card { background: var(--white); border: 1px solid var(--line); border-radius: 8px; box-shadow: 2px 4px 12px rgba(105,87,65,.15); position: relative; }
+    .panel, .stat, .candidate, .booth, .kiosk-card { background: var(--white); border: 1px solid var(--line); border-radius: 8px; box-shadow: 2px 4px 12px rgba(105,87,65,.15); position: relative; z-index: 2; }
     .panel:before, .stat:before, .candidate:before { content:""; position:absolute; top:-4px; left:16px; width:40px; height:12px; background: rgba(255,255,255,0.4); border: 1px solid rgba(0,0,0,0.05); transform: rotate(-2deg); z-index: 2; pointer-events: none; }
     
     .panel-head { padding: 21px 23px; border-bottom: 1px solid var(--line); display:flex; align-items:center; justify-content:space-between; gap: 12px; background: rgba(0,0,0,0.02); border-radius: 8px 8px 0 0; }
@@ -113,7 +114,7 @@
 
     /* client */
     .kiosk-layout { display: grid; grid-template-columns: minmax(0,840px); justify-content: center; gap: 26px; align-items: start; }
-    .kiosk-card { padding: 40px; min-height: 610px; background: #faf6ed url('data:image/svg+xml;utf8,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="none"/><path d="M0 100 L100 0" stroke="rgba(105,87,65,0.05)" stroke-width="1"/></svg>'); }
+    .kiosk-card { padding: 40px; min-height: 610px; background: #faf6ed; }
     .kiosk-card-footer { position: absolute; bottom: 15px; right: 25px; font-family: var(--typewriter); font-size: 10px; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 5px; width: calc(100% - 50px); text-align: right; }
     .kiosk-card-footer span.confidential { color: var(--red); font-weight: bold; border: 1px solid var(--red); padding: 2px 4px; border-radius: 2px; transform: rotate(-3deg); display: inline-block; }
     
@@ -176,9 +177,7 @@
     .booth-icon { width:26px; height:26px; display:grid; place-items:center; border-radius:50%; background:rgba(74,102,91,0.1); color:var(--mint); font-size:12px; border: 1px solid rgba(74,102,91,0.3); }
     .booth.busy .booth-icon { background:rgba(168,98,44,0.1); color:var(--orange); border-color: rgba(168,98,44,0.3); }
     .booth p { color:var(--muted); font-size:11px; font-family: var(--typewriter); text-transform: uppercase; }
-    .booth .bar { height:6px; background:rgba(0,0,0,0.05); border-radius:2px; margin-top:10px; overflow:hidden; border: 1px solid var(--line); }
-    .booth .bar i { display:block; height:100%; background:var(--mint); }
-    .booth.busy .bar i { background:var(--orange); }
+    .booth .bar { display: none; } /* removed animated bar */
     
     .result { display:grid; gap:16px; }
     .result-row { display:grid; grid-template-columns:46px 1fr 50px; align-items:center; gap:12px; font-size:13px; font-weight:bold; }
@@ -187,8 +186,8 @@
     .result-row:nth-child(2) .result-avatar { --rot: 2deg; background: #8c644c; }
     .result-row:nth-child(3) .result-avatar { --rot: -1deg; background: #5a756b; }
     .result-row:nth-child(4) .result-avatar { --rot: 4deg; background: #855b72; }
-    .result-track { height:12px; border-radius:2px; background:rgba(0,0,0,0.05); overflow:hidden; margin-top:6px; border: 1px solid var(--line); position: relative; }
-    .result-track i { display:block; height:100%; background:var(--navy); background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px); }
+    .result-track, .class-stat-track { height:12px; border-radius:2px; background:rgba(0,0,0,0.05); overflow:hidden; margin-top:6px; border: 1px solid var(--line); position: relative; }
+    .result-track i, .class-stat-track i { display:block; height:100%; background:var(--navy); background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px); }
     .result-row:nth-child(1) .result-track i { background-color: #6b4d35; } 
     .result-row:nth-child(2) .result-track i { background-color: #8c644c; } 
     .result-row:nth-child(3) .result-track i { background-color: #5a756b; } 
@@ -224,7 +223,7 @@
     .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(25,37,60,.7); z-index:40; place-items:center; padding:20px; backdrop-filter: blur(4px); }
     .modal-backdrop.open { display:grid; }
     .modal { width:min(480px,100%); background:#faf6ed; border:1px solid var(--blue); border-radius:8px; padding:30px; box-shadow:var(--shadow); text-align:center; position: relative; }
-    .modal:before { content:"absolute; top:-10px; left:50%; margin-left:-30px; width:60px; height:20px; background: rgba(255,255,255,0.6); border: 1px solid rgba(0,0,0,0.1); transform: rotate(2deg); }
+    .modal:before { content:""; position:absolute; top:-10px; left:50%; margin-left:-30px; width:60px; height:20px; background: rgba(255,255,255,0.6); border: 1px solid rgba(0,0,0,0.1); transform: rotate(2deg); }
     .modal.large-modal { width:min(800px,100%); text-align:left; }
     .modal p { font-size:14px; color:var(--muted); line-height:1.6; margin:10px 0 25px; }
     .modal-actions { display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top: 20px; }
@@ -237,7 +236,9 @@
     .settings-saved { min-height:16px; color:var(--mint); font-size:11px; font-weight:bold; font-family: var(--typewriter); margin-top:10px; }
     
     .field-hint { color:var(--muted); font-size:11px; line-height:1.5; margin-top:8px; font-style: italic; }
-    .field-error { min-height:16px; color:var(--red); font-size:11px; font-weight:bold; line-height:1.5; margin-top:8px; font-family: var(--typewriter); }
+    .field-error { min-height:16px; color:var(--red); font-size:11px; font-weight:bold; line-height:1.5; margin-top:8px; font-family: var(--typewriter); display: none; }
+    .input-error + .field-hint { display: none; }
+    .input-error ~ .field-error { display: block; }
     input.input-error { border-color:var(--red); background:#fcf0f0; box-shadow:0 0 0 3px rgba(158,54,59,.15); }
     
     .live-alert { display:flex; align-items:flex-start; gap:16px; margin-bottom:24px; padding:20px; color:#fff6e5; background:linear-gradient(115deg,#9e363b,#6a1f23); border:1px solid #4a1316; border-radius:8px; box-shadow:0 14px 28px rgba(0,0,0,.2); animation:alert-in .3s ease both; position: relative; overflow: hidden; }
@@ -267,23 +268,21 @@
 
     .class-stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-        gap: 10px;
+        grid-template-columns: 1fr;
+        gap: 12px;
         padding: 10px 0;
     }
     .class-stat-item {
-        background: rgba(25,37,60,0.05);
-        border: 1px solid var(--line);
-        padding: 8px 12px;
-        border-radius: 4px;
-        display: flex;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: 80px 1fr 30px;
         align-items: center;
+        gap: 10px;
         font-family: var(--typewriter);
         font-size: 12px;
     }
     .class-stat-item strong {
         color: var(--navy);
+        text-align: right;
     }
     
     .evidence-box {
@@ -302,7 +301,7 @@
     }
   </style>
 </head>
-<body>
+<body class="antialiased">
 <div aria-hidden="true" class="detective-background">
 <div class="bg-magnifier"></div>
 <div class="bg-case-label">21 SEPTEMBER 2026</div>
@@ -364,9 +363,9 @@
 <p class="muted" style="font-size: 14px; margin-top: 10px; line-height: 1.6; font-style: italic;">Silakan identifikasi dirimu untuk mengakses data Paslon. Masukkan Nomor Induk Siswa Nasional (NISN) dan Kelas.</p>
 <div class="identity-box" style="margin-top: 20px;">
 <label class="form-label" for="participantName">Nomor Induk Siswa Nasional Peserta</label>
-<input autocomplete="off" class="input-error" id="participantName" inputmode="numeric" maxlength="10" placeholder="Contoh: 0123456780" type="text"/>
+<input autocomplete="off" id="participantName" inputmode="numeric" maxlength="10" placeholder="Contoh: 0123456780" type="text"/>
 <p class="field-hint" id="participantNameHint">Gunakan 10 digit NISN sesuai data peserta.</p>
-<p class="field-error" id="participantNameError" role="alert">Nomor Induk Siswa Nasional (NISN) tidak valid.</p>
+<p class="field-error" id="participantNameError" role="alert"></p>
 <label class="form-label" for="participantClass" style="margin-top: 20px;">KELAS / UNIT</label>
 <select class="select-input" id="participantClass">
 <option value="">Pilih Paslon</option>
@@ -479,11 +478,11 @@
 </div>
 <div class="panel-body">
 <div class="booths">
-<div class="booth" data-booth="1"><div class="booth-head"><span class="booth-number">POS 01</span><span class="booth-icon">✓</span></div><p class="">Standby</p><div class="bar"><i style="width:0%"></i></div></div>
-<div class="booth" data-booth="2"><div class="booth-head"><span class="booth-number">POS 02</span><span class="booth-icon">✓</span></div><p class="">Standby</p><div class="bar"><i style="width:0%"></i></div></div>
-<div class="booth" data-booth="3"><div class="booth-head"><span class="booth-number">POS 03</span><span class="booth-icon">✓</span></div><p class="">Standby</p><div class="bar"><i style="width:0%"></i></div></div>
-<div class="booth" data-booth="4"><div class="booth-head"><span class="booth-number">POS 04</span><span class="booth-icon">✓</span></div><p class="">Standby</p><div class="bar"><i style="width:0%"></i></div></div>
-<div class="booth" data-booth="5"><div class="booth-head"><span class="booth-number">POS 05</span><span class="booth-icon">✓</span></div><p class="">Standby</p><div class="bar"><i style="width:0%"></i></div></div>
+<div class="booth" data-booth="1"><div class="booth-head"><span class="booth-number">POS 01</span><span class="booth-icon">✓</span></div><p class="">Standby</p></div>
+<div class="booth" data-booth="2"><div class="booth-head"><span class="booth-number">POS 02</span><span class="booth-icon">✓</span></div><p class="">Standby</p></div>
+<div class="booth" data-booth="3"><div class="booth-head"><span class="booth-number">POS 03</span><span class="booth-icon">✓</span></div><p class="">Standby</p></div>
+<div class="booth" data-booth="4"><div class="booth-head"><span class="booth-number">POS 04</span><span class="booth-icon">✓</span></div><p class="">Standby</p></div>
+<div class="booth" data-booth="5"><div class="booth-head"><span class="booth-number">POS 05</span><span class="booth-icon">✓</span></div><p class="">Standby</p></div>
 </div>
 </div>
 </div>
@@ -640,6 +639,7 @@
     const SETTINGS_STORAGE_KEY = 'pemira-settings-v1';
     const NAME_USAGE_KEY = 'pemira-name-usage-v1';
     const LIVE_ALERT_KEY = 'pemira-live-alert-v1';
+    const VOTES_STORAGE_KEY = 'pemira-votes-v1';
     const state = { selected: null, participantName: '', participantClass: '', resetTimer: null, voting: false, pollTimer: null, allActivityData: [], classFilter: '' };
 
     function formatTimestamp(dateObj) {
@@ -648,7 +648,7 @@
         if (isNaN(d)) return dateObj;
         
         const dateOpts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        const dateStr = d.toLocaleDateString('en-GB', dateOpts); // Using en-GB for consistent Day, Date Month Year format if preferred, or 'id-ID'
+        const dateStr = d.toLocaleDateString('en-GB', dateOpts); 
         
         const pad = (n) => n.toString().padStart(2, '0');
         const timeStr = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
@@ -708,15 +708,52 @@
     const dateStr = new Date().toLocaleDateString('id-ID', dateOpts);
     if ($('#currentDateFooter')) $('#currentDateFooter').textContent = dateStr;
 
+    // Simulate API calls for frontend only version
     async function api(path, options) {
-      try {
-        const res = await fetch(path, Object.assign({ headers: { 'Content-Type': 'application/json' } }, options));
-        let data = null;
-        try { data = await res.json(); } catch (e) {}
-        return { ok: res.ok, status: res.status, data };
-      } catch (e) {
-        return { ok: false, status: 0, data: null };
-      }
+      return new Promise(resolve => {
+        setTimeout(() => {
+          if (path === '/api/login') {
+            resolve({ ok: true, status: 200, data: { ok: true } });
+          } else if (path === '/api/logout') {
+            resolve({ ok: true, status: 200, data: { ok: true } });
+          } else if (path === '/api/vote') {
+            const body = JSON.parse(options.body);
+            const receipt = 'PM-' + Math.floor(Math.random() * 900000 + 100000);
+            
+            // Store vote in localStorage
+            const votes = JSON.parse(localStorage.getItem(VOTES_STORAGE_KEY) || '[]');
+            votes.push({
+              receipt,
+              candidate: body.candidate,
+              name: body.name,
+              class: body.class,
+              booth: body.booth,
+              timestamp: body.timestamp || Date.now()
+            });
+            localStorage.setItem(VOTES_STORAGE_KEY, JSON.stringify(votes));
+            
+            resolve({ ok: true, status: 200, data: { ok: true, receipt } });
+          } else if (path === '/api/results') {
+            const votes = JSON.parse(localStorage.getItem(VOTES_STORAGE_KEY) || '[]');
+            const counts = {1:0, 2:0, 3:0, 4:0};
+            votes.forEach(v => { counts[v.candidate] = (counts[v.candidate] || 0) + 1; });
+            resolve({ ok: true, status: 200, data: { counts, totalVoters: readSettings().totalVoters, votesIn: votes.length, activity: votes.reverse() } });
+          } else if (path.startsWith('/api/evidence')) {
+             const urlParams = new URLSearchParams(path.split('?')[1]);
+             const receipt = urlParams.get('receipt');
+             const votes = JSON.parse(localStorage.getItem(VOTES_STORAGE_KEY) || '[]');
+             const found = votes.find(v => v.receipt === receipt);
+             if(found) {
+                 resolve({ ok: true, status: 200, data: { found: true, voter: found }});
+             } else {
+                 resolve({ ok: true, status: 200, data: { found: false }});
+             }
+          }
+          else {
+             resolve({ ok: false, status: 404, data: null });
+          }
+        }, 300);
+      });
     }
 
     // ===== Badge mode di pojok kanan atas =====
@@ -756,6 +793,9 @@
       $('#cancelSettingsBtn').addEventListener('click', () => $('#settingsModal').classList.remove('open'));
       $('#saveSettingsBtn').addEventListener('click', saveSettings);
       $('#dismissLiveAlertBtn').addEventListener('click', () => {
+        // We only hide it visually for this session, but don't remove from localStorage to make it permanent
+        // Wait, the request asked to make it permanent until manually dismissed by an admin.
+        // So this dismiss button IS the manual dismiss.
         localStorage.removeItem(LIVE_ALERT_KEY);
         $('#liveVoteAlert').classList.add('hidden');
         addSystemLog('WARN', 'Peringatan anomali (duplikasi NISN) telah diabaikan oleh operator.');
@@ -917,24 +957,31 @@
         if(!grid) return;
         
         const counts = {};
+        let maxCount = 0;
         list.forEach(a => {
             if(a.class) {
                 counts[a.class] = (counts[a.class] || 0) + 1;
+                if(counts[a.class] > maxCount) maxCount = counts[a.class];
             }
         });
         
         if(Object.keys(counts).length === 0) {
-            grid.innerHTML = '<div class="muted" style="font-size:12px; font-style:italic;">Belum ada data.</div>';
+            grid.innerHTML = '<div class="muted" style="font-size:12px; font-style:italic; text-align:center;">Belum ada data.</div>';
             return;
         }
 
         const sortedClasses = Object.keys(counts).sort();
-        grid.innerHTML = sortedClasses.map(cls => `
+        maxCount = Math.max(maxCount, 1); // prevent division by zero
+        grid.innerHTML = sortedClasses.map(cls => {
+            const count = counts[cls];
+            const percent = Math.round((count / maxCount) * 100);
+            return `
             <div class="class-stat-item">
                 <span>${cls}</span>
-                <strong>${counts[cls]}</strong>
+                <div class="class-stat-track"><i style="width:${percent}%"></i></div>
+                <strong>${count}</strong>
             </div>
-        `).join('');
+        `}).join('');
     }
 
     async function fetchResults() {
@@ -942,7 +989,6 @@
       const { ok, data } = await api('/api/results');
       if (ok && data) {
         renderResults(data);
-        // Simulate booth activity
         simulateBoothActivity();
       } else if (!ok) {
         showPanitiaLogin();
@@ -950,19 +996,30 @@
     }
     
     function simulateBoothActivity() {
-      const activeCount = Math.floor(Math.random() * 3) + 1; // 1 to 3 active
-      if($('#activeBoothCount')) $('#activeBoothCount').textContent = `${activeCount}/5`;
+      // Find what booths have voted recently (last 30s)
+      const now = Date.now();
+      const activeBooths = new Set();
+      state.allActivityData.forEach(a => {
+          if (a.timestamp && (now - a.timestamp) < 30000 && a.booth) {
+              activeBooths.add(a.booth);
+          }
+      });
+      
+      const currentBoothParam = new URLSearchParams(location.search).get('booth');
+      if (currentBoothParam) activeBooths.add(currentBoothParam);
+
+      if($('#activeBoothCount')) $('#activeBoothCount').textContent = `${activeBooths.size}/5`;
       
       $$('.booth').forEach((b, i) => {
-        const isBusy = Math.random() > 0.6;
+        const boothNum = b.dataset.booth;
+        const isBusy = activeBooths.has(boothNum);
+        
         if (isBusy) {
           b.classList.add('busy');
-          b.querySelector('p').textContent = 'Analisis...';
-          b.querySelector('.bar i').style.width = (Math.random() * 60 + 20) + '%';
+          b.querySelector('p').textContent = 'Terpakai';
         } else {
           b.classList.remove('busy');
           b.querySelector('p').textContent = 'Standby';
-          b.querySelector('.bar i').style.width = '0%';
         }
       });
     }
@@ -985,11 +1042,6 @@
       state.allActivityData = d.activity || [];
       renderActivity(state.allActivityData);
       updateClassStats(state.allActivityData);
-      
-      // Simulate new vote log occasionally
-      if (Math.random() > 0.8 && state.allActivityData.length > 0) {
-        addSystemLog('DATA', `Data saksi baru terenkripsi dari Pos ${Math.floor(Math.random() * 5) + 1}.`);
-      }
     }
 
     function maskName(name) {
@@ -1004,7 +1056,7 @@
     }
 
     function activityRowHtml(a) {
-      const timeDisplay = a.fullTime || a.time || '';
+      const timeDisplay = a.fullTime || a.time || formatTimestamp(a.timestamp);
       return `<tr><td><div class="person"><div class="person-avatar">?</div> ${maskName(a.name)}</div></td><td>${a.class || '-'}</td><td><span class="badge green">Terverifikasi</span></td><td>${timeDisplay}</td><td>Pos ${a.booth || '-'}</td></tr>`;
     }
 
