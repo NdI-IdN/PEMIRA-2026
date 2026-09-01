@@ -6,16 +6,19 @@
 //   tersimpan di folder proyek. Ini yang cocok kalau mau "file as database".
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const { kv, kvConfigured } = require('./_lib');
 
 const FILE = path.join(process.cwd(), 'data', 'db.json');
+const VOTER_KEYS = 'pemira:voter-keys';
+let fileOperation = Promise.resolve();
 
 function readFileDb() {
   try {
     const db = JSON.parse(fs.readFileSync(FILE, 'utf8'));
-    return { votes: db.votes || {}, activity: db.activity || [] };
+    return { votes: db.votes || {}, activity: db.activity || [], voters: db.voters || {} };
   } catch (e) {
-    return { votes: {}, activity: [] };
+    return { votes: {}, activity: [], voters: {} };
   }
 }
 
@@ -24,6 +27,20 @@ function writeFileDb(db) {
   const tmp = FILE + '.tmp';
   fs.writeFileSync(tmp, JSON.stringify(db, null, 2));
   fs.renameSync(tmp, FILE); // tulis atomik (mengurangi risiko korup)
+}
+
+function normalizeVoterId(value) {
+  return String(value || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('id-ID');
+}
+
+function voterKey(value) {
+  return `pemira:voter:${crypto.createHash('sha256').update(normalizeVoterId(value)).digest('hex')}`;
+}
+
+function withFileLock(operation) {
+  const result = fileOperation.then(operation, operation);
+  fileOperation = result.catch(() => {});
+  return result;
 }
 
 async function incrVote(candidate) {
@@ -47,6 +64,61 @@ async function pushActivity(entry) {
   db.activity.unshift(entry);
   db.activity = db.activity.slice(0, 200);
   writeFileDb(db);
+}
+
+async function recordVote(identity, candidate, entry) {
+  const normalizedIdentity = normalizeVoterId(identity);
+  if (!normalizedIdentity) return { created: false };
+
+  if (kvConfigured()) {
+    const key = voterKey(normalizedIdentity);
+
+    // Menolak data lama yang sudah ada walaupun belum mempunyai index voter.
+    const existing = await kv('LRANGE', 'pemira:activity', '0', '-1');
+    if (Array.isArray(existing) && existing.some((raw) => {
+      try {
+        const saved = JSON.parse(raw);
+        return normalizeVoterId(saved.name) === normalizedIdentity;
+      } catch (e) {
+        return false;
+      }
+    })) {
+      return { created: false };
+    }
+
+    // SET NX bersifat atomik di Redis: hanya satu perangkat yang bisa menang.
+    const claimed = await kv('SET', key, entry.receipt, 'NX');
+    if (claimed !== 'OK') return { created: false };
+
+    try {
+      await kv('SADD', VOTER_KEYS, key);
+      await incrVote(candidate);
+      await pushActivity(entry);
+    } catch (e) {
+      // Lepaskan claim bila penyimpanan gagal sebelum request selesai.
+      try {
+        await kv('DEL', key);
+        await kv('SREM', VOTER_KEYS, key);
+      } catch (cleanupError) {}
+      throw e;
+    }
+    return { created: true };
+  }
+
+  // File fallback tetap aman terhadap dua request bersamaan dalam satu proses Node.
+  return withFileLock(() => {
+    const db = readFileDb();
+    const duplicate = Object.keys(db.voters).some((savedKey) => savedKey === voterKey(normalizedIdentity))
+      || db.activity.some((saved) => normalizeVoterId(saved.name) === normalizedIdentity);
+    if (duplicate) return { created: false };
+
+    db.voters[voterKey(normalizedIdentity)] = entry.receipt;
+    db.votes[candidate] = (Number(db.votes[candidate]) || 0) + 1;
+    db.activity.unshift(entry);
+    db.activity = db.activity.slice(0, 200);
+    writeFileDb(db);
+    return { created: true };
+  });
 }
 
 async function getCounts() {
@@ -74,10 +146,12 @@ async function getActivity(n) {
 
 async function reset() {
   if (kvConfigured()) {
-    await kv('DEL', 'pemira:votes', 'pemira:total', 'pemira:activity');
+    const voterKeys = await kv('SMEMBERS', VOTER_KEYS);
+    if (Array.isArray(voterKeys) && voterKeys.length) await kv('DEL', ...voterKeys);
+    await kv('DEL', 'pemira:votes', 'pemira:total', 'pemira:activity', VOTER_KEYS);
     return;
   }
-  writeFileDb({ votes: {}, activity: [] });
+  writeFileDb({ votes: {}, activity: [], voters: {} });
 }
 
-module.exports = { incrVote, pushActivity, getCounts, getActivity, reset, usingKv: kvConfigured };
+module.exports = { incrVote, pushActivity, recordVote, getCounts, getActivity, reset, usingKv: kvConfigured };
