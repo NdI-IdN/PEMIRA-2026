@@ -42,13 +42,15 @@ module.exports = async (req, res) => {
   }
 
   const receipt = 'PM-' + Math.floor(100000 + Math.random() * 900000);
+  const timestamp = Date.now();
   const entry = {
     receipt,
     name: cleanName(rawName), // Menggunakan nama asli
     class: (body.class || '-').toString().slice(0, 24),
     booth: (body.booth || '-').toString().slice(0, 4),
     time: jakartaTime(),
-    ts: Date.now(),
+    timestamp,
+    ts: timestamp,
   };
 
   try {
