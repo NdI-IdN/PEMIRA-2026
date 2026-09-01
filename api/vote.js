@@ -1,5 +1,5 @@
-// POST /api/vote  { candidate, name, class, booth }
-// Rekam suara + catat aktivitas (nama utuh tanpa sensor). Storage: KV atau file JSON.
+// POST /api/vote  { candidate, name, class, booth, receipt? }
+// Rekam suara + catat aktivitas dengan satu vote per identity. Storage: KV atau file JSON.
 const { readBody } = require('./_lib');
 const store = require('./_store');
 
@@ -35,8 +35,16 @@ module.exports = async (req, res) => {
     return;
   }
 
+  const rawName = (body.name || '').toString().trim();
+  if (!rawName) {
+    res.status(400).json({ ok: false, error: 'NIS atau identitas pemilih wajib diisi.' });
+    return;
+  }
+
+  const receipt = 'PM-' + Math.floor(100000 + Math.random() * 900000);
   const entry = {
-    name: cleanName(body.name), // Menggunakan nama asli
+    receipt,
+    name: cleanName(rawName), // Menggunakan nama asli
     class: (body.class || '-').toString().slice(0, 24),
     booth: (body.booth || '-').toString().slice(0, 4),
     time: jakartaTime(),
@@ -44,8 +52,15 @@ module.exports = async (req, res) => {
   };
 
   try {
-    await store.incrVote(candidate);
-    await store.pushActivity(entry);
+    const result = await store.recordVote(rawName, candidate, entry);
+    if (!result.created) {
+      res.status(409).json({
+        ok: false,
+        error: 'NIS atau identitas ini sudah memberikan suara.',
+        code: 'DUPLICATE_VOTER',
+      });
+      return;
+    }
   } catch (e) {
     res.status(500).json({
       ok: false,
@@ -54,6 +69,5 @@ module.exports = async (req, res) => {
     return;
   }
 
-  const receipt = 'PM-' + Math.floor(100000 + Math.random() * 899999);
   res.status(200).json({ ok: true, receipt });
 };
