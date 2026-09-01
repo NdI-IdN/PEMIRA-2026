@@ -639,7 +639,6 @@
     const SETTINGS_STORAGE_KEY = 'pemira-settings-v1';
     const NAME_USAGE_KEY = 'pemira-name-usage-v1';
     const LIVE_ALERT_KEY = 'pemira-live-alert-v1';
-    const VOTES_STORAGE_KEY = 'pemira-votes-v1';
     const state = { selected: null, participantName: '', participantClass: '', resetTimer: null, voting: false, pollTimer: null, allActivityData: [], classFilter: '' };
 
     function formatTimestamp(dateObj) {
@@ -708,52 +707,18 @@
     const dateStr = new Date().toLocaleDateString('id-ID', dateOpts);
     if ($('#currentDateFooter')) $('#currentDateFooter').textContent = dateStr;
 
-    // Simulate API calls for frontend only version
+    // Semua data voting dibaca dan ditulis oleh server/Datastore.
     async function api(path, options) {
-      return new Promise(resolve => {
-        setTimeout(() => {
-          if (path === '/api/login') {
-            resolve({ ok: true, status: 200, data: { ok: true } });
-          } else if (path === '/api/logout') {
-            resolve({ ok: true, status: 200, data: { ok: true } });
-          } else if (path === '/api/vote') {
-            const body = JSON.parse(options.body);
-            const receipt = 'PM-' + Math.floor(Math.random() * 900000 + 100000);
-            
-            // Store vote in localStorage
-            const votes = JSON.parse(localStorage.getItem(VOTES_STORAGE_KEY) || '[]');
-            votes.push({
-              receipt,
-              candidate: body.candidate,
-              name: body.name,
-              class: body.class,
-              booth: body.booth,
-              timestamp: body.timestamp || Date.now()
-            });
-            localStorage.setItem(VOTES_STORAGE_KEY, JSON.stringify(votes));
-            
-            resolve({ ok: true, status: 200, data: { ok: true, receipt } });
-          } else if (path === '/api/results') {
-            const votes = JSON.parse(localStorage.getItem(VOTES_STORAGE_KEY) || '[]');
-            const counts = {1:0, 2:0, 3:0, 4:0};
-            votes.forEach(v => { counts[v.candidate] = (counts[v.candidate] || 0) + 1; });
-            resolve({ ok: true, status: 200, data: { counts, totalVoters: readSettings().totalVoters, votesIn: votes.length, activity: votes.reverse() } });
-          } else if (path.startsWith('/api/evidence')) {
-             const urlParams = new URLSearchParams(path.split('?')[1]);
-             const receipt = urlParams.get('receipt');
-             const votes = JSON.parse(localStorage.getItem(VOTES_STORAGE_KEY) || '[]');
-             const found = votes.find(v => v.receipt === receipt);
-             if(found) {
-                 resolve({ ok: true, status: 200, data: { found: true, voter: found }});
-             } else {
-                 resolve({ ok: true, status: 200, data: { found: false }});
-             }
-          }
-          else {
-             resolve({ ok: false, status: 404, data: null });
-          }
-        }, 300);
-      });
+      try {
+        const res = await fetch(path, Object.assign({
+          headers: { 'Content-Type': 'application/json' }
+        }, options));
+        let data = null;
+        try { data = await res.json(); } catch (e) {}
+        return { ok: res.ok, status: res.status, data };
+      } catch (e) {
+        return { ok: false, status: 0, data: null };
+      }
     }
 
     // ===== Badge mode di pojok kanan atas =====
