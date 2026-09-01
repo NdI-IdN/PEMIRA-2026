@@ -655,6 +655,10 @@
         return `${dateStr} - ${timeStr}`;
     }
 
+    function createReceipt() {
+      return 'PM-' + Math.floor(Math.random() * 900000 + 100000);
+    }
+
     // Setup candidate cards
     function setupCandidates() {
       const grid = $('#candidateGridContainer');
@@ -1169,6 +1173,12 @@
       $('#participantNameError').textContent = '';
     }
 
+    function isDuplicateNameError(data) {
+      const message = data && data.error ? String(data.error) : '';
+      return data && data.code === 'DUPLICATE_VOTER'
+        || /duplicate|already|sudah|terekam|memberikan suara|terdaftar/i.test(message);
+    }
+
     $('#briefingBtn').addEventListener('click', () => {
       $('#welcomeScreen').classList.add('hidden');
       $('#briefingScreen').classList.remove('hidden');
@@ -1218,20 +1228,37 @@
       if (state.voting) return;
       state.voting = true;
       const timestamp = Date.now();
+      // Kirim receipt bersama vote agar kode yang tampil juga tersimpan di Datastore.
+      const receipt = createReceipt();
       const { ok, data } = await api('/api/vote', {
         method: 'POST',
-        body: JSON.stringify({ candidate: state.selected, name: state.participantName, class: state.participantClass, booth: BOOTH_ID, timestamp: timestamp }),
+        body: JSON.stringify({
+          receipt,
+          candidate: state.selected,
+          name: state.participantName,
+          class: state.participantClass,
+          booth: BOOTH_ID,
+          timestamp,
+        }),
       });
       state.voting = false;
       if (!ok || !data || !data.ok) {
         showToast((data && data.error) || 'Gagal mengenkripsi suara ke server.');
         $$('.candidate').forEach(c => c.classList.remove('selected'));
+        state.selected = null;
+        if (isDuplicateNameError(data)) {
+          publishDuplicateAlert(state.participantName, state.participantClass, BOOTH_ID);
+          $('#voteScreen').classList.add('hidden');
+          $('#identityScreen').classList.remove('hidden');
+          setParticipantNameError('Akses ditolak: NIS atau identitas ini sudah memberikan suara.');
+          $('#participantName').focus();
+        }
         return;
       }
       rememberName(state.participantName);
       $('#voteScreen').classList.add('hidden');
       $('#successScreen').classList.remove('hidden');
-      $('#receipt').textContent = data.receipt || 'PM-' + Math.floor(Math.random() * 900000 + 100000);
+      $('#receipt').textContent = data.receipt || receipt;
       startAutoReset();
     }
 
