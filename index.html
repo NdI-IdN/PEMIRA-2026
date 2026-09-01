@@ -364,7 +364,7 @@
 <div class="identity-box" style="margin-top: 20px;">
 <label class="form-label" for="participantName">Nomor Induk Siswa Nasional Peserta</label>
 <input autocomplete="off" id="participantName" inputmode="numeric" maxlength="10" placeholder="Contoh: 0123456780" type="text"/>
-<p class="field-hint" id="participantNameHint">Gunakan 10 digit NIS sesuai data peserta.</p>
+<p class="field-hint" id="participantNameHint">Gunakan 9 digit NIS sesuai data peserta.</p>
 <p class="field-error" id="participantNameError" role="alert"></p>
 <label class="form-label" for="participantClass" style="margin-top: 20px;">KELAS / UNIT</label>
 <select class="select-input" id="participantClass">
@@ -1204,8 +1204,8 @@
           return;
         }
       } else {
-        if (!/^\d{10}$/.test(name)) { 
-          setParticipantNameError('Nomor Induk Siswa Nasional (NIS) tidak valid.'); 
+        if (!/^\d{9}$/.test(name)) { 
+          setParticipantNameError('Nomor Induk Siswa (NIS) tidak valid.'); 
           $('#participantName').focus(); 
           return; 
         }
