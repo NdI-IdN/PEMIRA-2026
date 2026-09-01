@@ -144,6 +144,26 @@ async function getActivity(n) {
   return readFileDb().activity.slice(0, n);
 }
 
+async function findByReceipt(receipt) {
+  const normalizedReceipt = String(receipt || '').trim().toUpperCase();
+  if (!normalizedReceipt) return null;
+
+  const activity = kvConfigured()
+    ? await kv('LRANGE', 'pemira:activity', '0', '-1')
+    : readFileDb().activity;
+
+  if (!Array.isArray(activity)) return null;
+  for (const item of activity) {
+    const saved = typeof item === 'string'
+      ? (() => { try { return JSON.parse(item); } catch (e) { return null; } })()
+      : item;
+    if (saved && String(saved.receipt || '').trim().toUpperCase() === normalizedReceipt) {
+      return saved;
+    }
+  }
+  return null;
+}
+
 async function reset() {
   if (kvConfigured()) {
     const voterKeys = await kv('SMEMBERS', VOTER_KEYS);
@@ -154,4 +174,4 @@ async function reset() {
   writeFileDb({ votes: {}, activity: [], voters: {} });
 }
 
-module.exports = { incrVote, pushActivity, recordVote, getCounts, getActivity, reset, usingKv: kvConfigured };
+module.exports = { incrVote, pushActivity, recordVote, getCounts, getActivity, findByReceipt, reset, usingKv: kvConfigured };
