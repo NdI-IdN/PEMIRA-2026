@@ -4,20 +4,11 @@
 const fs = require('fs');
 const path = require('path');
 
-const ROSTER_PATH = path.join(process.cwd(), 'Data', 'SpreadsheetNIS', 'nis.json');
+const ROSTER_PATH = path.join(process.cwd(), 'Data', 'nis.json');
 
-// Pemetaan nilai <select> di index.html -> key kelas di nis.json.
-// Kalau nama kelas di roster berubah, cukup update di sini.
-const CLASS_MAP = {
-  'XA': '10 A', 'XB': '10 B', 'XC': '10 C', 'XD': '10 D',
-  'XE': '10 E', 'XF': '10 F', 'XG': '10 G', 'XH': '10 H',
-  'XI IPA 1': '11 IPA 1', 'XI IPA 2': '11 IPA 2', 'XI IPA 3': '11 IPA 3',
-  'XI IPA 4': '11 IPA 4', 'XI IPA 5': '11 IPA 5', 'XI IPA 6': '11 IPA 6',
-  'XI IPS 1': '11 IPS 1', 'XI IPS 2': '11 IPS 2', 'XI IPS 3': '11 IPS 3',
-  'XII Teknik 1': '12 Teknik 1', 'XII Teknik 2': '12 Teknik 2',
-  'XII Kesehatan 1': '12 Kesehatan 1', 'XII Kesehatan 2': '12 Kesehatan 2',
-  'XII Sosial 1': '12 Sosial 1', 'XII Sosial 2': '12 Sosial 2',
-};
+// Key kelas di nis.json memakai format yang sama persis dengan value
+// <option> di index.html ("XA", "XI IPA 1", "XII Teknik 1", dst),
+// jadi tidak perlu tabel terjemahan terpisah.
 
 let cache = null; // Map<nis, kelasRoster>
 
@@ -64,7 +55,7 @@ function checkVoterNIS(nis, uiClassName) {
     return { ok: false, reason: 'NOT_FOUND' };
   }
 
-  const expectedClass = CLASS_MAP[uiClassName];
+  const expectedClass = uiClassName;
   if (expectedClass && actualClass !== expectedClass) {
     return { ok: false, reason: 'CLASS_MISMATCH', actualClass };
   }
@@ -72,4 +63,4 @@ function checkVoterNIS(nis, uiClassName) {
   return { ok: true };
 }
 
-module.exports = { checkVoterNIS, loadRoster, clearRosterCache, CLASS_MAP };
+module.exports = { checkVoterNIS, loadRoster, clearRosterCache };
