@@ -363,8 +363,8 @@
 <p class="muted" style="font-size: 14px; margin-top: 10px; line-height: 1.6; font-style: italic;">Silakan identifikasi dirimu untuk mengakses data Paslon. Masukkan Nomor Induk Siswa Nasional (NIS) dan Kelas.</p>
 <div class="identity-box" style="margin-top: 20px;">
 <label class="form-label" for="participantName">Nomor Induk Siswa Nasional Peserta</label>
-<input autocomplete="off" id="participantName" inputmode="numeric" maxlength="10" placeholder="Contoh: 232600000" type="text"/>
-<p class="field-hint" id="participantNameHint">Gunakan 10 digit NIS sesuai data peserta.</p>
+<input autocomplete="off" id="participantName" inputmode="numeric" maxlength="9" placeholder="Contoh: 232600000" type="text"/>
+<p class="field-hint" id="participantNameHint">Gunakan 9 digit NIS sesuai data peserta.</p>
 <p class="field-error" id="participantNameError" role="alert"></p>
 <label class="form-label" for="participantClass" style="margin-top: 20px;">KELAS / UNIT</label>
 <select class="select-input" id="participantClass">
@@ -1112,8 +1112,8 @@
         }
         
         const NIS = input.value.trim();
-        if (NIS.length > 0 && NIS.length < 10) {
-          setParticipantNameError('NIS tidak lengkap (harus 10 digit).');
+        if (NIS.length > 0 && NIS.length < 9) {
+          setParticipantNameError('NIS tidak lengkap (harus 9 digit).');
         } else if (nameAlreadyUsed(NIS)) {
           setParticipantNameError('Akses Ditolak: NIS ini telah terekam di sistem.');
           publishDuplicateAlert(NIS, $('#participantClass').value, BOOTH_ID);
@@ -1176,7 +1176,12 @@
     function isDuplicateNameError(data) {
       const message = data && data.error ? String(data.error) : '';
       return data && data.code === 'DUPLICATE_VOTER'
-        || /duplicate|already|sudah|terekam|memberikan suara|terdaftar/i.test(message);
+        || /duplicate|already|sudah|terekam|memberikan suara/i.test(message);
+    }
+
+    // NIS tidak ada di roster, atau kelas tidak cocok, atau roster gagal dimuat di server.
+    function isRosterRejectedError(data) {
+      return data && (data.code === 'NIS_NOT_REGISTERED' || data.code === 'NIS_CLASS_MISMATCH' || data.code === 'ROSTER_UNAVAILABLE');
     }
 
     $('#briefingBtn').addEventListener('click', () => {
@@ -1204,7 +1209,7 @@
           return;
         }
       } else {
-        if (!/^\d{10}$/.test(name)) { 
+        if (!/^\d{9}$/.test(name)) { 
           setParticipantNameError('Nomor Induk Siswa Nasional (NIS) tidak valid.'); 
           $('#participantName').focus(); 
           return; 
@@ -1251,6 +1256,11 @@
           $('#voteScreen').classList.add('hidden');
           $('#identityScreen').classList.remove('hidden');
           setParticipantNameError('Akses ditolak: NIS atau identitas ini sudah memberikan suara.');
+          $('#participantName').focus();
+        } else if (isRosterRejectedError(data)) {
+          $('#voteScreen').classList.add('hidden');
+          $('#identityScreen').classList.remove('hidden');
+          setParticipantNameError((data && data.error) || 'NIS tidak valid atau tidak sesuai kelas.');
           $('#participantName').focus();
         }
         return;
