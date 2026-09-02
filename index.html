@@ -765,9 +765,17 @@
         // We only hide it visually for this session, but don't remove from localStorage to make it permanent
         // Wait, the request asked to make it permanent until manually dismissed by an admin.
         // So this dismiss button IS the manual dismiss.
+        let dismissedType = 'duplicate';
+        try {
+          const raw = localStorage.getItem(LIVE_ALERT_KEY);
+          if (raw) dismissedType = (JSON.parse(raw).type || 'duplicate');
+        } catch (e) {}
         localStorage.removeItem(LIVE_ALERT_KEY);
         $('#liveVoteAlert').classList.add('hidden');
-        addSystemLog('WARN', 'Peringatan anomali (duplikasi NIS) telah diabaikan oleh operator.');
+        const logMsg = dismissedType === 'roster'
+          ? 'Peringatan kendala NIS (tidak terdaftar di roster) telah diabaikan oleh operator.'
+          : 'Peringatan anomali (duplikasi NIS) telah diabaikan oleh operator.';
+        addSystemLog('WARN', logMsg);
       });
       $('#viewAllParticipantsBtn').addEventListener('click', () => {
         $('#allParticipantsClassFilter').value = state.classFilter;
@@ -904,10 +912,16 @@
         const rawAlert = localStorage.getItem(LIVE_ALERT_KEY);
         if (rawAlert) {
           const alertData = JSON.parse(rawAlert);
+          const isRoster = alertData.type === 'roster';
+          $('#liveAlertTitle').textContent = isRoster
+            ? `TERDAPAT KENDALA DI POS ${alertData.booth || '—'}`
+            : 'ANOMALI TERDETEKSI: Duplikasi Saksi!';
           $('#liveAlertName').textContent = alertData.name || '—';
           $('#liveAlertClass').textContent = alertData.class || '—';
           $('#liveAlertBooth').textContent = alertData.booth || '—';
-          $('#liveAlertTime').textContent = `Peringatan terekam pada: ${formatTimestamp(alertData.createdAt)}`;
+          $('#liveAlertTime').textContent = isRoster
+            ? (alertData.reasonText || 'Peringatan: NIS tidak ditemukan / tidak sesuai data roster.')
+            : `Peringatan terekam pada: ${formatTimestamp(alertData.createdAt)}`;
           $('#liveVoteAlert').classList.remove('hidden');
         } else {
           $('#liveVoteAlert').classList.add('hidden');
@@ -1015,8 +1029,8 @@
 
     function maskName(name) {
       const str = String(name || '').trim();
-      if (str.length < 10) return str;
-      return str.slice(0, 3) + '****' + str.slice(-3);
+      if (str.length <= 4) return str;
+      return str.slice(0, 4) + '*'.repeat(str.length - 4);
     }
 
     function filterByClass(list, className) {
@@ -1163,6 +1177,21 @@
       checkLiveAlerts();
     }
 
+    // Alert berbeda dari duplikasi: dipicu saat NIS tidak ditemukan di roster,
+    // kelasnya tidak cocok, atau roster gagal dimuat di server.
+    function publishRosterAlert(name, className, booth, reasonText) {
+      const alert = {
+        type: 'roster',
+        name: maskName(name),
+        class: className || '—',
+        booth: String(booth || '—'),
+        createdAt: Date.now(),
+        reasonText: reasonText || 'NIS tidak ditemukan / tidak sesuai data roster.',
+      };
+      localStorage.setItem(LIVE_ALERT_KEY, JSON.stringify(alert));
+      checkLiveAlerts();
+    }
+
     function setParticipantNameError(message) {
       $('#participantName').classList.add('input-error');
       $('#participantNameError').textContent = message;
@@ -1258,6 +1287,7 @@
           setParticipantNameError('Akses ditolak: NIS atau identitas ini sudah memberikan suara.');
           $('#participantName').focus();
         } else if (isRosterRejectedError(data)) {
+          publishRosterAlert(state.participantName, state.participantClass, BOOTH_ID, (data && data.error) || 'NIS tidak ditemukan dalam data roster.');
           $('#voteScreen').classList.add('hidden');
           $('#identityScreen').classList.remove('hidden');
           setParticipantNameError((data && data.error) || 'NIS tidak valid atau tidak sesuai kelas.');
