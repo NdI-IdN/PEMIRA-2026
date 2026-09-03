@@ -1,6 +1,6 @@
 // POST /api/vote  { candidate, name, class, booth, receipt? }
 // Rekam suara + catat aktivitas dengan satu vote per identity. Storage: KV atau file JSON.
-const { readBody } = require('./_lib');
+const { readBody, maskId } = require('./_lib');
 const store = require('./_store');
 const { checkVoterNIS } = require('./_roster');
 
@@ -53,12 +53,30 @@ module.exports = async (req, res) => {
       let error = 'NIS tidak ditemukan dalam data siswa terdaftar.';
       let code = 'NIS_NOT_REGISTERED';
       if (check.reason === 'CLASS_MISMATCH') {
-        error = `NIS ditemukan, tetapi tidak sesuai dengan kelas yang tercatat (${check.actualClass}). Periksa kembali kelas yang dipilih.`;
+        // Sengaja tidak menyebutkan kelas asli (check.actualClass) di pesan
+        // yang dikirim ke client, supaya tidak membocorkan info kelas siswa lain.
+        error = 'NIS ditemukan, tetapi tidak sesuai dengan kelas yang dipilih. Periksa kembali kelas Anda.';
         code = 'NIS_CLASS_MISMATCH';
       } else if (check.reason === 'ROSTER_UNAVAILABLE') {
         error = 'Data siswa (roster NIS) belum tersedia di server. Hubungi panitia/admin.';
         code = 'ROSTER_UNAVAILABLE';
       }
+
+      // Catat ke live alert (bisa di-dismiss) DAN ke log permanen (tidak pernah
+      // dihapus otomatis, buat audit) di Datastore. Panitia lihat lintas device.
+      const alertEntry = {
+        id: 'AL-' + Math.floor(100000 + Math.random() * 900000),
+        type: 'roster',
+        name: maskId(rawName),
+        class: rawClass || '—',
+        booth: (body.booth || '-').toString().slice(0, 4),
+        time: jakartaTime(),
+        createdAt: Date.now(),
+        reasonText: error,
+      };
+      try { await store.addLiveAlert(alertEntry); } catch (e) {}
+      try { await store.pushAlertLog(alertEntry); } catch (e) {}
+
       res.status(403).json({ ok: false, error, code });
       return;
     }
@@ -79,6 +97,17 @@ module.exports = async (req, res) => {
   try {
     const result = await store.recordVote(rawName, candidate, entry);
     if (!result.created) {
+      const alertEntry = {
+        id: 'AL-' + Math.floor(100000 + Math.random() * 900000),
+        type: 'duplicate',
+        name: maskId(rawName),
+        class: entry.class,
+        booth: entry.booth,
+        time: jakartaTime(),
+        createdAt: Date.now(),
+      };
+      try { await store.addLiveAlert(alertEntry); } catch (e) {}
+      try { await store.pushAlertLog(alertEntry); } catch (e) {}
       res.status(409).json({
         ok: false,
         error: 'NIS atau identitas ini sudah memberikan suara.',
