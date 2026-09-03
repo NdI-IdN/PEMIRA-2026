@@ -210,6 +210,7 @@
     
     .badge { border-radius:2px; padding:4px 8px; font-size:10px; font-weight:bold; font-family: var(--typewriter); text-transform: uppercase; border: 1px solid currentColor; }
     .badge.green { color:var(--mint); background:rgba(74,102,91,0.1); } .badge.gray { color:var(--muted); background:rgba(0,0,0,0.05); }
+    .badge.orange { color:var(--orange); background:rgba(168,98,44,0.1); } .badge.red { color:var(--red); background:rgba(158,54,59,0.1); }
     
     .person { display:flex; align-items:center; gap:10px; }
     .person-avatar { width:30px; height:30px; display:grid; place-items:center; color:var(--navy); background:rgba(25,37,60,0.1); border-radius:50%; font-size:11px; font-weight:bold; font-family: var(--typewriter); border: 1px solid var(--line); }
@@ -251,6 +252,9 @@
     .live-alert-time { display:block; color:#d6a3a5; font-size:11px; margin-top:10px; font-style: italic; }
     .live-alert-close { flex:0 0 auto; padding:8px 16px; color:#fff; background:rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius:4px; font-size:11px; font-weight:bold; font-family: var(--typewriter); position: relative; z-index: 2; }
     .live-alert-close:hover { background: rgba(0,0,0,0.5); }
+    .live-alert-stack { display:flex; flex-direction:column; }
+    .live-alert-x { position:absolute; top:12px; right:14px; z-index:3; width:26px; height:26px; border-radius:50%; border:1px solid rgba(255,255,255,.4); background:rgba(0,0,0,.25); color:#fff; font-size:16px; line-height:1; cursor:pointer; display:grid; place-items:center; }
+    .live-alert-x:hover { background: rgba(0,0,0,.5); }
     @keyframes alert-in { from { opacity:0; transform:translateY(-10px) rotate(-1deg); } to { opacity:1; transform:none; } }
     
     @media (max-width: 900px) {
@@ -446,19 +450,7 @@
 <button class="btn dark" id="panitiaLogoutBtn">Tutup Akses</button>
 </div>
 </div>
-<div class="live-alert hidden" id="liveVoteAlert" role="status">
-<div class="live-alert-icon" id="liveAlertIcon">!</div>
-<div class="live-alert-content">
-<strong id="liveAlertTitle">ANOMALI TERDETEKSI: Duplikasi Saksi!</strong>
-<div class="live-alert-details">
-<span class="">ID/NIS: <b id="liveAlertName">—</b></span>
-<span class="">Departemen: <b id="liveAlertClass">—</b></span>
-<span class="">Lokasi/Bilik: <b id="liveAlertBooth">—</b></span>
-</div>
-<small class="live-alert-time" id="liveAlertTime">Peringatan: Subjek mencoba mengakses sistem lebih dari satu kali.</small>
-</div>
-<button class="live-alert-close" id="dismissLiveAlertBtn">Abaikan Peringatan</button>
-</div>
+<div class="live-alert-stack" id="liveAlertStack"></div>
 <div class="admin-grid">
 <div class="stat"><div class="stat-top"><span class="">Target Saksi</span><span class="stat-icon">
 <svg class="detective-icon" style="width: 20px; height: 20px;" viewbox="0 0 24 24">
@@ -539,6 +531,7 @@
 </optgroup>
 </select>
 <button class="btn" id="viewAllParticipantsBtn">Arsip Lengkap</button>
+<button class="btn" id="viewAlertLogHeaderBtn">Log Peringatan</button>
 </div>
 </div>
 <div class="table-wrap">
@@ -567,6 +560,25 @@
 <div class="evidence-result hidden" id="evidenceResult">
 <!-- Injected via JS -->
 </div>
+</div>
+</div>
+</div>
+<!-- HALAMAN LOG PERINGATAN PERMANEN (diakses via ?errorlogs&panitia) -->
+<div class="hidden" id="errorLogsDashboard">
+<div class="hero">
+<div><div class="eyebrow">Markas Besar · Log Permanen</div><h1 class="">Log Kendala &amp; Duplikasi.</h1><p class="">Seluruh kejadian (NIS ditolak roster / duplikasi) tercatat permanen di sini, walaupun sudah di-"Abaikan" dari dashboard utama. Data ini tidak ikut terhapus oleh reset data.</p></div>
+<div class="admin-actions">
+<button class="btn" id="refreshErrorLogsBtn">↻ Refresh</button>
+<button class="btn dark" id="errorLogsLogoutBtn">Tutup Akses</button>
+</div>
+</div>
+<div class="panel" style="border: 1px solid rgba(91,76,54,.18); box-shadow: 2px 4px 12px rgba(105,87,65,.15);">
+<div class="panel-head"><div><h3 class="">Riwayat Lengkap</h3></div></div>
+<div class="table-wrap" style="max-height:70vh; border: 1px solid var(--line);">
+<table>
+<thead><tr><th class="">WAKTU</th><th class="">JENIS</th><th class="">NIS</th><th class="">KELAS</th><th class="">POS (BILIK)</th><th class="">KETERANGAN</th></tr></thead>
+<tbody id="alertLogTableBody"></tbody>
+</table>
 </div>
 </div>
 </div>
@@ -631,15 +643,22 @@
     ];
 
     const $ = (s) => document.querySelector(s);
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = String(str == null ? '' : str);
+      return div.innerHTML;
+    }
     const $$ = (s) => [...document.querySelectorAll(s)];
     const BOOTH_ID = new URLSearchParams(location.search).get('booth') || 'Pribadi';
     const PANITIA_MODE = new URLSearchParams(location.search).has('panitia');
     const EVIDENCE_MODE = new URLSearchParams(location.search).has('evidence');
+    const ERRORLOGS_MODE = new URLSearchParams(location.search).has('errorlogs');
     const POLL_MS = 5000;
     const SETTINGS_STORAGE_KEY = 'pemira-settings-v1';
     const NAME_USAGE_KEY = 'pemira-name-usage-v1';
-    const LIVE_ALERT_KEY = 'pemira-live-alert-v1';
-    const state = { selected: null, participantName: '', participantClass: '', resetTimer: null, voting: false, pollTimer: null, allActivityData: [], classFilter: '' };
+    // LIVE_ALERT_KEY dihapus: alert sekarang disimpan di Datastore (KV) lewat /api/alert,
+    // bukan localStorage, supaya panitia di device manapun melihat alert yang sama.
+    const state = { selected: null, participantName: '', participantClass: '', resetTimer: null, voting: false, pollTimer: null, errorLogsPollTimer: null, allActivityData: [], classFilter: '', alertLogData: [] };
 
     function formatTimestamp(dateObj) {
         if (!dateObj) return '';
@@ -731,7 +750,7 @@
       const badge = $('#modeBadge');
       const dot = $('#modeBadgeDot');
       const text = $('#modeBadgeText');
-      if (PANITIA_MODE || EVIDENCE_MODE) {
+      if (PANITIA_MODE || EVIDENCE_MODE || ERRORLOGS_MODE) {
         badge.classList.add('info');
         dot.classList.add('hidden');
         text.textContent = 'Admin Akses';
@@ -745,7 +764,7 @@
     })();
 
     // ===== Mode panitia (diakses lewat ?panitia, bukan endpoint terpisah) =====
-    if (PANITIA_MODE || EVIDENCE_MODE) {
+    if (PANITIA_MODE || EVIDENCE_MODE || ERRORLOGS_MODE) {
       $('#clientView').classList.remove('active');
       $('#clientView').classList.add('hidden');
       $('#panitiaView').classList.remove('hidden');
@@ -758,24 +777,27 @@
       $('#panitiaPassword').addEventListener('keydown', (e) => { if (e.key === 'Enter') loginPanitia(); });
       $('#panitiaLogoutBtn').addEventListener('click', logoutPanitia);
       if($('#evidenceLogoutBtn')) $('#evidenceLogoutBtn').addEventListener('click', logoutPanitia);
+      if($('#errorLogsLogoutBtn')) $('#errorLogsLogoutBtn').addEventListener('click', logoutPanitia);
+      if($('#refreshErrorLogsBtn')) $('#refreshErrorLogsBtn').addEventListener('click', loadErrorLogsPage);
       $('#panitiaSettingsBtn').addEventListener('click', openSettings);
       $('#cancelSettingsBtn').addEventListener('click', () => $('#settingsModal').classList.remove('open'));
       $('#saveSettingsBtn').addEventListener('click', saveSettings);
-      $('#dismissLiveAlertBtn').addEventListener('click', () => {
-        // We only hide it visually for this session, but don't remove from localStorage to make it permanent
-        // Wait, the request asked to make it permanent until manually dismissed by an admin.
-        // So this dismiss button IS the manual dismiss.
-        let dismissedType = 'duplicate';
-        try {
-          const raw = localStorage.getItem(LIVE_ALERT_KEY);
-          if (raw) dismissedType = (JSON.parse(raw).type || 'duplicate');
-        } catch (e) {}
-        localStorage.removeItem(LIVE_ALERT_KEY);
-        $('#liveVoteAlert').classList.add('hidden');
-        const logMsg = dismissedType === 'roster'
+      // Delegasi klik: setiap kartu alert di stack punya tombol "×" sendiri
+      // (data-dismiss-id), jadi cukup 1 listener di container-nya.
+      $('#liveAlertStack').addEventListener('click', async (e) => {
+        const btn = e.target.closest('[data-dismiss-id]');
+        if (!btn) return;
+        const id = btn.getAttribute('data-dismiss-id');
+        const type = btn.getAttribute('data-dismiss-type') || 'duplicate';
+        btn.closest('.live-alert')?.remove();
+        const { ok } = await api('/api/alert', {
+          method: 'POST',
+          body: JSON.stringify({ action: 'dismiss', id }),
+        });
+        const logMsg = type === 'roster'
           ? 'Peringatan kendala NIS (tidak terdaftar di roster) telah diabaikan oleh operator.'
           : 'Peringatan anomali (duplikasi NIS) telah diabaikan oleh operator.';
-        addSystemLog('WARN', logMsg);
+        addSystemLog('WARN', ok ? logMsg : 'Gagal menghapus alert di Datastore, coba lagi.');
       });
       $('#viewAllParticipantsBtn').addEventListener('click', () => {
         $('#allParticipantsClassFilter').value = state.classFilter;
@@ -783,6 +805,13 @@
         $('#allParticipantsModal').classList.add('open');
       });
       $('#closeAllParticipantsBtn').addEventListener('click', () => $('#allParticipantsModal').classList.remove('open'));
+      // "Log Peringatan" buka halaman permanen (?errorlogs) di tab baru, bukan modal.
+      $('#viewAlertLogHeaderBtn').addEventListener('click', () => {
+        const url = new URL(location.href);
+        url.searchParams.set('errorlogs', '1');
+        url.searchParams.set('panitia', '1');
+        window.open(url.toString(), '_blank');
+      });
       $('#participantClassFilter').addEventListener('change', (e) => {
         state.classFilter = e.target.value;
         renderActivity(state.allActivityData);
@@ -822,19 +851,30 @@
       $('#panitiaLoginScreen').classList.remove('hidden');
       $('#panitiaDashboard').classList.add('hidden');
       $('#evidenceDashboard').classList.add('hidden');
+      $('#errorLogsDashboard').classList.add('hidden');
       clearInterval(state.pollTimer);
+      clearInterval(state.errorLogsPollTimer);
     }
 
     function showPanitiaDashboard() {
       $('#panitiaLoginScreen').classList.add('hidden');
-      if(EVIDENCE_MODE) {
+      if (ERRORLOGS_MODE) {
+          $('#errorLogsDashboard').classList.remove('hidden');
+          $('#panitiaDashboard').classList.add('hidden');
+          $('#evidenceDashboard').classList.add('hidden');
+          loadErrorLogsPage();
+          clearInterval(state.errorLogsPollTimer);
+          state.errorLogsPollTimer = setInterval(loadErrorLogsPage, POLL_MS);
+      } else if(EVIDENCE_MODE) {
           $('#evidenceDashboard').classList.remove('hidden');
           $('#panitiaDashboard').classList.add('hidden');
+          $('#errorLogsDashboard').classList.add('hidden');
       } else {
           $('#panitiaDashboard').classList.remove('hidden');
           $('#evidenceDashboard').classList.add('hidden');
+          $('#errorLogsDashboard').classList.add('hidden');
           applySettings();
-          checkLiveAlerts();
+          fetchLiveAlert();
           startResultsPolling();
           
           // Initialize system logs if empty
@@ -907,24 +947,79 @@
       addSystemLog('SYSTEM', 'Parameter operasi telah diperbarui oleh operator.');
     }
 
-    function checkLiveAlerts() {
+    async function fetchLiveAlert() {
       try {
-        const rawAlert = localStorage.getItem(LIVE_ALERT_KEY);
-        if (rawAlert) {
-          const alertData = JSON.parse(rawAlert);
-          const isRoster = alertData.type === 'roster';
-          $('#liveAlertTitle').textContent = isRoster
-            ? `TERDAPAT KENDALA DI POS ${alertData.booth || '—'}`
-            : 'ANOMALI TERDETEKSI: Duplikasi Saksi!';
-          $('#liveAlertName').textContent = alertData.name || '—';
-          $('#liveAlertClass').textContent = alertData.class || '—';
-          $('#liveAlertBooth').textContent = alertData.booth || '—';
-          $('#liveAlertTime').textContent = isRoster
-            ? (alertData.reasonText || 'Peringatan: NIS tidak ditemukan / tidak sesuai data roster.')
-            : `Peringatan terekam pada: ${formatTimestamp(alertData.createdAt)}`;
-          $('#liveVoteAlert').classList.remove('hidden');
-        } else {
-          $('#liveVoteAlert').classList.add('hidden');
+        const { ok, data } = await api('/api/alert');
+        if (ok && data) {
+          renderLiveAlertStack(data.alerts || []);
+        }
+      } catch (e) {}
+    }
+
+    // Stack: render SEMUA alert aktif sekaligus (bukan cuma 1), tiap kartu
+    // punya tombol "×" sendiri (data-dismiss-id) buat ditutup satu-satu.
+    function renderLiveAlertStack(list) {
+      const container = $('#liveAlertStack');
+      if (!list || !list.length) {
+        container.innerHTML = '';
+        return;
+      }
+      container.innerHTML = list.map((a) => {
+        const isRoster = a.type === 'roster';
+        const title = isRoster
+          ? `TERDAPAT KENDALA DI POS ${escapeHtml(a.booth || '—')}`
+          : 'ANOMALI TERDETEKSI: Duplikasi Saksi!';
+        const detail = isRoster
+          ? escapeHtml(a.reasonText || 'Peringatan: NIS tidak ditemukan / tidak sesuai data roster.')
+          : `Peringatan terekam pada: ${formatTimestamp(a.createdAt)}`;
+        return `<div class="live-alert" role="status" data-alert-id="${escapeHtml(a.id)}">
+          <div class="live-alert-icon">!</div>
+          <div class="live-alert-content">
+            <strong>${title}</strong>
+            <div class="live-alert-details">
+              <span>ID/NIS: <b>${escapeHtml(a.name || '—')}</b></span>
+              <span>Departemen: <b>${escapeHtml(a.class || '—')}</b></span>
+              <span>Lokasi/Bilik: <b>${escapeHtml(a.booth || '—')}</b></span>
+            </div>
+            <small class="live-alert-time">${detail}</small>
+          </div>
+          <button class="live-alert-x" data-dismiss-id="${escapeHtml(a.id)}" data-dismiss-type="${escapeHtml(a.type || 'duplicate')}" title="Abaikan peringatan ini">×</button>
+        </div>`;
+      }).join('');
+    }
+
+    function renderAlertLog(list) {
+      const tbody = $('#alertLogTableBody');
+      if (!tbody) return;
+      if (!list || !list.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="muted" style="text-align:center; padding:20px;">Belum ada kejadian tercatat.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = list.map((a) => {
+        const isRoster = a.type === 'roster';
+        const jenis = isRoster ? 'Kendala NIS' : 'Duplikasi';
+        const badgeColor = isRoster ? 'orange' : 'red';
+        const keterangan = isRoster
+          ? escapeHtml(a.reasonText || 'NIS tidak ditemukan / tidak sesuai roster.')
+          : 'NIS/identitas ini sudah pernah memberikan suara sebelumnya.';
+        return `<tr>
+          <td>${formatTimestamp(a.createdAt)}</td>
+          <td><span class="badge ${badgeColor}">${jenis}</span></td>
+          <td>${escapeHtml(a.name || '—')}</td>
+          <td>${escapeHtml(a.class || '—')}</td>
+          <td>Pos ${escapeHtml(a.booth || '-')}</td>
+          <td>${keterangan}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    // Dipanggil di halaman ?errorlogs (bukan modal lagi).
+    async function loadErrorLogsPage() {
+      try {
+        const { ok, data } = await api('/api/alert?full=1');
+        if (ok && data) {
+          state.alertLogData = data.log || [];
+          renderAlertLog(state.alertLogData);
         }
       } catch (e) {}
     }
@@ -968,7 +1063,7 @@
     }
 
     async function fetchResults() {
-      checkLiveAlerts();
+      fetchLiveAlert();
       const { ok, data } = await api('/api/results');
       if (ok && data) {
         renderResults(data);
@@ -1129,8 +1224,9 @@
         if (NIS.length > 0 && NIS.length < 9) {
           setParticipantNameError('NIS tidak lengkap (harus 9 digit).');
         } else if (nameAlreadyUsed(NIS)) {
+          // Ini baru pengecekan lokal (browser ini pernah dipakai untuk NIS ini).
+          // Alert ke panitia baru dikirim server saat submit vote benar-benar ditolak.
           setParticipantNameError('Akses Ditolak: NIS ini telah terekam di sistem.');
-          publishDuplicateAlert(NIS, $('#participantClass').value, BOOTH_ID);
         } else {
           clearParticipantNameError();
         }
@@ -1140,7 +1236,6 @@
           setParticipantNameError('NIPY/No. Karyawan harus antara 5-20 karakter.');
         } else if (nameAlreadyUsed(val)) {
           setParticipantNameError('Akses Ditolak: Identitas ini telah terekam di sistem.');
-          publishDuplicateAlert(val, $('#participantClass').value, BOOTH_ID);
         } else {
           clearParticipantNameError();
         }
@@ -1171,26 +1266,9 @@
       }
     }
 
-    function publishDuplicateAlert(name, className, booth) {
-      const alert = { type: 'duplicate', name: maskName(name), class: className || '—', booth: String(booth || '—'), createdAt: Date.now() };
-      localStorage.setItem(LIVE_ALERT_KEY, JSON.stringify(alert));
-      checkLiveAlerts();
-    }
-
-    // Alert berbeda dari duplikasi: dipicu saat NIS tidak ditemukan di roster,
-    // kelasnya tidak cocok, atau roster gagal dimuat di server.
-    function publishRosterAlert(name, className, booth, reasonText) {
-      const alert = {
-        type: 'roster',
-        name: maskName(name),
-        class: className || '—',
-        booth: String(booth || '—'),
-        createdAt: Date.now(),
-        reasonText: reasonText || 'NIS tidak ditemukan / tidak sesuai data roster.',
-      };
-      localStorage.setItem(LIVE_ALERT_KEY, JSON.stringify(alert));
-      checkLiveAlerts();
-    }
+    // NOTE: publishDuplicateAlert & publishRosterAlert versi lama (localStorage) dihapus.
+    // Alert sekarang dibuat oleh server (di /api/vote, saat menolak duplikat/NIS) dan
+    // disimpan di Datastore (KV). Client tinggal fetchLiveAlert() untuk menariknya.
 
     function setParticipantNameError(message) {
       $('#participantName').classList.add('input-error');
@@ -1246,7 +1324,7 @@
       }
       
       if (nameAlreadyUsed(name)) {
-        publishDuplicateAlert(name, className, BOOTH_ID);
+        // Pengecekan lokal (browser ini). Server tetap jadi sumber kebenaran final.
         setParticipantNameError('Akses Ditolak: Identitas ini telah memberikan suara.');
         $('#participantName').focus();
         return;
@@ -1281,13 +1359,14 @@
         $$('.candidate').forEach(c => c.classList.remove('selected'));
         state.selected = null;
         if (isDuplicateNameError(data)) {
-          publishDuplicateAlert(state.participantName, state.participantClass, BOOTH_ID);
+          // Alert untuk panitia sudah dibuat oleh server (di /api/vote) dan tersimpan
+          // di Datastore (KV). Kiosk peserta tidak perlu (dan tidak punya akses) untuk
+          // membacanya balik -- dashboard panitia akan menariknya lewat polling sendiri.
           $('#voteScreen').classList.add('hidden');
           $('#identityScreen').classList.remove('hidden');
           setParticipantNameError('Akses ditolak: NIS atau identitas ini sudah memberikan suara.');
           $('#participantName').focus();
         } else if (isRosterRejectedError(data)) {
-          publishRosterAlert(state.participantName, state.participantClass, BOOTH_ID, (data && data.error) || 'NIS tidak ditemukan dalam data roster.');
           $('#voteScreen').classList.add('hidden');
           $('#identityScreen').classList.remove('hidden');
           setParticipantNameError((data && data.error) || 'NIS tidak valid atau tidak sesuai kelas.');
