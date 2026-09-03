@@ -16,9 +16,9 @@ let fileOperation = Promise.resolve();
 function readFileDb() {
   try {
     const db = JSON.parse(fs.readFileSync(FILE, 'utf8'));
-    return { votes: db.votes || {}, activity: db.activity || [], voters: db.voters || {} };
+    return { votes: db.votes || {}, activity: db.activity || [], voters: db.voters || {}, liveAlerts: db.liveAlerts || {}, alertLog: db.alertLog || [] };
   } catch (e) {
-    return { votes: {}, activity: [], voters: {} };
+    return { votes: {}, activity: [], voters: {}, liveAlerts: {}, alertLog: [] };
   }
 }
 
@@ -168,10 +168,92 @@ async function reset() {
   if (kvConfigured()) {
     const voterKeys = await kv('SMEMBERS', VOTER_KEYS);
     if (Array.isArray(voterKeys) && voterKeys.length) await kv('DEL', ...voterKeys);
-    await kv('DEL', 'pemira:votes', 'pemira:total', 'pemira:activity', VOTER_KEYS);
+    // pemira:alert-log SENGAJA tidak ikut dihapus - log peringatan harus tetap
+    // permanen walaupun data vote di-reset untuk pemilihan baru.
+    await kv('DEL', 'pemira:votes', 'pemira:total', 'pemira:activity', VOTER_KEYS, ACTIVE_ALERTS_KEY);
     return;
   }
-  writeFileDb({ votes: {}, activity: [], voters: {} });
+  // alertLog SENGAJA dipertahankan (bukan ikut di-reset) - lihat komentar di atas.
+  const db = readFileDb();
+  writeFileDb({ votes: {}, activity: [], voters: {}, liveAlerts: {}, alertLog: db.alertLog || [] });
 }
 
-module.exports = { incrVote, pushActivity, recordVote, getCounts, getActivity, findByReceipt, reset, usingKv: kvConfigured };
+// ---------- Live alerts AKTIF (stack, bisa lebih dari satu bersamaan) ----------
+// Disimpan sebagai HASH (id -> alert JSON) di Datastore, supaya panitia di
+// device manapun melihat SEMUA alert yang belum di-dismiss, bukan cuma 1 slot
+// yang saling menimpa. Setiap alert bisa di-dismiss satu-satu lewat id-nya.
+const ACTIVE_ALERTS_KEY = 'pemira:live-alerts-active';
+
+async function addLiveAlert(alert) {
+  if (kvConfigured()) {
+    await kv('HSET', ACTIVE_ALERTS_KEY, alert.id, JSON.stringify(alert));
+    return;
+  }
+  const db = readFileDb();
+  db.liveAlerts = db.liveAlerts || {};
+  db.liveAlerts[alert.id] = alert;
+  writeFileDb(db);
+}
+
+async function getLiveAlerts() {
+  if (kvConfigured()) {
+    const flat = await kv('HGETALL', ACTIVE_ALERTS_KEY);
+    const out = [];
+    if (Array.isArray(flat)) {
+      for (let i = 0; i < flat.length; i += 2) {
+        try { out.push(JSON.parse(flat[i + 1])); } catch (e) {}
+      }
+    }
+    out.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    return out;
+  }
+  const db = readFileDb();
+  const map = db.liveAlerts || {};
+  return Object.values(map).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+}
+
+async function dismissLiveAlert(id) {
+  const cleanId = String(id || '').trim();
+  if (!cleanId) return;
+  if (kvConfigured()) {
+    await kv('HDEL', ACTIVE_ALERTS_KEY, cleanId);
+    return;
+  }
+  const db = readFileDb();
+  if (db.liveAlerts) delete db.liveAlerts[cleanId];
+  writeFileDb(db);
+}
+
+// ---------- Log peringatan PERMANEN ----------
+// Berbeda dari live alert (yang cuma 1 slot & bisa di-dismiss/hilang), setiap
+// kejadian di sini TETAP tercatat selamanya untuk keperluan audit, walaupun
+// live alert-nya sudah di-dismiss oleh panitia. Tidak ada TTL/trim otomatis.
+const ALERT_LOG_KEY = 'pemira:alert-log';
+
+async function pushAlertLog(entry) {
+  if (kvConfigured()) {
+    await kv('LPUSH', ALERT_LOG_KEY, JSON.stringify(entry));
+    return;
+  }
+  const db = readFileDb();
+  db.alertLog = db.alertLog || [];
+  db.alertLog.unshift(entry);
+  writeFileDb(db);
+}
+
+async function getAlertLog(n) {
+  if (kvConfigured()) {
+    const end = n ? String(n - 1) : '-1';
+    const raw = await kv('LRANGE', ALERT_LOG_KEY, '0', end);
+    if (!Array.isArray(raw)) return [];
+    return raw.map((s) => { try { return JSON.parse(s); } catch (e) { return null; } }).filter(Boolean);
+  }
+  const db = readFileDb();
+  const log = db.alertLog || [];
+  return n ? log.slice(0, n) : log;
+}
+
+module.exports = {
+  incrVote, pushActivity, recordVote, getCounts, getActivity, findByReceipt, reset, usingKv: kvConfigured,
+  addLiveAlert, getLiveAlerts, dismissLiveAlert, pushAlertLog, getAlertLog,
+};
