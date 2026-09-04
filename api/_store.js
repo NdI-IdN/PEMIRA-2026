@@ -16,9 +16,9 @@ let fileOperation = Promise.resolve();
 function readFileDb() {
   try {
     const db = JSON.parse(fs.readFileSync(FILE, 'utf8'));
-    return { votes: db.votes || {}, activity: db.activity || [], voters: db.voters || {}, liveAlerts: db.liveAlerts || {}, alertLog: db.alertLog || [] };
+    return { votes: db.votes || {}, activity: db.activity || [], voters: db.voters || {}, liveAlerts: db.liveAlerts || {}, alertLog: db.alertLog || [], config: db.config || {} };
   } catch (e) {
-    return { votes: {}, activity: [], voters: {}, liveAlerts: {}, alertLog: [] };
+    return { votes: {}, activity: [], voters: {}, liveAlerts: {}, alertLog: [], config: {} };
   }
 }
 
@@ -173,9 +173,10 @@ async function reset() {
     await kv('DEL', 'pemira:votes', 'pemira:total', 'pemira:activity', VOTER_KEYS, ACTIVE_ALERTS_KEY);
     return;
   }
-  // alertLog SENGAJA dipertahankan (bukan ikut di-reset) - lihat komentar di atas.
+  // alertLog & config SENGAJA dipertahankan (bukan ikut di-reset) - config
+  // (jumlah bilik, nama sesi, dst) harus tetap walau data vote direset.
   const db = readFileDb();
-  writeFileDb({ votes: {}, activity: [], voters: {}, liveAlerts: {}, alertLog: db.alertLog || [] });
+  writeFileDb({ votes: {}, activity: [], voters: {}, liveAlerts: {}, alertLog: db.alertLog || [], config: db.config || {} });
 }
 
 // ---------- Live alerts AKTIF (stack, bisa lebih dari satu bersamaan) ----------
@@ -224,6 +225,35 @@ async function dismissLiveAlert(id) {
   writeFileDb(db);
 }
 
+// ---------- Konfigurasi operasi (nama sesi, target kapasitas, jumlah bilik) ----------
+// Disimpan di Datastore (KV) - BUKAN localStorage - supaya semua device panitia
+// yang login melihat & mengedit konfigurasi yang sama (single source of truth).
+const CONFIG_KEY = 'pemira:config';
+const DEFAULT_CONFIG = { sessionName: 'PEMIRA 2026', totalVoters: 240, boothCount: 5 };
+
+async function getConfig() {
+  if (kvConfigured()) {
+    const raw = await kv('GET', CONFIG_KEY);
+    if (!raw) return { ...DEFAULT_CONFIG };
+    try { return { ...DEFAULT_CONFIG, ...JSON.parse(raw) }; } catch (e) { return { ...DEFAULT_CONFIG }; }
+  }
+  const db = readFileDb();
+  return { ...DEFAULT_CONFIG, ...(db.config || {}) };
+}
+
+async function setConfig(partial) {
+  const current = await getConfig();
+  const next = { ...current, ...partial };
+  if (kvConfigured()) {
+    await kv('SET', CONFIG_KEY, JSON.stringify(next));
+    return next;
+  }
+  const db = readFileDb();
+  db.config = next;
+  writeFileDb(db);
+  return next;
+}
+
 // ---------- Log peringatan PERMANEN ----------
 // Berbeda dari live alert (yang cuma 1 slot & bisa di-dismiss/hilang), setiap
 // kejadian di sini TETAP tercatat selamanya untuk keperluan audit, walaupun
@@ -256,4 +286,5 @@ async function getAlertLog(n) {
 module.exports = {
   incrVote, pushActivity, recordVote, getCounts, getActivity, findByReceipt, reset, usingKv: kvConfigured,
   addLiveAlert, getLiveAlerts, dismissLiveAlert, pushAlertLog, getAlertLog,
+  getConfig, setConfig,
 };
