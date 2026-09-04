@@ -469,12 +469,8 @@
 <button class="btn" id="refreshBoothsBtn" style="padding: 6px 12px; font-size: 11px;">↻ Pindai Ulang</button>
 </div>
 <div class="panel-body">
-<div class="booths">
-<div class="booth" data-booth="1"><div class="booth-head"><span class="booth-number">POS 01</span><span class="booth-icon">✓</span></div><p class="">Standby</p></div>
-<div class="booth" data-booth="2"><div class="booth-head"><span class="booth-number">POS 02</span><span class="booth-icon">✓</span></div><p class="">Standby</p></div>
-<div class="booth" data-booth="3"><div class="booth-head"><span class="booth-number">POS 03</span><span class="booth-icon">✓</span></div><p class="">Standby</p></div>
-<div class="booth" data-booth="4"><div class="booth-head"><span class="booth-number">POS 04</span><span class="booth-icon">✓</span></div><p class="">Standby</p></div>
-<div class="booth" data-booth="5"><div class="booth-head"><span class="booth-number">POS 05</span><span class="booth-icon">✓</span></div><p class="">Standby</p></div>
+<div class="booths" id="boothsGrid">
+<!-- Kartu bilik di-generate JS sesuai config.boothCount -->
 </div>
 </div>
 </div>
@@ -627,6 +623,8 @@
 <input id="settingsSessionName" placeholder="PEMIRA 2026" type="text"/>
 <label class="form-label" for="settingsTotalVoters" style="margin-top: 15px;">Target Kapasitas Saksi</label>
 <input id="settingsTotalVoters" placeholder="240" type="number"/>
+<label class="form-label" for="settingsBoothCount" style="margin-top: 15px;">Jumlah Pos/Bilik (maks. 30)</label>
+<input id="settingsBoothCount" max="30" min="1" placeholder="5" type="number"/>
 <div class="settings-saved" id="settingsSaved"></div>
 <div class="modal-actions">
 <button class="btn" id="cancelSettingsBtn">Batal</button>
@@ -658,7 +656,7 @@
     const NAME_USAGE_KEY = 'pemira-name-usage-v1';
     // LIVE_ALERT_KEY dihapus: alert sekarang disimpan di Datastore (KV) lewat /api/alert,
     // bukan localStorage, supaya panitia di device manapun melihat alert yang sama.
-    const state = { selected: null, participantName: '', participantClass: '', resetTimer: null, voting: false, pollTimer: null, errorLogsPollTimer: null, allActivityData: [], classFilter: '', alertLogData: [] };
+    const state = { selected: null, participantName: '', participantClass: '', resetTimer: null, voting: false, pollTimer: null, errorLogsPollTimer: null, allActivityData: [], classFilter: '', alertLogData: [], config: { sessionName: 'PEMIRA 2026', totalVoters: 240, boothCount: 5 } };
 
     function formatTimestamp(dateObj) {
         if (!dateObj) return '';
@@ -779,6 +777,10 @@
       if($('#evidenceLogoutBtn')) $('#evidenceLogoutBtn').addEventListener('click', logoutPanitia);
       if($('#errorLogsLogoutBtn')) $('#errorLogsLogoutBtn').addEventListener('click', logoutPanitia);
       if($('#refreshErrorLogsBtn')) $('#refreshErrorLogsBtn').addEventListener('click', loadErrorLogsPage);
+      if($('#refreshBoothsBtn')) $('#refreshBoothsBtn').addEventListener('click', async () => {
+        await fetchConfig();
+        simulateBoothActivity();
+      });
       $('#panitiaSettingsBtn').addEventListener('click', openSettings);
       $('#cancelSettingsBtn').addEventListener('click', () => $('#settingsModal').classList.remove('open'));
       $('#saveSettingsBtn').addEventListener('click', saveSettings);
@@ -874,6 +876,8 @@
           $('#evidenceDashboard').classList.add('hidden');
           $('#errorLogsDashboard').classList.add('hidden');
           applySettings();
+          renderBoothsGrid(state.config.boothCount); // render instan pakai default, fetchConfig() nanti nyesuaikan
+          fetchConfig();
           fetchLiveAlert();
           startResultsPolling();
           
@@ -914,34 +918,75 @@
       showPanitiaLogin();
     }
 
-    function readSettings() {
-      const defaults = { sessionName: 'PEMIRA 2026', totalVoters: 240 };
+    async function fetchConfig() {
       try {
-        const saved = JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY) || 'null');
-        return saved || defaults;
-      } catch (e) { return defaults; }
+        const { ok, data } = await api('/api/config');
+        if (ok && data && data.config) {
+          const prevCount = state.config.boothCount;
+          state.config = data.config;
+          applySettings();
+          if (state.config.boothCount !== prevCount) {
+            renderBoothsGrid(state.config.boothCount);
+            simulateBoothActivity();
+          }
+        }
+      } catch (e) {}
     }
 
     function applySettings() {
-      const settings = readSettings();
+      const settings = state.config;
       if ($('#panitiaDashboardTitle')) $('#panitiaDashboardTitle').textContent = `Operasi ${settings.sessionName.toLowerCase()}.`;
       if ($('#adminTotal')) $('#adminTotal').textContent = settings.totalVoters;
     }
 
+    function renderBoothsGrid(count) {
+      const grid = $('#boothsGrid');
+      if (!grid) return;
+      const n = Math.max(1, Math.min(30, Number(count) || 5));
+      let html = '';
+      for (let i = 1; i <= n; i++) {
+        const num = String(i).padStart(2, '0');
+        html += `<div class="booth" data-booth="${i}"><div class="booth-head"><span class="booth-number">POS ${num}</span><span class="booth-icon">✓</span></div><p class="">Standby</p></div>`;
+      }
+      grid.innerHTML = html;
+    }
+
     function openSettings() {
-      const settings = readSettings();
+      const settings = state.config;
       $('#settingsSessionName').value = settings.sessionName;
       $('#settingsTotalVoters').value = settings.totalVoters;
+      $('#settingsBoothCount').value = settings.boothCount;
       $('#settingsSaved').textContent = '';
       $('#settingsModal').classList.add('open');
     }
 
-    function saveSettings() {
+    async function saveSettings() {
       const sessionName = $('#settingsSessionName').value.trim();
       const totalVoters = Number($('#settingsTotalVoters').value);
-      if (!sessionName || !totalVoters) return;
-      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify({ sessionName, totalVoters }));
+      let boothCount = Number($('#settingsBoothCount').value);
+      if (!sessionName || !totalVoters || !boothCount) return;
+      if (boothCount > 30) boothCount = 30; // hard cap juga di client, biar langsung kelihatan; server tetap validasi ulang
+      if (boothCount < 1) boothCount = 1;
+
+      $('#saveSettingsBtn').disabled = true;
+      const { ok, data } = await api('/api/config', {
+        method: 'POST',
+        body: JSON.stringify({ sessionName, totalVoters, boothCount }),
+      });
+      $('#saveSettingsBtn').disabled = false;
+
+      if (!ok || !data || !data.ok) {
+        showToast((data && data.error) || 'Gagal menyimpan konfigurasi.');
+        return;
+      }
+
+      const prevCount = state.config.boothCount;
+      state.config = data.config;
       applySettings();
+      if (state.config.boothCount !== prevCount) {
+        renderBoothsGrid(state.config.boothCount);
+        simulateBoothActivity();
+      }
       $('#settingsModal').classList.remove('open');
       showToast('Konfigurasi sistem diperbarui.');
       addSystemLog('SYSTEM', 'Parameter operasi telah diperbarui oleh operator.');
@@ -1064,6 +1109,7 @@
 
     async function fetchResults() {
       fetchLiveAlert();
+      fetchConfig();
       const { ok, data } = await api('/api/results');
       if (ok && data) {
         renderResults(data);
@@ -1086,7 +1132,7 @@
       const currentBoothParam = new URLSearchParams(location.search).get('booth');
       if (currentBoothParam) activeBooths.add(currentBoothParam);
 
-      if($('#activeBoothCount')) $('#activeBoothCount').textContent = `${activeBooths.size}/5`;
+      if($('#activeBoothCount')) $('#activeBoothCount').textContent = `${activeBooths.size}/${state.config.boothCount}`;
       
       $$('.booth').forEach((b, i) => {
         const boothNum = b.dataset.booth;
@@ -1104,7 +1150,7 @@
 
     function renderResults(d) {
       const counts = d.counts || {};
-      const total = d.totalVoters || readSettings().totalVoters;
+      const total = d.totalVoters || state.config.totalVoters;
       const votesIn = d.votesIn || 0;
       if ($('#adminTotal')) $('#adminTotal').textContent = total;
       if ($('#adminCount')) $('#adminCount').textContent = votesIn;
