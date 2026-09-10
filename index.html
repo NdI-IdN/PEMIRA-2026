@@ -224,7 +224,7 @@
     .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(25,37,60,.7); z-index:40; place-items:center; padding:20px; backdrop-filter: blur(4px); }
     .modal-backdrop.open { display:grid; }
     .modal { width:min(480px,100%); background:#faf6ed; border:1px solid var(--blue); border-radius:8px; padding:30px; box-shadow:var(--shadow); text-align:center; position: relative; }
-    .modal:before { content:"closest"; position:absolute; top:-10px; left:50%; margin-left:-30px; width:60px; height:20px; background: rgba(255,255,255,0.6); border: 1px solid rgba(0,0,0,0.1); transform: rotate(2deg); }
+    .modal:before { content:""; position:absolute; top:-10px; left:50%; margin-left:-30px; width:60px; height:20px; background: rgba(255,255,255,0.6); border: 1px solid rgba(0,0,0,0.1); transform: rotate(2deg); }
     .modal.large-modal { width:min(800px,100%); text-align:left; }
     .modal p { font-size:14px; color:var(--muted); line-height:1.6; margin:10px 0 25px; }
     .modal-actions { display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top: 20px; }
@@ -582,6 +582,28 @@
 </main>
 </div>
 <div class="toast" id="toast"></div>
+
+<!-- MODAL KONFIRMASI PEMILIHAN PASLON -->
+<div class="modal-backdrop" id="confirmVoteModal">
+<div class="modal">
+<div class="eyebrow" style="color:var(--red); border-color:var(--red);">Konfirmasi Suara</div>
+<h2 id="confirmCandidateTitle" style="font-size:22px; margin-top:8px;">Paslon 01</h2>
+<div id="confirmCandidatePhotos" style="display:flex; justify-content:center; gap:10px; margin:16px 0 10px;">
+  <!-- Diisi oleh JS -->
+</div>
+<p style="font-family: Georgia, serif; font-size:15px; color:var(--ink); margin: 12px 0 6px;">
+  Apakah kamu yakin ingin memilih <strong><span id="confirmCandidateNames">Paslon</span></strong> sebagai Ketua &amp; Wakil Ketua OSIS?
+</p>
+<p class="muted" style="font-size:12px; font-family: var(--typewriter); margin-bottom:20px; font-style:italic;">
+  Pilihan ini bersifat final dan tidak dapat diubah setelah dikonfirmasi.
+</p>
+<div class="modal-actions">
+<button class="btn" id="cancelVoteBtn">BATAL</button>
+<button class="btn primary" id="executeVoteBtn">YA, SAYA YAKIN →</button>
+</div>
+</div>
+</div>
+
 <!-- MODAL UNTUK MELIHAT SEMUA DATA PESERTA -->
 <div class="modal-backdrop" id="allParticipantsModal">
 <div class="modal large-modal">
@@ -714,12 +736,46 @@
       
       $$('.candidate').forEach(card => card.addEventListener('click', () => {
         if (state.voting) return;
-        $$('.candidate').forEach(c => c.classList.remove('selected'));
-        card.classList.add('selected');
-        state.selected = card.dataset.candidate;
-        recordVote();
+        const candidateId = Number(card.dataset.candidate);
+        openConfirmVoteModal(candidateId, card);
       }));
     }
+    
+    function openConfirmVoteModal(candidateId, cardEl) {
+      const candidate = CANDIDATES_CONFIG.find(c => c.id === candidateId);
+      if (!candidate) return;
+      
+      state.selected = candidateId;
+      $$('.candidate').forEach(c => c.classList.remove('selected'));
+      if (cardEl) cardEl.classList.add('selected');
+      
+      $('#confirmCandidateTitle').textContent = `Berkas 0${candidate.id} · ${candidate.team}`;
+      $('#confirmCandidateNames').textContent = `${candidate.ketua} & ${candidate.wakil}`;
+      
+      const photosContainer = $('#confirmCandidatePhotos');
+      if (photosContainer) {
+        photosContainer.innerHTML = `
+          <div class="candidate-photo" style="width:70px; height:85px; margin:0;"><img alt="${candidate.ketua}" src="Foto/Paslon${candidate.id}A.png" onerror="this.src='https://ui-avatars.com/api/?name=${candidate.ketua}&background=random'"/></div>
+          <div class="candidate-photo" style="width:70px; height:85px; margin:0;"><img alt="${candidate.wakil}" src="Foto/Paslon${candidate.id}B.png" onerror="this.src='https://ui-avatars.com/api/?name=${candidate.wakil}&background=random'"/></div>
+        `;
+      }
+      
+      $('#confirmVoteModal').classList.add('open');
+    }
+
+    // Modal konfirmasi listener
+    $('#cancelVoteBtn').addEventListener('click', () => {
+      $('#confirmVoteModal').classList.remove('open');
+      $$('.candidate').forEach(c => c.classList.remove('selected'));
+      state.selected = null;
+    });
+
+    $('#executeVoteBtn').addEventListener('click', () => {
+      $('#confirmVoteModal').classList.remove('open');
+      if (state.selected) {
+        recordVote();
+      }
+    });
     
     setupCandidates();
 
@@ -1312,10 +1368,6 @@
       }
     }
 
-    // NOTE: publishDuplicateAlert & publishRosterAlert versi lama (localStorage) dihapus.
-    // Alert sekarang dibuat oleh server (di /api/vote, saat menolak duplikat/NIS) dan
-    // disimpan di Datastore (KV). Client tinggal fetchLiveAlert() untuk menariknya.
-
     function setParticipantNameError(message) {
       $('#participantName').classList.add('input-error');
       $('#participantNameError').textContent = message;
@@ -1405,9 +1457,6 @@
         $$('.candidate').forEach(c => c.classList.remove('selected'));
         state.selected = null;
         if (isDuplicateNameError(data)) {
-          // Alert untuk panitia sudah dibuat oleh server (di /api/vote) dan tersimpan
-          // di Datastore (KV). Kiosk peserta tidak perlu (dan tidak punya akses) untuk
-          // membacanya balik -- dashboard panitia akan menariknya lewat polling sendiri.
           $('#voteScreen').classList.add('hidden');
           $('#identityScreen').classList.remove('hidden');
           setParticipantNameError('Akses ditolak: NIS atau identitas ini sudah memberikan suara.');
