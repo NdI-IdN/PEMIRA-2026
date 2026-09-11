@@ -160,7 +160,7 @@
     
     .success-countdown { color:var(--navy); font-size:13px; font-family: var(--typewriter); margin-top:20px; font-style: italic; }
 
-    /* admin */
+    /* admin & livereport */
     .admin-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
     .stat { padding:20px; border-top: 3px solid var(--navy); }
     .stat-top { display:flex; justify-content:space-between; align-items:center; color:var(--muted); font-size:11px; font-weight:bold; text-transform: uppercase; font-family: var(--typewriter); }
@@ -177,7 +177,6 @@
     .booth-icon { width:26px; height:26px; display:grid; place-items:center; border-radius:50%; background:rgba(74,102,91,0.1); color:var(--mint); font-size:12px; border: 1px solid rgba(74,102,91,0.3); }
     .booth.busy .booth-icon { background:rgba(168,98,44,0.1); color:var(--orange); border-color: rgba(168,98,44,0.3); }
     .booth p { color:var(--muted); font-size:11px; font-family: var(--typewriter); text-transform: uppercase; }
-    .booth .bar { display: none; } /* removed animated bar */
     
     .result { display:grid; gap:16px; }
     .result-row { display:grid; grid-template-columns:46px 1fr 50px; align-items:center; gap:12px; font-size:13px; font-weight:bold; }
@@ -193,6 +192,19 @@
     .result-row:nth-child(3) .result-track i { background-color: #5a756b; } 
     .result-row:nth-child(4) .result-track i { background-color: #855b72; }
     .result-row strong { font-family: var(--typewriter); font-size: 16px; text-align: right; }
+
+    /* Live Report Specific Cards */
+    .paslon-cards-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .paslon-report-card { background: #faf6ed; border: 1px solid var(--line); border-radius: 8px; padding: 18px 16px; text-align: center; position: relative; box-shadow: 2px 4px 10px rgba(105,87,65,.1); }
+    .paslon-report-card .badge-paslon { display: inline-block; font-family: var(--typewriter); font-size: 11px; font-weight: bold; color: #fff; background: var(--navy); padding: 3px 8px; border-radius: 4px; margin-bottom: 10px; }
+    .paslon-report-photos { display: flex; justify-content: center; gap: 8px; margin-bottom: 12px; }
+    .paslon-report-photo { width: 52px; height: 64px; border: 2px solid #fff; border-radius: 3px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
+    .paslon-report-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .paslon-report-card h4 { font-size: 14px; font-family: var(--typewriter); margin: 0; color: var(--navy); font-weight: bold; }
+    .paslon-report-card p.team { font-size: 11px; color: var(--red); font-family: var(--typewriter); font-weight: bold; margin: 2px 0 10px; }
+    .paslon-report-votes { background: rgba(0,0,0,0.03); border: 1px dashed var(--line); border-radius: 4px; padding: 10px; margin-top: 8px; }
+    .paslon-report-votes .vote-num { font-size: 28px; font-family: var(--typewriter); font-weight: bold; color: var(--navy); line-height: 1; }
+    .paslon-report-votes .vote-pct { font-size: 11px; font-family: var(--typewriter); color: var(--muted); margin-top: 4px; }
     
     /* Typewriter Evidence Log */
     .evidence-log { background: #fdfaf4; border: 1px solid var(--line); padding: 15px; height: 220px; overflow-y: auto; font-family: var(--typewriter); font-size: 11px; line-height: 1.6; color: #333; position: relative; }
@@ -260,13 +272,13 @@
     @media (max-width: 900px) {
       main { padding:24px 18px; } .topbar { padding:0 18px; }
       .kiosk-layout, .two-col { grid-template-columns:1fr; }
-      .admin-grid { grid-template-columns:repeat(2,1fr); } .booths { grid-template-columns:repeat(3,1fr); }
+      .admin-grid, .paslon-cards-grid { grid-template-columns:repeat(2,1fr); } .booths { grid-template-columns:repeat(3,1fr); }
     }
     @media (max-width: 560px) {
       .topbar { height:auto; min-height:72px; gap:12px; flex-wrap:wrap; padding:13px 16px; }
       .mode-switch button { padding:8px 9px; } .hero { display:block; }
       .kiosk-card { padding:25px; } .kiosk-content { margin-top:30px; } .kiosk-content h1 { font-size:30px; }
-      .candidate-grid { grid-template-columns:1fr; } .stat { padding:15px; }
+      .candidate-grid, .paslon-cards-grid { grid-template-columns:1fr; } .stat { padding:15px; }
       .stat strong { font-size:26px; } .booths { grid-template-columns:repeat(2,1fr); }
     }
 
@@ -333,6 +345,8 @@
 </div>
 </header>
 <main>
+
+<!-- VIEW CLIENT (PEMILIH KIOSK) -->
 <section class="view active" id="clientView">
 <div class="kiosk-layout">
 <div class="kiosk-card">
@@ -415,6 +429,8 @@
 </div>
 </div>
 </section>
+
+<!-- VIEW PANITIA (ADMIN) -->
 <section class="view hidden" id="panitiaView">
 <div class="kiosk-layout" id="panitiaLoginScreen">
 <div class="kiosk-card" style="min-height:auto;">
@@ -579,6 +595,92 @@
 </div>
 </div>
 </section>
+
+<!-- VIEW LIVE REPORT PUBLIK (?livereport) -->
+<section class="view hidden" id="liveReportView">
+<div class="hero">
+<div>
+  <div class="eyebrow">Laporan Langsung · Terbuka</div>
+  <h1 id="liveReportTitle">Live Report Perolehan Suara.</h1>
+  <p>Hasil sementara pemilihan ketua &amp; wakil ketua OSIS serta daftar pemilih terverifikasi secara real-time.</p>
+</div>
+<div class="admin-actions">
+  <span class="pill live"><span class="dot pulse"></span> Pembaruan Langsung</span>
+  <button class="btn" id="refreshLiveReportBtn">↻ Segarkan Data</button>
+</div>
+</div>
+
+<!-- KARTU RINGKASAN SUARA PER PASLON (JUMLAH & PERSENTASE) -->
+<div class="paslon-cards-grid" id="reportPaslonCards">
+  <!-- Diisi otomatis oleh JS -->
+</div>
+
+<!-- DIAGRAM BATANG PEROLEHAN SUARA & STATISTIK RINGKAS -->
+<div class="two-col">
+  <div class="panel" style="border: 1px solid rgba(91,76,54,.18); box-shadow: 2px 4px 12px rgba(105,87,65,.15);">
+    <div class="panel-head">
+      <div><h3>Diagram Perolehan Suara Paslon</h3></div>
+      <span class="pill info" id="liveReportTotalVotesBadge">0 Suara Masuk</span>
+    </div>
+    <div class="panel-body">
+      <div class="result" id="reportResultList">
+        <!-- Diisi otomatis oleh JS -->
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="border: 1px solid rgba(91,76,54,.18); box-shadow: 2px 4px 12px rgba(105,87,65,.15);">
+    <div class="panel-head">
+      <div><h3>Ringkasan Partisipasi</h3></div>
+    </div>
+    <div class="panel-body" style="display: flex; flex-direction: column; justify-content: center; gap: 16px;">
+      <div style="background: rgba(0,0,0,0.02); padding: 18px; border: 1px dashed var(--line); border-radius: 6px; text-align: center;">
+        <span class="eyebrow" style="margin-bottom:4px;">Total Suara Terkumpul</span>
+        <div style="font-size: 42px; font-family: var(--typewriter); font-weight: bold; color: var(--navy);" id="reportVotesInBig">0</div>
+        <div class="muted" style="font-size: 13px; font-family: var(--typewriter); margin-top: 4px;" id="reportParticipationPct">Partisipasi: 0% dari target 240</div>
+      </div>
+      <div class="class-stats-grid" id="reportClassStatsGrid" style="max-height: 180px; overflow-y: auto;">
+        <!-- Distribusi kelas di sini -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TABEL RIWAYAT SUARA TERKINI DENGAN TOMBOL "LIHAT SEMUA" -->
+<div class="panel" style="border: 1px solid rgba(91,76,54,.18); box-shadow: 2px 4px 12px rgba(105,87,65,.15);">
+  <div class="panel-head">
+    <div><h3>Riwayat Suara Terkini</h3></div>
+    <div class="admin-actions">
+      <select class="select" id="reportClassFilter">
+        <option value="">Seluruh Departemen</option>
+        <optgroup label="Grade 10">
+          <option value="XA">XA</option><option value="XB">XB</option><option value="XC">XC</option><option value="XD">XD</option><option value="XE">XE</option><option value="XF">XF</option><option value="XG">XG</option><option value="XH">XH</option>
+        </optgroup>
+        <optgroup label="Grade 11">
+          <option value="XI IPA 1">XI IPA 1</option><option value="XI IPA 2">XI IPA 2</option><option value="XI IPA 3">XI IPA 3</option><option value="XI IPA 4">XI IPA 4</option><option value="XI IPA 5">XI IPA 5</option><option value="XI IPA 6">XI IPA 6</option>
+          <option value="XI IPS 1">XI IPS 1</option><option value="XI IPS 2">XI IPS 2</option><option value="XI IPS 3">XI IPS 3</option>
+        </optgroup>
+        <optgroup label="Grade 12">
+          <option value="XII Teknik 1">XII Teknik 1</option><option value="XII Teknik 2">XII Teknik 2</option><option value="XII Kesehatan 1">XII Kesehatan 1</option><option value="XII Kesehatan 2">XII Kesehatan 2</option><option value="XII Sosial 1">XII Sosial 1</option><option value="XII Sosial 2">XII Sosial 2</option>
+        </optgroup>
+        <optgroup label="Staf">
+          <option value="Guru/Karyawan">Guru/Karyawan</option>
+        </optgroup>
+      </select>
+      <button class="btn" id="reportViewAllBtn" style="background: #e3d3bd; border: 1px solid #c9b59c; font-weight: bold;">Lihat Semua</button>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>KODE RECEIPT</th><th>ID / NIS PEMILIH</th><th>DEPARTEMEN / KELAS</th><th>STATUS</th><th>WAKTU LAPORAN</th><th>POS (BILIK)</th></tr></thead>
+      <tbody id="reportTableBody">
+        <tr><td colspan="6" class="muted" style="text-align:center; padding:18px; font-style:italic;">Memuat data laporan langsung...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</section>
+
 </main>
 </div>
 <div class="toast" id="toast"></div>
@@ -604,11 +706,11 @@
 </div>
 </div>
 
-<!-- MODAL UNTUK MELIHAT SEMUA DATA PESERTA -->
+<!-- MODAL UNTUK MELIHAT SEMUA DATA PESERTA (Digunakan oleh Panitia & Live Report) -->
 <div class="modal-backdrop" id="allParticipantsModal">
 <div class="modal large-modal">
 <div class="panel-head" style="padding:0 0 16px; margin-bottom:16px; background: transparent; border-bottom: 2px solid var(--navy);">
-<h2 class="">Data Peserta Pemilihan</h2>
+<h2 class="">Data Peserta Pemilihan (Arsip Lengkap)</h2>
 <div class="admin-actions">
 <select class="select" id="allParticipantsClassFilter">
 <option value="">Seluruh Departemen</option>
@@ -637,6 +739,7 @@
 </div>
 </div>
 </div>
+
 <div class="modal-backdrop" id="settingsModal">
 <div class="modal settings-modal">
 <div class="eyebrow">Konfigurasi Sistem</div>
@@ -654,6 +757,7 @@
 </div>
 </div>
 </div>
+
 <script>
     const CANDIDATES_CONFIG = [
       { id: 1, ketua: "Alya", wakil: "Rahma", team: "TEAM ALRA", vision: "Sekolah aktif, kreatif, dan inklusif.", focus: "Pengembangan program literasi dan debat.", color: "#6b4d35" },
@@ -673,12 +777,25 @@
     const PANITIA_MODE = new URLSearchParams(location.search).has('panitia');
     const EVIDENCE_MODE = new URLSearchParams(location.search).has('evidence');
     const ERRORLOGS_MODE = new URLSearchParams(location.search).has('errorlogs');
+    const LIVEREPORT_MODE = new URLSearchParams(location.search).has('livereport');
     const POLL_MS = 5000;
     const SETTINGS_STORAGE_KEY = 'pemira-settings-v1';
     const NAME_USAGE_KEY = 'pemira-name-usage-v1';
-    // LIVE_ALERT_KEY dihapus: alert sekarang disimpan di Datastore (KV) lewat /api/alert,
-    // bukan localStorage, supaya panitia di device manapun melihat alert yang sama.
-    const state = { selected: null, participantName: '', participantClass: '', resetTimer: null, voting: false, pollTimer: null, errorLogsPollTimer: null, allActivityData: [], classFilter: '', alertLogData: [], config: { sessionName: 'PEMIRA 2026', totalVoters: 240, boothCount: 5 } };
+    const state = { 
+      selected: null, 
+      participantName: '', 
+      participantClass: '', 
+      resetTimer: null, 
+      voting: false, 
+      pollTimer: null, 
+      errorLogsPollTimer: null, 
+      liveReportPollTimer: null,
+      allActivityData: [], 
+      classFilter: '', 
+      reportClassFilter: '',
+      alertLogData: [], 
+      config: { sessionName: 'PEMIRA 2026', totalVoters: 240, boothCount: 5 } 
+    };
 
     function formatTimestamp(dateObj) {
         if (!dateObj) return '';
@@ -702,6 +819,9 @@
     function setupCandidates() {
       const grid = $('#candidateGridContainer');
       const resultsContainer = $('#resultList');
+      const reportResultsContainer = $('#reportResultList');
+      const reportCardsGrid = $('#reportPaslonCards');
+
       if (grid) {
         grid.innerHTML = CANDIDATES_CONFIG.map(c => `
           <article class="candidate" data-candidate="${c.id}">
@@ -721,17 +841,37 @@
           </article>
         `).join('');
       }
-      if (resultsContainer) {
-        resultsContainer.innerHTML = CANDIDATES_CONFIG.map((c, i) => {
-          const rot = [-3, 2, -1, 4][i % 4];
-          return `
-            <div class="result-row">
-              <div class="result-avatar" style="--rot:${rot}deg; background-color: ${c.color}">0${c.id}</div>
-              <div><span>${c.ketua} & ${c.wakil}</span><div class="result-track"><i style="width:0%; background-color: ${c.color}"></i></div></div>
-              <strong>0</strong>
+
+      const buildResultRows = () => CANDIDATES_CONFIG.map((c, i) => {
+        const rot = [-3, 2, -1, 4][i % 4];
+        return `
+          <div class="result-row">
+            <div class="result-avatar" style="--rot:${rot}deg; background-color: ${c.color}">0${c.id}</div>
+            <div><span>${c.ketua} & ${c.wakil}</span><div class="result-track"><i style="width:0%; background-color: ${c.color}"></i></div></div>
+            <strong>0</strong>
+          </div>
+        `;
+      }).join('');
+
+      if (resultsContainer) resultsContainer.innerHTML = buildResultRows();
+      if (reportResultsContainer) reportResultsContainer.innerHTML = buildResultRows();
+
+      if (reportCardsGrid) {
+        reportCardsGrid.innerHTML = CANDIDATES_CONFIG.map(c => `
+          <div class="paslon-report-card" data-report-card="${c.id}">
+            <span class="badge-paslon">PASLON 0${c.id}</span>
+            <div class="paslon-report-photos">
+              <div class="paslon-report-photo"><img alt="${c.ketua}" src="Foto/Paslon${c.id}A.png" onerror="this.src='https://ui-avatars.com/api/?name=${c.ketua}&background=random'"/></div>
+              <div class="paslon-report-photo"><img alt="${c.wakil}" src="Foto/Paslon${c.id}B.png" onerror="this.src='https://ui-avatars.com/api/?name=${c.wakil}&background=random'"/></div>
             </div>
-          `;
-        }).join('');
+            <h4>${c.ketua} & ${c.wakil}</h4>
+            <p class="team">${c.team}</p>
+            <div class="paslon-report-votes">
+              <div class="vote-num" id="reportCount_${c.id}">0</div>
+              <div class="vote-pct" id="reportPct_${c.id}">0% (0 suara)</div>
+            </div>
+          </div>
+        `).join('');
       }
       
       $$('.candidate').forEach(card => card.addEventListener('click', () => {
@@ -804,7 +944,12 @@
       const badge = $('#modeBadge');
       const dot = $('#modeBadgeDot');
       const text = $('#modeBadgeText');
-      if (PANITIA_MODE || EVIDENCE_MODE || ERRORLOGS_MODE) {
+      if (LIVEREPORT_MODE) {
+        badge.classList.add('live');
+        dot.classList.remove('hidden');
+        text.textContent = 'Live Report Publik';
+        badge.classList.remove('hidden');
+      } else if (PANITIA_MODE || EVIDENCE_MODE || ERRORLOGS_MODE) {
         badge.classList.add('info');
         dot.classList.add('hidden');
         text.textContent = 'Admin Akses';
@@ -817,13 +962,138 @@
       }
     })();
 
-    // ===== Mode panitia (diakses lewat ?panitia, bukan endpoint terpisah) =====
-    if (PANITIA_MODE || EVIDENCE_MODE || ERRORLOGS_MODE) {
+    // ===== ROUTING KONTROL: LIVE REPORT vs PANITIA vs KIOSK =====
+    if (LIVEREPORT_MODE) {
+      $('#clientView').classList.remove('active');
+      $('#clientView').classList.add('hidden');
+      $('#panitiaView').classList.add('hidden');
+      $('#liveReportView').classList.remove('hidden');
+      $('#liveReportView').classList.add('active');
+      initLiveReport();
+    } else if (PANITIA_MODE || EVIDENCE_MODE || ERRORLOGS_MODE) {
       $('#clientView').classList.remove('active');
       $('#clientView').classList.add('hidden');
       $('#panitiaView').classList.remove('hidden');
       $('#panitiaView').classList.add('active');
       initPanitia();
+    }
+
+    // ===== INIT LIVE REPORT (?livereport) =====
+    function initLiveReport() {
+      $('#refreshLiveReportBtn').addEventListener('click', fetchLiveReportResults);
+      $('#reportViewAllBtn').addEventListener('click', () => {
+        $('#allParticipantsClassFilter').value = state.reportClassFilter;
+        renderAllParticipantsModal(state.reportClassFilter);
+        $('#allParticipantsModal').classList.add('open');
+      });
+      $('#closeAllParticipantsBtn').addEventListener('click', () => $('#allParticipantsModal').classList.remove('open'));
+      $('#reportClassFilter').addEventListener('change', (e) => {
+        state.reportClassFilter = e.target.value;
+        renderReportActivity(state.allActivityData);
+      });
+      $('#allParticipantsClassFilter').addEventListener('change', (e) => {
+        renderAllParticipantsModal(e.target.value);
+      });
+
+      fetchLiveReportResults();
+      clearInterval(state.liveReportPollTimer);
+      state.liveReportPollTimer = setInterval(fetchLiveReportResults, POLL_MS);
+    }
+
+    async function fetchLiveReportResults() {
+      // Endpoint /api/results publik atau terbuka untuk live report
+      const { ok, data } = await api('/api/results');
+      if (ok && data) {
+        renderLiveReport(data);
+      } else {
+        // Fallback jika belum ada koneksi backend
+        renderLiveReport({
+          counts: { 1: 0, 2: 0, 3: 0, 4: 0 },
+          totalVoters: state.config.totalVoters,
+          votesIn: 0,
+          activity: []
+        });
+      }
+    }
+
+    function renderLiveReport(d) {
+      const counts = d.counts || {};
+      const total = d.totalVoters || state.config.totalVoters;
+      const votesIn = d.votesIn || 0;
+      const max = Math.max(1, ...CANDIDATES_CONFIG.map(c => counts[c.id] || 0));
+
+      if ($('#liveReportTotalVotesBadge')) $('#liveReportTotalVotesBadge').textContent = `${votesIn} Suara Masuk`;
+      if ($('#reportVotesInBig')) $('#reportVotesInBig').textContent = votesIn;
+      if ($('#reportParticipationPct')) {
+        const pct = total ? ((votesIn / total) * 100).toFixed(1) : '0.0';
+        $('#reportParticipationPct').textContent = `Partisipasi: ${pct}% dari target ${total}`;
+      }
+
+      // Update Paslon Report Cards (Jumlah & Persentase)
+      CANDIDATES_CONFIG.forEach(c => {
+        const cVotes = counts[c.id] || 0;
+        const cPct = votesIn > 0 ? ((cVotes / votesIn) * 100).toFixed(1) : '0.0';
+        const numEl = $(`#reportCount_${c.id}`);
+        const pctEl = $(`#reportPct_${c.id}`);
+        if (numEl) numEl.textContent = cVotes;
+        if (pctEl) pctEl.textContent = `${cPct}% (${cVotes} suara)`;
+      });
+
+      // Update Diagram Batang
+      $$('#reportResultList .result-row').forEach((row, idx) => {
+        const c = counts[idx + 1] || 0;
+        const bar = row.querySelector('.result-track i');
+        const num = row.querySelector('strong');
+        if (bar) bar.style.width = Math.round((c / max) * 100) + '%';
+        if (num) num.textContent = c;
+      });
+
+      state.allActivityData = d.activity || [];
+      renderReportActivity(state.allActivityData);
+      updateReportClassStats(state.allActivityData);
+    }
+
+    function renderReportActivity(list) {
+      const tbodyEl = $('#reportTableBody');
+      if (tbodyEl) {
+        const filtered = filterByClass(list, state.reportClassFilter);
+        tbodyEl.innerHTML = filtered.length 
+          ? filtered.slice(0, 10).map(activityRowHtml).join('') 
+          : '<tr><td colspan="6" class="muted" style="text-align:center;padding:16px; font-style: italic;">Belum ada suara masuk yang terekam.</td></tr>';
+      }
+    }
+
+    function updateReportClassStats(list) {
+      const grid = $('#reportClassStatsGrid');
+      if(!grid) return;
+      
+      const counts = {};
+      let maxCount = 0;
+      list.forEach(a => {
+        if(a.class) {
+          counts[a.class] = (counts[a.class] || 0) + 1;
+          if(counts[a.class] > maxCount) maxCount = counts[a.class];
+        }
+      });
+      
+      if(Object.keys(counts).length === 0) {
+        grid.innerHTML = '<div class="muted" style="font-size:12px; font-style:italic; text-align:center;">Belum ada data partisipasi kelas.</div>';
+        return;
+      }
+
+      const sortedClasses = Object.keys(counts).sort();
+      maxCount = Math.max(maxCount, 1);
+      grid.innerHTML = sortedClasses.map(cls => {
+        const count = counts[cls];
+        const percent = Math.round((count / maxCount) * 100);
+        return `
+          <div class="class-stat-item">
+            <span>${escapeHtml(cls)}</span>
+            <div class="class-stat-track"><i style="width:${percent}%"></i></div>
+            <strong>${count}</strong>
+          </div>
+        `;
+      }).join('');
     }
 
     function initPanitia() {
@@ -840,8 +1110,7 @@
       $('#panitiaSettingsBtn').addEventListener('click', openSettings);
       $('#cancelSettingsBtn').addEventListener('click', () => $('#settingsModal').classList.remove('open'));
       $('#saveSettingsBtn').addEventListener('click', saveSettings);
-      // Delegasi klik: setiap kartu alert di stack punya tombol "×" sendiri
-      // (data-dismiss-id), jadi cukup 1 listener di container-nya.
+      
       $('#liveAlertStack').addEventListener('click', async (e) => {
         const btn = e.target.closest('[data-dismiss-id]');
         if (!btn) return;
@@ -859,11 +1128,11 @@
       });
       $('#viewAllParticipantsBtn').addEventListener('click', () => {
         $('#allParticipantsClassFilter').value = state.classFilter;
-        renderAllParticipantsModal();
+        renderAllParticipantsModal(state.classFilter);
         $('#allParticipantsModal').classList.add('open');
       });
       $('#closeAllParticipantsBtn').addEventListener('click', () => $('#allParticipantsModal').classList.remove('open'));
-      // "Log Peringatan" buka halaman permanen (?errorlogs) di tab baru, bukan modal.
+      
       $('#viewAlertLogHeaderBtn').addEventListener('click', () => {
         const url = new URL(location.href);
         url.searchParams.set('errorlogs', '1');
@@ -874,7 +1143,7 @@
         state.classFilter = e.target.value;
         renderActivity(state.allActivityData);
       });
-      $('#allParticipantsClassFilter').addEventListener('change', () => renderAllParticipantsModal());
+      $('#allParticipantsClassFilter').addEventListener('change', (e) => renderAllParticipantsModal(e.target.value));
 
       if(EVIDENCE_MODE) {
           if($('#searchEvidenceBtn')) $('#searchEvidenceBtn').addEventListener('click', searchEvidence);
@@ -932,15 +1201,13 @@
           $('#evidenceDashboard').classList.add('hidden');
           $('#errorLogsDashboard').classList.add('hidden');
           applySettings();
-          renderBoothsGrid(state.config.boothCount); // render instan pakai default, fetchConfig() nanti nyesuaikan
+          renderBoothsGrid(state.config.boothCount);
           fetchConfig();
           fetchLiveAlert();
           startResultsPolling();
           
-          // Initialize system logs if empty
           const logsEl = $('#systemLogs');
           if (logsEl && logsEl.children.length === 0) {
-              const startNow = new Date();
               addSystemLog('SYSTEM', 'Inisialisasi protokol keamanan markas besar.');
               setTimeout(() => addSystemLog('ENCRYPTION', 'Algoritma SHA-256 aktif untuk penyimpanan bukti.'), 500);
               setTimeout(() => addSystemLog('NETWORK', 'Menghubungkan ke 5 Pos Penyelidikan (Bilik)... Berhasil.'), 1500);
@@ -1021,7 +1288,7 @@
       const totalVoters = Number($('#settingsTotalVoters').value);
       let boothCount = Number($('#settingsBoothCount').value);
       if (!sessionName || !totalVoters || !boothCount) return;
-      if (boothCount > 30) boothCount = 30; // hard cap juga di client, biar langsung kelihatan; server tetap validasi ulang
+      if (boothCount > 30) boothCount = 30;
       if (boothCount < 1) boothCount = 1;
 
       $('#saveSettingsBtn').disabled = true;
@@ -1057,8 +1324,6 @@
       } catch (e) {}
     }
 
-    // Stack: render SEMUA alert aktif sekaligus (bukan cuma 1), tiap kartu
-    // punya tombol "×" sendiri (data-dismiss-id) buat ditutup satu-satu.
     function renderLiveAlertStack(list) {
       const container = $('#liveAlertStack');
       if (!list || !list.length) {
@@ -1114,7 +1379,6 @@
       }).join('');
     }
 
-    // Dipanggil di halaman ?errorlogs (bukan modal lagi).
     async function loadErrorLogsPage() {
       try {
         const { ok, data } = await api('/api/alert?full=1');
@@ -1150,13 +1414,13 @@
         }
 
         const sortedClasses = Object.keys(counts).sort();
-        maxCount = Math.max(maxCount, 1); // prevent division by zero
+        maxCount = Math.max(maxCount, 1);
         grid.innerHTML = sortedClasses.map(cls => {
             const count = counts[cls];
             const percent = Math.round((count / maxCount) * 100);
             return `
             <div class="class-stat-item">
-                <span>${cls}</span>
+                <span>${escapeHtml(cls)}</span>
                 <div class="class-stat-track"><i style="width:${percent}%"></i></div>
                 <strong>${count}</strong>
             </div>
@@ -1176,7 +1440,6 @@
     }
     
     function simulateBoothActivity() {
-      // Find what booths have voted recently (last 30s)
       const now = Date.now();
       const activeBooths = new Set();
       state.allActivityData.forEach(a => {
@@ -1190,7 +1453,7 @@
 
       if($('#activeBoothCount')) $('#activeBoothCount').textContent = `${activeBooths.size}/${state.config.boothCount}`;
       
-      $$('.booth').forEach((b, i) => {
+      $$('.booth').forEach((b) => {
         const boothNum = b.dataset.booth;
         const isBusy = activeBooths.has(boothNum);
         
@@ -1237,7 +1500,7 @@
 
     function activityRowHtml(a) {
       const timeDisplay = a.fullTime || a.time || formatTimestamp(a.timestamp);
-      return `<tr><td><strong style="color:var(--navy);">${a.receipt || '-'}</strong></td><td><div class="person"><div class="person-avatar">?</div> ${maskName(a.name)}</div></td><td>${a.class || '-'}</td><td><span class="badge green">Terverifikasi</span></td><td>${timeDisplay}</td><td>Pos ${a.booth || '-'}</td></tr>`;
+      return `<tr><td><strong style="color:var(--navy);">${escapeHtml(a.receipt || '-')}</strong></td><td><div class="person"><div class="person-avatar">?</div> ${escapeHtml(maskName(a.name))}</div></td><td>${escapeHtml(a.class || '-')}</td><td><span class="badge green">Terverifikasi</span></td><td>${escapeHtml(timeDisplay)}</td><td>Pos ${escapeHtml(a.booth || '-')}</td></tr>`;
     }
 
     function renderActivity(list) {
@@ -1248,10 +1511,10 @@
       }
     }
 
-    function renderAllParticipantsModal() {
+    function renderAllParticipantsModal(filterValue) {
       const tbodyEl = $('#allParticipantsTableBody');
-      const filterValue = $('#allParticipantsClassFilter').value;
-      const list = filterByClass(state.allActivityData, filterValue);
+      const val = filterValue !== undefined ? filterValue : $('#allParticipantsClassFilter').value;
+      const list = filterByClass(state.allActivityData, val);
       if (tbodyEl) {
         tbodyEl.innerHTML = list.length ? list.map(activityRowHtml).join('') : '<tr><td colspan="6" class="muted" style="text-align:center;padding:16px; font-style: italic;">Arsip kosong. Menunggu data masuk.</td></tr>';
       }
@@ -1268,11 +1531,11 @@
             const v = data.voter;
             resEl.innerHTML = `
                 <div class="eyebrow" style="color:var(--mint); border-color:var(--mint);">Bukti Valid</div>
-                <h3 style="font-size:20px; margin-bottom:15px; font-family:var(--typewriter);">${receipt}</h3>
+                <h3 style="font-size:20px; margin-bottom:15px; font-family:var(--typewriter);">${escapeHtml(receipt)}</h3>
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; font-family:var(--typewriter); font-size:13px; line-height:1.5;">
-                    <div><span class="muted">ID/NIS:</span><br/><strong>${v.name}</strong></div>
-                    <div><span class="muted">Departemen:</span><br/><strong>${v.class}</strong></div>
-                    <div><span class="muted">Pos Asal:</span><br/><strong>Pos ${v.booth}</strong></div>
+                    <div><span class="muted">ID/NIS:</span><br/><strong>${escapeHtml(v.name)}</strong></div>
+                    <div><span class="muted">Departemen:</span><br/><strong>${escapeHtml(v.class)}</strong></div>
+                    <div><span class="muted">Pos Asal:</span><br/><strong>Pos ${escapeHtml(v.booth)}</strong></div>
                     <div><span class="muted">Waktu Rekam:</span><br/><strong>${formatTimestamp(v.timestamp)}</strong></div>
                 </div>
             `;
@@ -1280,7 +1543,7 @@
         } else {
             resEl.innerHTML = `
                 <div class="eyebrow" style="color:var(--red); border-color:var(--red);">Tidak Ditemukan</div>
-                <p style="margin-top:10px; font-family:var(--typewriter); font-size:13px; color:var(--red);">Receipt <strong>${receipt}</strong> tidak terdaftar dalam arsip kasus.</p>
+                <p style="margin-top:10px; font-family:var(--typewriter); font-size:13px; color:var(--red);">Receipt <strong>${escapeHtml(receipt)}</strong> tidak terdaftar dalam arsip kasus.</p>
             `;
             resEl.classList.remove('hidden');
         }
@@ -1326,8 +1589,6 @@
         if (NIS.length > 0 && NIS.length < 9) {
           setParticipantNameError('NIS tidak lengkap (harus 9 digit).');
         } else if (nameAlreadyUsed(NIS)) {
-          // Ini baru pengecekan lokal (browser ini pernah dipakai untuk NIS ini).
-          // Alert ke panitia baru dikirim server saat submit vote benar-benar ditolak.
           setParticipantNameError('Akses Ditolak: NIS ini telah terekam di sistem.');
         } else {
           clearParticipantNameError();
@@ -1384,7 +1645,6 @@
         || /duplicate|already|sudah|terekam|memberikan suara/i.test(message);
     }
 
-    // NIS tidak ada di roster, atau kelas tidak cocok, atau roster gagal dimuat di server.
     function isRosterRejectedError(data) {
       return data && (data.code === 'NIS_NOT_REGISTERED' || data.code === 'NIS_CLASS_MISMATCH' || data.code === 'ROSTER_UNAVAILABLE');
     }
@@ -1422,7 +1682,6 @@
       }
       
       if (nameAlreadyUsed(name)) {
-        // Pengecekan lokal (browser ini). Server tetap jadi sumber kebenaran final.
         setParticipantNameError('Akses Ditolak: Identitas ini telah memberikan suara.');
         $('#participantName').focus();
         return;
@@ -1438,7 +1697,6 @@
       if (state.voting) return;
       state.voting = true;
       const timestamp = Date.now();
-      // Kirim receipt bersama vote agar kode yang tampil juga tersimpan di Datastore.
       const receipt = createReceipt();
       const { ok, data } = await api('/api/vote', {
         method: 'POST',
