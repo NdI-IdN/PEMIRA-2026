@@ -592,7 +592,7 @@
 </div>
 
 <script>
-// 1. CONFIG (Full Visi & Misi dari Index 5)
+// 1. CONFIG (Full Visi & Misi)
 const CANDIDATES_CONFIG = [
   { 
     id: 1, 
@@ -646,23 +646,29 @@ const CANDIDATES_CONFIG = [
     photoWakil: "Foto/Paslon4B.png",
     vision: "Mewujudkan OSIS SMAIT Nurul Fikri sebagai organisasi yang berintegritas, inovatif, dan kolaboratif dalam menyelenggarakan kegiatan yang berdampak, menumbuhkan daya juang, serta menjadi ruang bagi siswa/i untuk berkembang dan mempersiapkan diri menjadi versi terbaiknya di masa depan sesuai dengan karakteristik SMART.", 
     focus: [
-      "Melalui MOVE, kami berfokus pada pengelolaan OSIS yang terarah, menghadirkan kegiatan yang berdampak, membangun kebersamaan dengan merangkul siswa, serta membekali mereka untuk berkembang dan menghadapi tantangan di masa depan.",
+      "Melalui MOVE, kami berfokus pada pengelolaan OSIS yang terarah, menghadirkan kegiatan yang berdampak, membangun kebersamaan dengan merangkul siswa, serta membekali mereka untuk berkembang dan menghadapi tantangan di masa depan."
     ], 
     color: "#855b72" 
   }
 ];
 
 // 2. UTILITIES & STATE
-const $ = (s) => document.querySelector(s); const $$ = (s) => [...document.querySelectorAll(s)];
-function escapeHtml(str) { const div = document.createElement('div'); div.textContent = String(str == null ? '' : str); return div.innerHTML; }
+const $ = (s) => document.querySelector(s);  const $$ = (s) => [...document.querySelectorAll(s)];
+function escapeHtml(str) { 
+  const div = document.createElement('div'); 
+  div.textContent = String(str == null ? '' : str); 
+  return div.innerHTML; 
+}
 
-const BOOTH_ID = new URLSearchParams(location.search).get('booth') || 'Pribadi';
-const PANITIA_MODE = new URLSearchParams(location.search).has('panitia');
-const EVIDENCE_MODE = new URLSearchParams(location.search).has('evidence');
-const ERRORLOGS_MODE = new URLSearchParams(location.search).has('errorlogs');
-const LIVEREPORT_MODE = new URLSearchParams(location.search).has('livereport');
+const urlParams = new URLSearchParams(location.search);
+let BOOTH_ID = urlParams.get('booth');
+if (!BOOTH_ID) BOOTH_ID = 'Pribadi';
+
+const PANITIA_MODE = urlParams.has('panitia');
+const EVIDENCE_MODE = urlParams.has('evidence');
+const ERRORLOGS_MODE = urlParams.has('errorlogs');
+const LIVEREPORT_MODE = urlParams.has('livereport');
 const POLL_MS = 5000;
-const NAME_USAGE_KEY = 'pemira-name-usage-v1';
 
 const state = { 
   selected: null, participantName: '', participantClass: '', resetTimer: null, voting: false, 
@@ -679,10 +685,14 @@ function formatTimestamp(dateObj) {
   return `${d.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} - ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
-function createReceipt() { return 'PM-' + Math.floor(Math.random() * 900000 + 100000); }
+function createReceipt() { 
+  return 'PM-' + Math.floor(Math.random() * 900000 + 100000); 
+}
 
 function renderFocusList(focusData) {
-  if (Array.isArray(focusData)) return `<ol class="focus-list">${focusData.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ol>`;
+  if (Array.isArray(focusData)) {
+    return `<ol class="focus-list">${focusData.map(item => `<li>${escapeHtml(item)}</li>`).join('')}</ol>`;
+  }
   return `<p style="margin: 4px 0 0; line-height: 1.45;">${escapeHtml(focusData)}</p>`;
 }
 
@@ -731,17 +741,25 @@ function setupCandidates() {
       </div>`).join('');
   }
   
-  $$('.candidate').forEach(card => card.addEventListener('click', () => {     if (state.voting) return;     openConfirmVoteModal(Number(card.dataset.candidate), card);   })); }  function openConfirmVoteModal(candidateId, cardEl) {   if (!state.participantName || !state.participantClass) return;   const candidate = CANDIDATES_CONFIG.find(c => c.id === candidateId);   if (!candidate) return;   state.selected = candidateId;   $$
+  $$('.candidate').forEach(card => card.addEventListener('click', () => {      if (state.voting) return;      openConfirmVoteModal(Number(card.dataset.candidate), card);    }));  }  function openConfirmVoteModal(candidateId, cardEl) {    if (!state.participantName) return;    if (!state.participantClass) return;       const candidate = CANDIDATES_CONFIG.find(c => c.id === candidateId);    if (!candidate) return;       state.selected = candidateId;    $$
 ('.candidate').forEach(c => c.classList.remove('selected'));
   if (cardEl) cardEl.classList.add('selected');
+  
   $('#confirmCandidateTitle').textContent = `Berkas 0${candidate.id} · ${candidate.team}`;
   $('#confirmCandidateNames').innerHTML = `<div style="margin-bottom:3px;">${escapeHtml(candidate.ketua)}</div><div>${escapeHtml(candidate.wakil)}</div>`;
   $('#confirmCandidatePhotos').innerHTML = `<div class="candidate-photo" style="width:70px; height:85px; margin:0;"><img src="${candidate.photoKetua}"/></div><div class="candidate-photo" style="width:70px; height:85px; margin:0;"><img src="${candidate.photoWakil}"/></div>`;
   $('#confirmVoteModal').classList.add('open');
 }
 
-$('#cancelVoteBtn').addEventListener('click', () => { $('#confirmVoteModal').classList.remove('open'); $$('.candidate').forEach(c => c.classList.remove('selected')); state.selected = null; });
-$('#executeVoteBtn').addEventListener('click', () => { $('#confirmVoteModal').classList.remove('open'); if (state.selected) recordVote(); });
+$('#cancelVoteBtn').addEventListener('click', () => { 
+  $('#confirmVoteModal').classList.remove('open');    $$('.candidate').forEach(c => c.classList.remove('selected')); 
+  state.selected = null; 
+});
+
+$('#executeVoteBtn').addEventListener('click', () => { 
+  $('#confirmVoteModal').classList.remove('open'); 
+  if (state.selected) recordVote(); 
+});
 
 setupCandidates();
 if ($('#currentDateFooter')) $('#currentDateFooter').textContent = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -753,28 +771,56 @@ async function api(path, options) {
     let data = null;
     try { data = await res.json(); } catch (e) {}
     return { ok: res.ok, status: res.status, data };
-  } catch (e) { return { ok: false, status: 0, data: null }; }
+  } catch (e) { 
+    return { ok: false, status: 0, data: null }; 
+  }
 }
 
 (function setupModeBadge() {
   const badge = $('#modeBadge'), dot = $('#modeBadgeDot'), text = $('#modeBadgeText');
-  if (LIVEREPORT_MODE) { badge.classList.add('live'); dot.classList.remove('hidden'); text.textContent = 'Live Report'; badge.classList.remove('hidden'); } 
-  else if (PANITIA_MODE || EVIDENCE_MODE || ERRORLOGS_MODE) { badge.classList.add('info'); dot.classList.add('hidden'); text.textContent = 'Admin Akses'; badge.classList.remove('hidden'); } 
-  else if (BOOTH_ID !== 'Pribadi') { badge.classList.add('live'); dot.classList.remove('hidden'); text.textContent = 'Pos ' + BOOTH_ID; badge.classList.remove('hidden'); }
+  if (LIVEREPORT_MODE) { 
+    badge.classList.add('live'); dot.classList.remove('hidden'); text.textContent = 'Live Report'; badge.classList.remove('hidden'); 
+  } else if (PANITIA_MODE) { 
+    badge.classList.add('info'); dot.classList.add('hidden'); text.textContent = 'Admin Akses'; badge.classList.remove('hidden'); 
+  } else if (EVIDENCE_MODE) { 
+    badge.classList.add('info'); dot.classList.add('hidden'); text.textContent = 'Admin Akses'; badge.classList.remove('hidden'); 
+  } else if (ERRORLOGS_MODE) { 
+    badge.classList.add('info'); dot.classList.add('hidden'); text.textContent = 'Admin Akses'; badge.classList.remove('hidden'); 
+  } else if (BOOTH_ID !== 'Pribadi') { 
+    badge.classList.add('live'); dot.classList.remove('hidden'); text.textContent = 'Pos ' + BOOTH_ID; badge.classList.remove('hidden'); 
+  }
 })();
 
-// PING SYSTEM (Hanya jalan di Kiosk)
-if (BOOTH_ID && BOOTH_ID !== 'Pribadi' && !PANITIA_MODE && !LIVEREPORT_MODE && !ERRORLOGS_MODE && !EVIDENCE_MODE) {
-  setInterval(() => {
-    api('/api/booth', { method: 'POST', body: JSON.stringify({ booth: BOOTH_ID, status: state.boothStatus }) });
-  }, 5000);
+// PING SYSTEM
+if (BOOTH_ID) {
+  if (BOOTH_ID !== 'Pribadi') {
+    if (!PANITIA_MODE) {
+      if (!LIVEREPORT_MODE) {
+        if (!ERRORLOGS_MODE) {
+          if (!EVIDENCE_MODE) {
+            setInterval(() => {
+              api('/api/booth', { method: 'POST', body: JSON.stringify({ booth: BOOTH_ID, status: state.boothStatus }) });
+            }, 5000);
+          }
+        }
+      }
+    }
+  }
 }
 
 if (LIVEREPORT_MODE) {
   $('#clientView').classList.remove('active'); $('#clientView').classList.add('hidden');
   $('#liveReportView').classList.remove('hidden'); $('#liveReportView').classList.add('active');
   initLiveReport();
-} else if (PANITIA_MODE || EVIDENCE_MODE || ERRORLOGS_MODE) {
+} else if (PANITIA_MODE) {
+  $('#clientView').classList.remove('active'); $('#clientView').classList.add('hidden');
+  $('#panitiaView').classList.remove('hidden'); $('#panitiaView').classList.add('active');
+  initPanitia();
+} else if (EVIDENCE_MODE) {
+  $('#clientView').classList.remove('active'); $('#clientView').classList.add('hidden');
+  $('#panitiaView').classList.remove('hidden'); $('#panitiaView').classList.add('active');
+  initPanitia();
+} else if (ERRORLOGS_MODE) {
   $('#clientView').classList.remove('active'); $('#clientView').classList.add('hidden');
   $('#panitiaView').classList.remove('hidden'); $('#panitiaView').classList.add('active');
   initPanitia();
@@ -789,24 +835,33 @@ function initLiveReport() {
 
 async function fetchLiveReportResults() {
   const { ok, data } = await api('/api/results');
-  if (ok && data) renderLiveReport(data);
+  if (ok) {
+    if (data) renderLiveReport(data);
+  }
 }
 
 function renderLiveReport(d) {
-  const counts = d.counts || {}, total = d.totalVoters || state.config.totalVoters, votesIn = d.votesIn || 0;
-  const max = Math.max(1, ...CANDIDATES_CONFIG.map(c => counts[c.id] || 0));
+  const counts = d.counts ? d.counts : {}; 
+  const total = d.totalVoters ? d.totalVoters : state.config.totalVoters;
+  const votesIn = d.votesIn ? d.votesIn : 0;
+  
+  const maxArr = CANDIDATES_CONFIG.map(c => counts[c.id] ? counts[c.id] : 0);
+  const max = Math.max(1, ...maxArr);
+  
   if ($('#liveReportTotalVotesBadge')) $('#liveReportTotalVotesBadge').textContent = `${votesIn} Suara Masuk`;
   if ($('#reportVotesInBig')) $('#reportVotesInBig').textContent = votesIn;
   if ($('#reportParticipationPct')) $('#reportParticipationPct').textContent = `Partisipasi: ${total ? ((votesIn / total) * 100).toFixed(1) : '0.0'}% dari target ${total}`;
 
   CANDIDATES_CONFIG.forEach(c => {
-    const cVotes = counts[c.id] || 0;
+    const cVotes = counts[c.id] ? counts[c.id] : 0;
     if ($(`#reportCount_${c.id}`)) $(`#reportCount_${c.id}`).textContent = cVotes;
     if ($(`#reportPct_${c.id}`)) $(`#reportPct_${c.id}`).textContent = `${votesIn > 0 ? ((cVotes / votesIn) * 100).toFixed(1) : '0.0'}% (${cVotes} suara)`;
   });
 
   $$('#reportResultList .result-row').forEach((row, idx) => {
-    const c = counts[idx + 1] || 0, bar = row.querySelector('.result-track i'), num = row.querySelector('strong');
+    const c = counts[idx + 1] ? counts[idx + 1] : 0;
+    const bar = row.querySelector('.result-track i');
+    const num = row.querySelector('strong');
     if (bar) bar.style.width = Math.round((c / max) * 100) + '%';
     if (num) num.textContent = c;
   });
@@ -820,7 +875,8 @@ function initPanitia() {
   $('#liveAlertStack').addEventListener('click', async (e) => {
     const btn = e.target.closest('[data-dismiss-id]');
     if (!btn) return;
-    btn.closest('.live-alert')?.remove();
+    const alertEl = btn.closest('.live-alert');
+    if (alertEl) alertEl.remove();
     const { ok } = await api('/api/alert', { method: 'POST', body: JSON.stringify({ action: 'dismiss', id: btn.getAttribute('data-dismiss-id') }) });
     addSystemLog('WARN', ok ? 'Peringatan diabaikan operator.' : 'Gagal menghapus alert.');
   });
@@ -836,7 +892,14 @@ function addSystemLog(type, msg) {
   logsEl.appendChild(div); logsEl.scrollTop = logsEl.scrollHeight;
 }
 
-async function checkPanitiaAuth() { const { ok } = await api('/api/results'); ok ? showPanitiaDashboard() : showPanitiaLogin(); }
+async function checkPanitiaAuth() { 
+  const { ok } = await api('/api/results'); 
+  if (ok) {
+    showPanitiaDashboard();
+  } else {
+    showPanitiaLogin();
+  }
+}
 
 function showPanitiaLogin() {
   $('#panitiaLoginScreen').classList.remove('hidden');
@@ -849,7 +912,7 @@ function showPanitiaDashboard() {
     $('#errorLogsDashboard').classList.remove('hidden');
     loadErrorLogsPage();
     state.errorLogsPollTimer = setInterval(loadErrorLogsPage, POLL_MS);
-  } else if(EVIDENCE_MODE) {
+  } else if (EVIDENCE_MODE) {
     $('#evidenceDashboard').classList.remove('hidden');
   } else {
     $('#panitiaDashboard').classList.remove('hidden');
@@ -859,42 +922,75 @@ function showPanitiaDashboard() {
     fetchLiveAlert();
     startResultsPolling();
     const logsEl = $('#systemLogs');
-    if (logsEl && logsEl.children.length === 0) {
-      addSystemLog('SYSTEM', 'Inisialisasi protokol keamanan.');
-      setTimeout(() => addSystemLog('ENCRYPTION', 'Algoritma SHA-256 aktif.'), 500);
-      setTimeout(() => addSystemLog('INFO', 'Otorisasi berhasil. Mengakses data...'), 1200);
+    if (logsEl) {
+      if (logsEl.children.length === 0) {
+        addSystemLog('SYSTEM', 'Inisialisasi protokol keamanan.');
+        setTimeout(() => addSystemLog('ENCRYPTION', 'Algoritma SHA-256 aktif.'), 500);
+        setTimeout(() => addSystemLog('INFO', 'Otorisasi berhasil. Mengakses data...'), 1200);
+      }
     }
     simulateBoothActivity();
   }
 }
 
 async function loginPanitia() {
-  const username = $('#panitiaUsername').value.trim(), password = $('#panitiaPassword').value;
+  const username = $('#panitiaUsername').value.trim();
+  const password = $('#panitiaPassword').value;
   $('#panitiaLoginError').textContent = '';
-  if (!username || !password) return;
+  
+  if (!username) return;
+  if (!password) return;
+  
   const { ok, data } = await api('/api/login', { method: 'POST', body: JSON.stringify({ username, password }) });
-  if (!ok || !data || !data.ok) { $('#panitiaLoginError').textContent = 'Akses Ditolak. Kredensial tidak valid.'; return; }
+  
+  let valid = false;
+  if (ok) {
+    if (data) {
+      if (data.ok) valid = true;
+    }
+  }
+  
+  if (!valid) { 
+    $('#panitiaLoginError').textContent = 'Akses Ditolak. Kredensial tidak valid.'; 
+    return; 
+  }
   showPanitiaDashboard();
 }
-async function logoutPanitia() { await api('/api/logout', { method: 'POST' }); clearInterval(state.pollTimer); showPanitiaLogin(); }
+
+async function logoutPanitia() { 
+  await api('/api/logout', { method: 'POST' }); 
+  clearInterval(state.pollTimer); 
+  showPanitiaLogin(); 
+}
 
 async function fetchConfig() {
   try {
     const { ok, data } = await api('/api/config');
-    if (ok && data && data.config) {
-      state.config = data.config;
-      applySettings();
-      renderBoothsGrid(state.config.boothCount);
+    if (ok) {
+      if (data) {
+        if (data.config) {
+          state.config = data.config;
+          applySettings();
+          renderBoothsGrid(state.config.boothCount);
+        }
+      }
     }
   } catch (e) {}
 }
 
-function applySettings() { if ($('#adminTotal')) $('#adminTotal').textContent = state.config.totalVoters; }
+function applySettings() { 
+  if ($('#adminTotal')) $('#adminTotal').textContent = state.config.totalVoters; 
+}
 
 function renderBoothsGrid(count) {
-  const grid = $('#boothsGrid'); if (!grid) return;
+  const grid = $('#boothsGrid'); 
+  if (!grid) return;
   let html = '';
-  for (let i = 1; i <= Math.max(1, Math.min(30, Number(count) || 5)); i++) {
+  let maxBooths = Number(count) ? Number(count) : 5;
+  if (maxBooths > 30) maxBooths = 30;
+  if (maxBooths < 1) maxBooths = 1;
+  
+  for (let i = 1; i <= maxBooths; i++) {
     html += `<div class="booth" data-booth="${i}"><div class="booth-head"><span class="booth-number">POS ${String(i).padStart(2, '0')}</span><span class="booth-icon">✓</span></div><p>Standby</p></div>`;
   }
   grid.innerHTML = html;
@@ -903,100 +999,240 @@ function renderBoothsGrid(count) {
 async function fetchLiveAlert() {
   try {
     const { ok, data } = await api('/api/alert');
-    if (ok && data) renderLiveAlertStack(data.alerts || []);
+    if (ok) {
+      if (data) {
+        const alerts = data.alerts ? data.alerts : [];
+        renderLiveAlertStack(alerts);
+      }
+    }
   } catch (e) {}
 }
 
 function renderLiveAlertStack(list) {
   const container = $('#liveAlertStack');
-  if (!list || !list.length) { container.innerHTML = ''; state.alertCount = 0; return; }
+  if (!list) {
+    container.innerHTML = ''; 
+    state.alertCount = 0; 
+    return; 
+  }
+  if (!list.length) { 
+    container.innerHTML = ''; 
+    state.alertCount = 0; 
+    return; 
+  }
   
-  if (state.alertCount !== undefined && state.alertCount > 0 && list.length > state.alertCount) {
-    showToast('⚠️ Ada peringatan/error baru terekam! Cek log.');
+  if (state.alertCount !== undefined) {
+    if (state.alertCount > 0) {
+      if (list.length > state.alertCount) {
+        showToast('⚠️ Ada peringatan/error baru terekam! Cek log.');
+      }
+    }
   }
   state.alertCount = list.length;
   
-  container.innerHTML = list.map((a) => `<div class="live-alert" data-alert-id="${escapeHtml(a.id)}"><div class="live-alert-icon">!</div><div class="live-alert-content"><strong>${a.type === 'roster' ? `KENDALA DI POS ${escapeHtml(a.booth)}` : 'ANOMALI DUPLIKASI!'}</strong><div class="live-alert-details"><span>ID/NIS: <b>${escapeHtml(a.name)}</b></span></div></div><button class="live-alert-x" data-dismiss-id="${escapeHtml(a.id)}">×</button></div>`).join('');
+  container.innerHTML = list.map((a) => {
+    const title = a.type === 'roster' ? `KENDALA DI POS ${escapeHtml(a.booth)}` : 'ANOMALI DUPLIKASI!';
+    return `<div class="live-alert" data-alert-id="${escapeHtml(a.id)}"><div class="live-alert-icon">!</div><div class="live-alert-content"><strong>${title}</strong><div class="live-alert-details"><span>ID/NIS: <b>${escapeHtml(a.name)}</b></span></div></div><button class="live-alert-x" data-dismiss-id="${escapeHtml(a.id)}">×</button></div>`;
+  }).join('');
 }
 
 function renderAlertLog(list) {
-  const tbody = $('#alertLogTableBody'); if (!tbody) return;
-  tbody.innerHTML = list.length ? list.map((a) => `<tr><td>${formatTimestamp(a.createdAt)}</td><td><span class="badge red">${a.type}</span></td><td>${escapeHtml(a.name)}</td><td>${escapeHtml(a.class)}</td><td>Pos ${escapeHtml(a.booth)}</td><td>${escapeHtml(a.reasonText || 'Anomali tercatat.')}</td></tr>`).join('') : '<tr><td colspan="6" class="muted" style="text-align:center;">Kosong</td></tr>';
+  const tbody = $('#alertLogTableBody'); 
+  if (!tbody) return;
+  
+  if (list.length) {
+    tbody.innerHTML = list.map((a) => {
+      const reason = a.reasonText ? a.reasonText : 'Anomali tercatat.';
+      return `<tr><td>${formatTimestamp(a.createdAt)}</td><td><span class="badge red">${a.type}</span></td><td>${escapeHtml(a.name)}</td><td>${escapeHtml(a.class)}</td><td>Pos ${escapeHtml(a.booth)}</td><td>${escapeHtml(reason)}</td></tr>`;
+    }).join('');
+  } else {
+    tbody.innerHTML = '<tr><td colspan="6" class="muted" style="text-align:center;">Kosong</td></tr>';
+  }
 }
 
-async function loadErrorLogsPage() { const { ok, data } = await api('/api/alert?full=1'); if (ok && data) renderAlertLog(data.log || []); }
+async function loadErrorLogsPage() { 
+  const { ok, data } = await api('/api/alert?full=1'); 
+  if (ok) {
+    if (data) {
+      const logData = data.log ? data.log : [];
+      renderAlertLog(logData);
+    }
+  }
+}
 
-function startResultsPolling() { fetchResults(); clearInterval(state.pollTimer); state.pollTimer = setInterval(fetchResults, POLL_MS); }
+function startResultsPolling() { 
+  fetchResults(); 
+  clearInterval(state.pollTimer); 
+  state.pollTimer = setInterval(fetchResults, POLL_MS); 
+}
 
 async function fetchResults() {
-  fetchLiveAlert(); fetchConfig();
+  fetchLiveAlert(); 
+  fetchConfig();
   const { ok, data } = await api('/api/results');
-  if (ok && data) { renderResults(data); simulateBoothActivity(); } else if (!ok) showPanitiaLogin();
+  if (ok) {
+    if (data) {
+      renderResults(data); 
+      simulateBoothActivity();
+    }
+  } else {
+    showPanitiaLogin();
+  }
 }
 
 async function simulateBoothActivity() {
   const { ok, data } = await api('/api/booth');
-  const activeBooths = data && data.booths ? data.booths : {};
+  
+  let activeBooths = {};
+  if (data) {
+    if (data.booths) activeBooths = data.booths;
+  }
+  
   const now = Date.now();
   let countActive = 0;
+  
   $$('.booth').forEach((b) => {
-    const bData = activeBooths[b.dataset.booth], textEl = b.querySelector('p'), iconEl = b.querySelector('.booth-icon');
+    const bData = activeBooths[b.dataset.booth];
+    const textEl = b.querySelector('p');
+    const iconEl = b.querySelector('.booth-icon');
     b.classList.remove('busy');
-    if (!bData || (now - bData.lastPing > 15000)) { textEl.textContent = 'Offline'; textEl.style.color = 'var(--muted)'; iconEl.textContent = '✗'; }
-    else if (bData.status === 'Terpakai') { b.classList.add('busy'); textEl.textContent = 'Terpakai'; textEl.style.color = 'var(--orange)'; iconEl.textContent = '✎'; countActive++; }
-    else { textEl.textContent = 'Standby'; textEl.style.color = 'var(--mint)'; iconEl.textContent = '✓'; countActive++; }
+    
+    if (!bData) { 
+      textEl.textContent = 'Offline'; textEl.style.color = 'var(--muted)'; iconEl.textContent = '✗'; 
+    } else if ((now - bData.lastPing > 15000)) {
+      textEl.textContent = 'Offline'; textEl.style.color = 'var(--muted)'; iconEl.textContent = '✗';
+    } else if (bData.status === 'Terpakai') { 
+      b.classList.add('busy'); textEl.textContent = 'Terpakai'; textEl.style.color = 'var(--orange)'; iconEl.textContent = '✎'; countActive++; 
+    } else { 
+      textEl.textContent = 'Standby'; textEl.style.color = 'var(--mint)'; iconEl.textContent = '✓'; countActive++; 
+    }
   });
   if($('#activeBoothCount')) $('#activeBoothCount').textContent = `${countActive}/${state.config.boothCount}`;
 }
 
 function renderResults(d) {
-  const counts = d.counts || {}, total = d.totalVoters || state.config.totalVoters, votesIn = d.votesIn || 0;
+  const counts = d.counts ? d.counts : {}; 
+  const total = d.totalVoters ? d.totalVoters : state.config.totalVoters;
+  const votesIn = d.votesIn ? d.votesIn : 0;
+  
   if ($('#adminTotal')) $('#adminTotal').textContent = total;
   if ($('#adminCount')) $('#adminCount').textContent = votesIn;
-  if ($('#adminPercent')) $('#adminPercent').textContent = (total ? (votesIn / total * 100) : 0).toFixed(1) + '\%';   const max = Math.max(1, ...CANDIDATES_CONFIG.map(c => counts[c.id] || 0));   $$('#resultList .result-row').forEach((row, idx) => {
-    const c = counts[idx + 1] || 0, bar = row.querySelector('.result-track i'), num = row.querySelector('strong');
+  if ($('#adminPercent')) {
+    const pct = total ? (votesIn / total * 100) : 0;
+    $('#adminPercent').textContent = pct.toFixed(1) + '\%';   }      const maxArr = CANDIDATES_CONFIG.map(c => counts[c.id] ? counts[c.id] : 0);   const max = Math.max(1, ...maxArr);      $$('#resultList .result-row').forEach((row, idx) => {
+    const c = counts[idx + 1] ? counts[idx + 1] : 0;
+    const bar = row.querySelector('.result-track i');
+    const num = row.querySelector('strong');
     if (bar) bar.style.width = Math.round(c / max * 100) + '%';
     if (num) num.textContent = c;
   });
 }
 
 // 7. CLIENT LOGIC & VALIDATION
-function setParticipantNameError(message) { $('#participantName').classList.add('input-error'); $('#participantNameError').textContent = message; }
-function clearParticipantNameError() { $('#participantName').classList.remove('input-error'); $('#participantNameError').textContent = ''; }
-function nameAlreadyUsed(name) { try { return JSON.parse(localStorage.getItem(NAME_USAGE_KEY) || '[]').includes(name); } catch(e) { return false; } }
-function rememberName(name) { const u = JSON.parse(localStorage.getItem(NAME_USAGE_KEY) || '[]'); if(!u.includes(name)){ u.push(name); localStorage.setItem(NAME_USAGE_KEY, JSON.stringify(u)); } }
+function setParticipantNameError(message) { 
+  $('#participantName').classList.add('input-error'); 
+  $('#participantNameError').textContent = message; 
+}
+function clearParticipantNameError() { 
+  $('#participantName').classList.remove('input-error'); 
+  $('#participantNameError').textContent = ''; 
+}
 
-// PENGAMANAN ERROR REGEX
-function isDuplicateNameError(data) { return data && data.code === 'DUPLICATE_VOTER' || /duplicate|already/i.test(data?.error || ''); }
-function isRosterRejectedError(data) { return data && (data.code === 'NIS_NOT_REGISTERED' || data.code === 'NIS_CLASS_MISMATCH' || data.code === 'ROSTER_UNAVAILABLE') || /tidak valid|tidak sesuai|roster|belum terdaftar|tidak ditemukan/i.test(data?.error || ''); }
+function isDuplicateNameError(data) { 
+  if (data) {
+    if (data.code === 'DUPLICATE_VOTER') return true;
+  }
+  const errText = data?.error ? data.error : '';
+  if (/duplicate/i.test(errText)) return true;
+  if (/already/i.test(errText)) return true;
+  return false;
+}
+
+function isRosterRejectedError(data) { 
+  if (data) {
+    if (data.code === 'NIS_NOT_REGISTERED') return true;
+    if (data.code === 'NIS_CLASS_MISMATCH') return true;
+    if (data.code === 'ROSTER_UNAVAILABLE') return true;
+  }
+  const errText = data?.error ? data.error : '';
+  if (/tidak valid/i.test(errText)) return true;
+  if (/tidak sesuai/i.test(errText)) return true;
+  if (/roster/i.test(errText)) return true;
+  if (/belum terdaftar/i.test(errText)) return true;
+  if (/tidak ditemukan/i.test(errText)) return true;
+  return false;
+}
 
 $('#briefingBtn').addEventListener('click', () => { $('#welcomeScreen').classList.add('hidden'); $('#briefingScreen').classList.remove('hidden'); });
 $('#readyBtn').addEventListener('click', () => { $('#briefingScreen').classList.add('hidden'); $('#identityScreen').classList.remove('hidden'); });
 
-$('#backToIdentityBtn').addEventListener('click', () => {   $$('.candidate').forEach(c => c.classList.remove('selected'));
+$('#backToIdentityBtn').addEventListener('click', () => {      $$('.candidate').forEach(c => c.classList.remove('selected'));
   state.selected = null;
   state.boothStatus = 'Standby'; 
   $('#voteScreen').classList.add('hidden');
   $('#identityScreen').classList.remove('hidden');
 });
 
+// LOGIKA BARU: CEK LANGSUNG KE SERVER (DATASTORE)
 $('#startBtn').addEventListener('click', async () => {
-  const name = $('#participantName').value.trim(), className = $('#participantClass').value;
+  const name = $('#participantName').value.trim();
+  const className = $('#participantClass').value;
   clearParticipantNameError();
   
-  if (!name) { setParticipantNameError('Wajib memasukkan NIS.'); $('#participantName').focus(); return; }
-  if (!className) { showToast('Kelas belum dipilih.'); $('#participantClass').focus(); return; }
+  if (!name) { 
+    setParticipantNameError('Wajib memasukkan NIS.'); 
+    $('#participantName').focus(); 
+    return; 
+  }
+  if (!className) { 
+    showToast('Kelas belum dipilih.'); 
+    $('#participantClass').focus(); 
+    return; 
+  }
   
-  if (nameAlreadyUsed(name)) {
-    setParticipantNameError('Akses Ditolak: NIS telah memberikan suara.');
-    try { await api('/api/alert', { method: 'POST', body: JSON.stringify({ action: 'log_local_duplicate', name, class: className, booth: BOOTH_ID }) }); } catch (e) {}
+  // Efek Loading
+  const btn = $('#startBtn');
+  const ogText = btn.innerHTML;
+  btn.innerHTML = 'Memverifikasi Server...';
+  btn.disabled = true;
+
+  // Nembak ke API Check
+  const { ok, data } = await api('/api/check', {
+    method: 'POST',
+    body: JSON.stringify({ name, class: className, booth: BOOTH_ID })
+  });
+
+  btn.innerHTML = ogText;
+  btn.disabled = false;
+
+  let valid = false;
+  if (ok) {
+    if (data) {
+      if (data.ok) valid = true;
+    }
+  }
+
+  // Kalau server menolak (Duplikat)
+  if (!valid) {
+    if (isDuplicateNameError(data)) {
+      setParticipantNameError('Akses Ditolak: NIS telah terpakai di perangkat/bilik lain.');
+      try { 
+        await api('/api/alert', { method: 'POST', body: JSON.stringify({ action: 'log_local_duplicate', name, class: className, booth: BOOTH_ID }) }); 
+      } catch (e) {}
+    } else if (isRosterRejectedError(data)) {
+      setParticipantNameError((data && data.error) ? data.error : 'NIS tidak valid/sesuai.');
+    } else {
+      showToast('Koneksi ke server gagal.');
+    }
     return;
   }
   
-  state.participantName = name; state.participantClass = className;
+  // Kalau server ngasih izin masuk
+  state.participantName = name; 
+  state.participantClass = className;
   state.boothStatus = 'Terpakai';
   $('#identityScreen').classList.add('hidden');
-  $('#voteScreen').classList.remove('hidden'); });  async function recordVote() {   if (state.voting) return;   state.voting = true;   const receipt = createReceipt();      const { ok, data } = await api('/api/vote', {      method: 'POST',      body: JSON.stringify({ receipt, candidate: state.selected, name: state.participantName, class: state.participantClass, booth: BOOTH_ID, timestamp: Date.now() })    });      state.voting = false;      if (!ok || !data || !data.ok) {     showToast((data && data.error) || 'Gagal tersambung ke server.');     $$('.candidate').forEach(c => c.classList.remove('selected')); 
+  $('#voteScreen').classList.remove('hidden');  });    async function recordVote() {      if (state.voting) return;      state.voting = true;      const receipt = createReceipt();            const { ok, data } = await api('/api/vote', {           method: 'POST',           body: JSON.stringify({ receipt, candidate: state.selected, name: state.participantName, class: state.participantClass, booth: BOOTH_ID, timestamp: Date.now() })       });            state.voting = false;            let success = false;   if (ok) {     if (data) {       if (data.ok) success = true;     }   }      if (!success) {          const errMsg = (data && data.error) ? data.error : 'Gagal tersambung ke server.';     showToast(errMsg);          $$('.candidate').forEach(c => c.classList.remove('selected')); 
     state.selected = null; 
     state.boothStatus = 'Standby';
     
@@ -1007,15 +1243,14 @@ $('#startBtn').addEventListener('click', async () => {
     } else if (isRosterRejectedError(data)) { 
       $('#voteScreen').classList.add('hidden'); 
       $('#identityScreen').classList.remove('hidden'); 
-      setParticipantNameError((data && data.error) || 'NIS tidak valid/sesuai.'); 
+      setParticipantNameError((data && data.error) ? data.error : 'NIS tidak valid/sesuai.'); 
     }
     return;
   }
   
-  rememberName(state.participantName);
   $('#voteScreen').classList.add('hidden'); 
   $('#successScreen').classList.remove('hidden');
-  $('#receipt').textContent = data.receipt || receipt;
+  $('#receipt').textContent = data.receipt ? data.receipt : receipt;
   startAutoReset();
 }
 
