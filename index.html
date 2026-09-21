@@ -731,7 +731,7 @@ function setupCandidates() {
       </div>`).join('');
   }
   
-  $$('.candidate').forEach(card => card.addEventListener('click', () => {     if (state.voting) return;     openConfirmVoteModal(Number(card.dataset.candidate), card);   })); }  function openConfirmVoteModal(candidateId, cardEl) {   if (!state.participantName \vert{}\vert{} !state.participantClass) return;   const candidate = CANDIDATES_CONFIG.find(c => c.id === candidateId);   if (!candidate) return;   state.selected = candidateId;   $$
+  $$('.candidate').forEach(card => card.addEventListener('click', () => {     if (state.voting) return;     openConfirmVoteModal(Number(card.dataset.candidate), card);   })); }  function openConfirmVoteModal(candidateId, cardEl) {   if (!state.participantName || !state.participantClass) return;   const candidate = CANDIDATES_CONFIG.find(c => c.id === candidateId);   if (!candidate) return;   state.selected = candidateId;   $$
 ('.candidate').forEach(c => c.classList.remove('selected'));
   if (cardEl) cardEl.classList.add('selected');
   $('#confirmCandidateTitle').textContent = `Berkas 0${candidate.id} · ${candidate.team}`;
@@ -953,7 +953,7 @@ function renderResults(d) {
   const counts = d.counts || {}, total = d.totalVoters || state.config.totalVoters, votesIn = d.votesIn || 0;
   if ($('#adminTotal')) $('#adminTotal').textContent = total;
   if ($('#adminCount')) $('#adminCount').textContent = votesIn;
-  if ($('#adminPercent')) $('#adminPercent').textContent = (total ? (votesIn / total * 100) : 0).toFixed(1) + '\%';   const max = Math.max(1, ...CANDIDATES_CONFIG.map(c => counts[c.id] \vert{}\vert{} 0));   $$('#resultList .result-row').forEach((row, idx) => {
+  if ($('#adminPercent')) $('#adminPercent').textContent = (total ? (votesIn / total * 100) : 0).toFixed(1) + '\%';   const max = Math.max(1, ...CANDIDATES_CONFIG.map(c => counts[c.id] || 0));   $$('#resultList .result-row').forEach((row, idx) => {
     const c = counts[idx + 1] || 0, bar = row.querySelector('.result-track i'), num = row.querySelector('strong');
     if (bar) bar.style.width = Math.round(c / max * 100) + '%';
     if (num) num.textContent = c;
@@ -996,7 +996,7 @@ $('#startBtn').addEventListener('click', async () => {
   state.participantName = name; state.participantClass = className;
   state.boothStatus = 'Terpakai';
   $('#identityScreen').classList.add('hidden');
-  $('#voteScreen').classList.remove('hidden'); });  async function recordVote() {   if (state.voting) return;   state.voting = true;   const receipt = createReceipt();      const { ok, data } = await api('/api/vote', {      method: 'POST',      body: JSON.stringify({ receipt, candidate: state.selected, name: state.participantName, class: state.participantClass, booth: BOOTH_ID, timestamp: Date.now() })    });      state.voting = false;      if (!ok \vert{}\vert{} !data \vert{}\vert{} !data.ok) {     showToast((data && data.error) \vert{}\vert{} 'Gagal tersambung ke server.');     $$('.candidate').forEach(c => c.classList.remove('selected')); 
+  $('#voteScreen').classList.remove('hidden'); });  async function recordVote() {   if (state.voting) return;   state.voting = true;   const receipt = createReceipt();      const { ok, data } = await api('/api/vote', {      method: 'POST',      body: JSON.stringify({ receipt, candidate: state.selected, name: state.participantName, class: state.participantClass, booth: BOOTH_ID, timestamp: Date.now() })    });      state.voting = false;      if (!ok || !data || !data.ok) {     showToast((data && data.error) || 'Gagal tersambung ke server.');     $$('.candidate').forEach(c => c.classList.remove('selected')); 
     state.selected = null; 
     state.boothStatus = 'Standby';
     
