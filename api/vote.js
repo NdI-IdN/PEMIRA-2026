@@ -44,12 +44,14 @@ module.exports = async (req, res) => {
   try {
     const body = await readBody(req);
 
-    // --- 1. CEK AWAL (ACTION === 'CHECK') HARUS DI SINI (PALING ATAS) ---
-    if (body.action === 'check') {
-      const rawName = (body.name || '').toString().trim();
-      const rawClass = (body.class || '').toString();
-      const isStaff = rawClass === 'Guru/Karyawan';
+    // --- DEKLARASIKAN DI ATAS SUPAYA BISA DIAKSES SEMUA BLOK ---
+    const rawName = (body.name || '').toString().trim();
+    const rawClass = (body.class || '').toString();
+    const isStaff = rawClass === 'Guru/Karyawan';
+    // -----------------------------------------------------------
 
+    // --- 1. CEK AWAL (ACTION === 'CHECK') ---
+    if (body.action === 'check') {
       if (!rawName) {
         return res.status(400).json({ ok: false, error: 'Identitas wajib diisi.' });
       }
@@ -75,13 +77,11 @@ module.exports = async (req, res) => {
     }
     // -----------------------------------------------------------------
 
-    // --- 2. VALIDASI KANDIDAT HANYA DIBAWAH (SAAT PEMILIHAN FINAL) ---
+    // --- 2. VALIDASI KANDIDAT (SAAT PEMILIHAN FINAL) ---
     const candidate = (body.candidate || '').toString();
     if (!VALID.includes(candidate)) {
       return res.status(400).json({ ok: false, error: 'Kandidat tidak valid.' });
     }
-
-    // ... sisa kode recordVote di bawahnya ...
 
     // Pengecekan Roster untuk Voting Utama
     if (!isStaff) {
