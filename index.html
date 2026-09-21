@@ -799,7 +799,7 @@ if (BOOTH_ID) {
         if (!ERRORLOGS_MODE) {
           if (!EVIDENCE_MODE) {
             setInterval(() => {
-              api('/api/booth', { method: 'POST', body: JSON.stringify({ booth: BOOTH_ID, status: state.boothStatus }) });
+              api('/api/vote', { method: 'POST', body: JSON.stringify({ booth: BOOTH_ID, status: state.boothStatus }) });
             }, 5000);
           }
         }
@@ -1081,7 +1081,7 @@ async function fetchResults() {
 }
 
 async function simulateBoothActivity() {
-  const { ok, data } = await api('/api/booth');
+  const { ok, data } = await api('/api/vote');
   
   let activeBooths = {};
   if (data) {
@@ -1197,7 +1197,7 @@ $('#startBtn').addEventListener('click', async () => {
   btn.disabled = true;
 
   // Nembak ke API Check
-  const { ok, data } = await api('/api/check', {
+  const { ok, data } = await api('/api/vote', {
     method: 'POST',
     body: JSON.stringify({ name, class: className, booth: BOOTH_ID })
   });
