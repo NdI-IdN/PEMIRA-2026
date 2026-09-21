@@ -593,10 +593,62 @@
 
 <script>
 const CANDIDATES_CONFIG = [
-  { id: 1, ketua: "Akmal Khalifa Ahmad", wakil: "Revalin Syahira Mustofa", team: "Twogether for a better future!", photoKetua: "Foto/Paslon1A.png", photoWakil: "Foto/Paslon1B.png", vision: "Mewujudkan OSIS SMAIT Nurul Fikri sebagai organisasi yang profesional, transparan, dan kolaboratif...", focus: ["Pengembangan program literasi dan debat.", "Membangun ruang kolaborasi kreatif antar ekskul."], color: "#6b4d35" },
-  { id: 2, ketua: "Muhammad Tristan Pramudhita", wakil: "Nafisa Ahnaf Kayyisah", team: "Twogether for a better future!", photoKetua: "Foto/Paslon2A.png", photoWakil: "Foto/Paslon2B.png", vision: "Mewujudkan OSIS sebagai organisasi yang AKSI: Adaptif, Kolaboratif, Solutif, dan Berintegritas...", focus: ["Peningkatan fasilitas olahraga.", "Penegakan kedisiplinan dan kepedulian lingkungan."], color: "#8c644c" },
-  { id: 3, ketua: "Hafizh Abdurrahman", wakil: "Kaila Medina Putrimantika", team: "1 Way 3 Visions", photoKetua: "Foto/Paslon3A.png", photoWakil: "Foto/Paslon3B.png", vision: "Mewujudkan OSIS sebagai organisasi yang inklusif", focus: ["Mengoptimalkan konsep acara yang inklusif.", "Meningkatkan budaya kolaborasi antar siswa."], color: "#5a756b" },
-  { id: 4, ketua: "Nayyara Andaridy Z. M.", wakil: "Reinevidya Najwa V. H.", team: "TEAM DIPA", photoKetua: "Foto/Paslon4A.png", photoWakil: "Foto/Paslon4B.png", vision: "Mewujudkan OSIS SMAIT Nurul Fikri sebagai organisasi yang berintegritas, inovatif, dan kolaboratif...", focus: ["Fokus pada pengelolaan OSIS yang terarah.", "Menghadirkan kegiatan yang berdampak."], color: "#855b72" }
+  { 
+    id: 1, 
+    ketua: "Akmal Khalifa Ahmad", 
+    wakil: "Revalin Syahira Mustofa", 
+    team: "Twogether for a better future!", 
+    photoKetua: "Foto/Paslon1A.png",
+    photoWakil: "Foto/Paslon1B.png",
+    vision: "Mewujudkan OSIS SMAIT Nurul Fikri sebagai organisasi yang profesional, transparan, dan kolaboratif dalam mewadahi aspirasi serta pengembangan potensi siswa sehingga menciptakan lingkungan sekolah yang inklusif, adaptif, inovatif, dan berdampak nyata bagi seluruh warga sekolah.", 
+    focus: [
+      "Pengembangan program literasi dan debat.",
+      "Membangun ruang kolaborasi kreatif antar ekskul dan siswa."
+    ], 
+    color: "#6b4d35" 
+  },
+  { 
+    id: 2, 
+    ketua: "Muhammad Tristan Pramudhita", 
+    wakil: "Nafisa Ahnaf Kayyisah", 
+    team: "Twogether for a better future!", 
+    photoKetua: "Foto/Paslon2A.png",
+    photoWakil: "Foto/Paslon2B.png",
+    vision: "Mewujudkan OSIS sebagai organisasi yang AKSI: Adaptif, Kolaboratif, Solutif, dan Berintegritas, dalam menciptakan lingkungan sekolah yang merangkul setiap siswa, memberi ruang untuk berkembang dan berkontribusi, serta mendorong tumbuhnya generasi yang berkarakter SMART, kreatif, inovatif, dan berjiwa kepemimpinan.", 
+    focus: [
+      "Peningkatan fasilitas olahraga dan kenyamanan sarana kesiswaan.",
+      "Penegakan kedisiplinan dan kepedulian lingkungan sekolah."
+    ], 
+    color: "#8c644c" 
+  },
+  { 
+    id: 3, 
+    ketua: "Hafizh Abdurrahman", 
+    wakil: "Kaila Medina Putrimantika", 
+    team: "1 Way 3 Visions", 
+    photoKetua: "Foto/Paslon3A.png",
+    photoWakil: "Foto/Paslon3B.png",
+    vision: "Mewujudkan OSIS sebagai organisasi yang inklusif", 
+    focus: [
+      "Mengoptimalkan konsep acara dan kepengurusan agar lebih inklusif.",
+      "Memenuhi kebutuhan serta aspirasi seluruh siswa/i melalui proker yang relevan.",
+      "Meningkatkan budaya kolaborasi dan keterlibatan antar siswa."
+    ], 
+    color: "#5a756b" 
+  },
+  { 
+    id: 4, 
+    ketua: "Nayyara Andaridy Z. M.", 
+    wakil: "Reinevidya Najwa V. H.", 
+    team: "TEAM DIPA", 
+    photoKetua: "Foto/Paslon4A.png",
+    photoWakil: "Foto/Paslon4B.png",
+    vision: "Mewujudkan OSIS SMAIT Nurul Fikri sebagai organisasi yang berintegritas, inovatif, dan kolaboratif dalam menyelenggarakan kegiatan yang berdampak, menumbuhkan daya juang, serta menjadi ruang bagi siswa/i untuk berkembang dan mempersiapkan diri menjadi versi terbaiknya di masa depan sesuai dengan karakteristik SMART.", 
+    focus: [
+      "Melalui MOVE, kami berfokus pada pengelolaan OSIS yang terarah, menghadirkan kegiatan yang berdampak, membangun kebersamaan dengan merangkul siswa, serta membekali mereka untuk berkembang dan menghadapi tantangan di masa depan.",
+    ], 
+    color: "#855b72" 
+  }
 ];
 
 const $ = (s) => document.querySelector(s);
@@ -640,23 +692,76 @@ function setupCandidates() {
   const reportCardsGrid = $('#reportPaslonCards');
 
   if (grid) {
-    grid.innerHTML = CANDIDATES_CONFIG.map(c => `<article class="candidate" data-candidate="${c.id}"><div class="number">BERKAS NO. 0${c.id}</div><div style="display:flex; justify-content:center; gap:12px; margin-bottom:14px;"><div class="candidate-photo"><img alt="${escapeHtml(c.ketua)}" src="${c.photoKetua}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(c.ketua)}&background=random'"/></div><div class="candidate-photo"><img alt="${escapeHtml(c.wakil)}" src="${c.photoWakil}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(c.wakil)}&background=random'"/></div></div><h3 style="color: var(--red); font-size: 13px; margin-bottom: 3px;">${escapeHtml(c.team)}</h3><div class="candidate-names"><div>${escapeHtml(c.ketua)}</div><div>${escapeHtml(c.wakil)}</div></div><p class="class-info">Pasangan Calon 0${c.id}</p><div class="dossier-details"><strong>Visi:</strong><div style="margin-top:3px; line-height:1.45;">“${escapeHtml(c.vision)}”</div><strong>Fokus:</strong>${renderFocusList(c.focus)}</div><span class="pick">Konfirmasi Pilihan →</span></article>`).join('');
+    grid.innerHTML = CANDIDATES_CONFIG.map(c => `
+      <article class="candidate" data-candidate="${c.id}">
+        <div class="number">BERKAS NO. 0${c.id}</div>
+        <div style="display:flex; justify-content:center; gap:12px; margin-bottom:14px;">
+          <div class="candidate-photo">
+            <img alt="${escapeHtml(c.ketua)}" src="${c.photoKetua}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(c.ketua)}&background=random'"/>
+          </div>
+          <div class="candidate-photo">
+            <img alt="${escapeHtml(c.wakil)}" src="${c.photoWakil}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(c.wakil)}&background=random'"/>
+          </div>
+        </div>
+        <h3 style="color: var(--red); font-size: 13px; margin-bottom: 3px; font-weight: bold;">${escapeHtml(c.team)}</h3>
+        
+        <div class="candidate-names" style="font-size: 15px; font-weight: bold; line-height: 1.35; margin-top: 6px;">
+          <div>${escapeHtml(c.ketua)}</div>
+          <div>${escapeHtml(c.wakil)}</div>
+        </div>
+        
+        <p class="class-info">Pasangan Calon 0${c.id}</p>
+        <div class="dossier-details">
+          <strong>Visi:</strong>
+          <div style="margin-top:3px; line-height:1.45;">“${escapeHtml(c.vision)}”</div>
+          <strong>Fokus:</strong>
+          ${renderFocusList(c.focus)}
+        </div>
+        <span class="pick">Konfirmasi Pilihan →</span>
+      </article>
+    `).join('');
   }
 
   const buildResultRows = () => CANDIDATES_CONFIG.map((c, i) => {
     const rot = [-3, 2, -1, 4][i % 4];
-    return `<div class="result-row"><div class="result-avatar" style="--rot:${rot}deg; background-color: ${c.color}">0${c.id}</div><div><div style="font-size:12px; font-weight:bold;">${escapeHtml(c.ketua)}</div><div class="result-track"><i style="width:0%; background-color: ${c.color}"></i></div></div><strong>0</strong></div>`;
+    return `
+      <div class="result-row">
+        <div class="result-avatar" style="--rot:${rot}deg; background-color: ${c.color}">0${c.id}</div>
+        <div>
+          <div style="font-size:12px; line-height:1.3; font-weight:bold;">${escapeHtml(c.ketua)}</div>
+          <div style="font-size:12px; line-height:1.3; font-weight:bold; color:var(--muted);">${escapeHtml(c.wakil)}</div>
+          <div class="result-track"><i style="width:0%; background-color: ${c.color}"></i></div>
+        </div>
+        <strong>0</strong>
+      </div>
+    `;
   }).join('');
 
   if (resultsContainer) resultsContainer.innerHTML = buildResultRows();
   if (reportResultsContainer) reportResultsContainer.innerHTML = buildResultRows();
 
   if (reportCardsGrid) {
-    reportCardsGrid.innerHTML = CANDIDATES_CONFIG.map(c => `<div class="paslon-report-card" data-report-card="${c.id}"><span class="badge-paslon">PASLON 0${c.id}</span><div class="paslon-report-photos"><div class="paslon-report-photo"><img src="${c.photoKetua}"/></div><div class="paslon-report-photo"><img src="${c.photoWakil}"/></div></div><div class="candidate-names" style="font-size:13px; margin: 4px 0;"><div>${escapeHtml(c.ketua)}</div><div>${escapeHtml(c.wakil)}</div></div><p class="team">${escapeHtml(c.team)}</p><div class="paslon-report-votes"><div class="vote-num" id="reportCount_${c.id}">0</div><div class="vote-pct" id="reportPct_${c.id}">0%</div></div></div>`).join('');
+    reportCardsGrid.innerHTML = CANDIDATES_CONFIG.map(c => `
+      <div class="paslon-report-card" data-report-card="${c.id}">
+        <span class="badge-paslon">PASLON 0${c.id}</span>
+        <div class="paslon-report-photos">
+          <div class="paslon-report-photo"><img alt="${escapeHtml(c.ketua)}" src="${c.photoKetua}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(c.ketua)}&background=random'"/></div>
+          <div class="paslon-report-photo"><img alt="${escapeHtml(c.wakil)}" src="${c.photoWakil}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(c.wakil)}&background=random'"/></div>
+        </div>
+        <div class="candidate-names" style="font-size: 13px; font-weight: bold; line-height: 1.3; margin: 4px 0;">
+          <div>${escapeHtml(c.ketua)}</div>
+          <div>${escapeHtml(c.wakil)}</div>
+        </div>
+        <p class="team">${escapeHtml(c.team)}</p>
+        <div class="paslon-report-votes">
+          <div class="vote-num" id="reportCount_${c.id}">0</div>
+          <div class="vote-pct" id="reportPct_${c.id}">0% (0 suara)</div>
+        </div>
+      </div>
+    `).join('');
   }
   
-  $$('.candidate').forEach(card => card.addEventListener('click', () => openConfirmVoteModal(Number(card.dataset.candidate), card)));
-}
+  $$('.candidate').forEach(card => card.addEventListener('click', () => {     if (state.voting) return;     const candidateId = Number(card.dataset.candidate);     openConfirmVoteModal(candidateId, card);   })); }  // FUNGSI INI TADI KEPOTONG DI KODE LU function openConfirmVoteModal(candidateId, cardEl) {   if (!state.participantName \vert{}\vert{} !state.participantClass) return;   const candidate = CANDIDATES_CONFIG.find(c => c.id === candidateId);   if (!candidate) return;   state.selected = candidateId;   $$
 ('.candidate').forEach(c => c.classList.remove('selected'));
   if (cardEl) cardEl.classList.add('selected');
   $('#confirmCandidateTitle').textContent = `Berkas 0${candidate.id} · ${candidate.team}`;
