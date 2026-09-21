@@ -761,15 +761,45 @@ function setupCandidates() {
     `).join('');
   }
   
-  $$('.candidate').forEach(card => card.addEventListener('click', () => {     if (state.voting) return;     const candidateId = Number(card.dataset.candidate);     openConfirmVoteModal(candidateId, card);   })); }  // FUNGSI INI TADI KEPOTONG DI KODE LU function openConfirmVoteModal(candidateId, cardEl) {   if (!state.participantName \vert{}\vert{} !state.participantClass) return;   const candidate = CANDIDATES_CONFIG.find(c => c.id === candidateId);   if (!candidate) return;   state.selected = candidateId;   $$
-('.candidate').forEach(c => c.classList.remove('selected'));
-  if (cardEl) cardEl.classList.add('selected');
-  $('#confirmCandidateTitle').textContent = `Berkas 0${candidate.id} · ${candidate.team}`;
-  $('#confirmCandidateNames').innerHTML = `<div style="margin-bottom:3px;">${escapeHtml(candidate.ketua)}</div><div>${escapeHtml(candidate.wakil)}</div>`;
-  $('#confirmCandidatePhotos').innerHTML = `<div class="candidate-photo" style="width:70px; height:85px; margin:0;"><img src="${candidate.photoKetua}"/></div><div class="candidate-photo" style="width:70px; height:85px; margin:0;"><img src="${candidate.photoWakil}"/></div>`;
-  $('#confirmVoteModal').classList.add('open');
+    $$('.candidate').forEach(card => card.addEventListener('click', () => {
+    if (state.voting) return;
+
+    const candidateId = Number(card.dataset.candidate);
+    openConfirmVoteModal(candidateId, card);
+  }));
 }
 
+function openConfirmVoteModal(candidateId, cardEl) {
+  if (!state.participantName || !state.participantClass) return;
+
+  const candidate = CANDIDATES_CONFIG.find(c => c.id === candidateId);
+  if (!candidate) return;
+
+  state.selected = candidateId;
+
+  $$('.candidate').forEach(c => c.classList.remove('selected'));
+
+  if (cardEl) cardEl.classList.add('selected');
+
+  $('#confirmCandidateTitle').textContent =
+    `Berkas 0${candidate.id} · ${candidate.team}`;
+
+  $('#confirmCandidateNames').innerHTML = `
+    <div style="margin-bottom:3px;">${escapeHtml(candidate.ketua)}</div>
+    <div>${escapeHtml(candidate.wakil)}</div>
+  `;
+
+  $('#confirmCandidatePhotos').innerHTML = `
+    <div class="candidate-photo" style="width:70px; height:85px; margin:0;">
+      <img src="${candidate.photoKetua}"/>
+    </div>
+    <div class="candidate-photo" style="width:70px; height:85px; margin:0;">
+      <img src="${candidate.photoWakil}"/>
+    </div>
+  `;
+
+  $('#confirmVoteModal').classList.add('open');
+}
 $('#cancelVoteBtn').addEventListener('click', () => { $('#confirmVoteModal').classList.remove('open'); $$('.candidate').forEach(c => c.classList.remove('selected')); state.selected = null; });
 $('#executeVoteBtn').addEventListener('click', () => { $('#confirmVoteModal').classList.remove('open'); if (state.selected) recordVote(); });
 
