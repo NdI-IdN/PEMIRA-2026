@@ -1250,6 +1250,21 @@ function isRosterRejectedError(data) {
   return false;
 }
 
+// Tambahkan script kecil ini di bagian JavaScript index (8).html
+$('#participantClass').addEventListener('change', (e) => {
+  const inputField = $('#participantName');
+  const hintField = $('#participantNameHint');
+  if (e.target.value === 'Guru/Karyawan') {
+    inputField.maxLength = 10;
+    inputField.placeholder = 'Contoh: 1234567';
+    hintField.textContent = 'Masukkan 7 digit NIPY atau ID Karyawan.';
+  } else {
+    inputField.maxLength = 9;
+    inputField.placeholder = 'Contoh: 252612102';
+    hintField.textContent = 'Gunakan 9 digit NIS sesuai data peserta.';
+  }
+});
+
 $('#briefingBtn').addEventListener('click', () => { $('#welcomeScreen').classList.add('hidden'); $('#briefingScreen').classList.remove('hidden'); });
 $('#readyBtn').addEventListener('click', () => { $('#briefingScreen').classList.add('hidden'); $('#identityScreen').classList.remove('hidden'); });
 
