@@ -1631,7 +1631,9 @@ const CANDIDATES_CONFIG = [
     }
 
     function isRosterRejectedError(data) {
-      return data && (data.code === 'NIS_NOT_REGISTERED' || data.code === 'NIS_CLASS_MISMATCH' || data.code === 'ROSTER_UNAVAILABLE');
+      const message = data && data.error ? String(data.error) : '';
+      return (data && (data.code === 'NIS_NOT_REGISTERED' || data.code === 'NIS_CLASS_MISMATCH' || data.code === 'ROSTER_UNAVAILABLE')) 
+        || /tidak valid|tidak sesuai|roster|tidak ditemukan|belum terdaftar/i.test(message);
     }
 
     $('#briefingBtn').addEventListener('click', () => {
