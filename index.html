@@ -1119,7 +1119,13 @@ function renderResults(d) {
   if ($('#adminTotal')) $('#adminTotal').textContent = total;
   if ($('#adminCount')) $('#adminCount').textContent = votesIn;
   if ($('#adminPercent')) {
-    $('#adminPercent').textContent = (total ? (votesIn / total * 100) : 0).toFixed(1) + '\%';   }      const max = Math.max(1, ...CANDIDATES_CONFIG.map(c => counts[c.id] || 0));      // Render Baris Diagram Paslon   $$('#resultList .result-row').forEach((row, idx) => {
+    $('#adminPercent').textContent = (total ? (votesIn / total * 100) : 0).toFixed(1) + '%';
+  }
+  
+  const max = Math.max(1, ...CANDIDATES_CONFIG.map(c => counts[c.id] || 0));
+  
+  // Render Baris Diagram Paslon
+  $$('#resultList .result-row').forEach((row, idx) => {
     const c = counts[idx + 1] || 0;
     const bar = row.querySelector('.result-track i');
     const num = row.querySelector('strong');
@@ -1127,7 +1133,7 @@ function renderResults(d) {
     if (num) num.textContent = c;
   });
 
-  // SIMPAN & RENDER TABEL RIWAYAT SUARA TERKINI (YANG BIKIN KOSONG TADI)
+  // Render Tabel Riwayat Suara Terkini & Statistik Kelas
   if (d.activity && Array.isArray(d.activity)) {
     state.allActivityData = d.activity;
     renderParticipantTable(d.activity);
