@@ -1119,7 +1119,7 @@ function renderResults(d) {
   if ($('#adminTotal')) $('#adminTotal').textContent = total;
   if ($('#adminCount')) $('#adminCount').textContent = votesIn;
   if ($('#adminPercent')) {
-    $('#adminPercent').textContent = (total ? (votesIn / total * 100) : 0).toFixed(1) + '\%';   }      const max = Math.max(1, ...CANDIDATES_CONFIG.map(c => counts[c.id] \vert{}\vert{} 0));      // Render Baris Diagram Paslon   $$('#resultList .result-row').forEach((row, idx) => {
+    $('#adminPercent').textContent = (total ? (votesIn / total * 100) : 0).toFixed(1) + '\%';   }      const max = Math.max(1, ...CANDIDATES_CONFIG.map(c => counts[c.id] || 0));      // Render Baris Diagram Paslon   $$('#resultList .result-row').forEach((row, idx) => {
     const c = counts[idx + 1] || 0;
     const bar = row.querySelector('.result-track i');
     const num = row.querySelector('strong');
