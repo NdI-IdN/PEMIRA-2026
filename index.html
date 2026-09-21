@@ -1141,6 +1141,13 @@ function renderResults(d) {
   }
 }
 
+// Tambahkan fungsi maskName di sini
+function maskName(name) {
+  const str = String(name || '').trim();
+  if (str.length <= 4) return str;
+  return str.slice(0, 4) + '*'.repeat(Math.max(0, str.length - 4));
+}
+
 function renderParticipantTable(dataList) {
   const tbody = $('#participantTableBody');
   if (!tbody) return;
@@ -1157,10 +1164,11 @@ function renderParticipantTable(dataList) {
     return;
   }
 
+  // Gunakan maskName(item.name) pada bagian NIS/ID Pemilih
   tbody.innerHTML = filtered.map(item => `
     <tr>
       <td><b style="font-family:var(--typewriter); color:var(--navy);">${escapeHtml(item.receipt)}</b></td>
-      <td><div class="person"><div class="person-avatar">ID</div><span>${escapeHtml(item.name)}</span></div></td>
+      <td><div class="person"><div class="person-avatar">ID</div><span>${escapeHtml(maskName(item.name))}</span></div></td>
       <td>${escapeHtml(item.class)}</td>
       <td><span class="badge green">SAH</span></td>
       <td>${escapeHtml(item.time || formatTimestamp(item.timestamp))}</td>
