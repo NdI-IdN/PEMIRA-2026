@@ -640,44 +640,23 @@ function setupCandidates() {
   const reportCardsGrid = $('#reportPaslonCards');
 
   if (grid) {
-    grid.innerHTML = CANDIDATES_CONFIG.map(c => `
-      <article class="candidate" data-candidate="${c.id}">
-        <div class="number">BERKAS NO. 0${c.id}</div>
-        <div style="display:flex; justify-content:center; gap:12px; margin-bottom:14px;">
-          <div class="candidate-photo"><img alt="${escapeHtml(c.ketua)}" src="${c.photoKetua}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(c.ketua)}&background=random'"/></div>
-          <div class="candidate-photo"><img alt="${escapeHtml(c.wakil)}" src="${c.photoWakil}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(c.wakil)}&background=random'"/></div>
-        </div>
-        <h3 style="color: var(--red); font-size: 13px; margin-bottom: 3px;">${escapeHtml(c.team)}</h3>
-        <div class="candidate-names"><div>${escapeHtml(c.ketua)}</div><div>${escapeHtml(c.wakil)}</div></div>
-        <p class="class-info">Pasangan Calon 0${c.id}</p>
-        <div class="dossier-details"><strong>Visi:</strong><div style="margin-top:3px; line-height:1.45;">“${escapeHtml(c.vision)}”</div><strong>Fokus:</strong>${renderFocusList(c.focus)}</div>
-        <span class="pick">Konfirmasi Pilihan →</span>
-      </article>`).join('');
+    grid.innerHTML = CANDIDATES_CONFIG.map(c => `<article class="candidate" data-candidate="${c.id}"><div class="number">BERKAS NO. 0${c.id}</div><div style="display:flex; justify-content:center; gap:12px; margin-bottom:14px;"><div class="candidate-photo"><img alt="${escapeHtml(c.ketua)}" src="${c.photoKetua}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(c.ketua)}&background=random'"/></div><div class="candidate-photo"><img alt="${escapeHtml(c.wakil)}" src="${c.photoWakil}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(c.wakil)}&background=random'"/></div></div><h3 style="color: var(--red); font-size: 13px; margin-bottom: 3px;">${escapeHtml(c.team)}</h3><div class="candidate-names"><div>${escapeHtml(c.ketua)}</div><div>${escapeHtml(c.wakil)}</div></div><p class="class-info">Pasangan Calon 0${c.id}</p><div class="dossier-details"><strong>Visi:</strong><div style="margin-top:3px; line-height:1.45;">“${escapeHtml(c.vision)}”</div><strong>Fokus:</strong>${renderFocusList(c.focus)}</div><span class="pick">Konfirmasi Pilihan →</span></article>`).join('');
   }
 
   const buildResultRows = () => CANDIDATES_CONFIG.map((c, i) => {
     const rot = [-3, 2, -1, 4][i % 4];
-    return `<div class="result-row"><div class="result-avatar" style="--rot:${rot}deg; background-color: ${c.color}">0${c.id}</div>
-      <div><div style="font-size:12px; font-weight:bold;">${escapeHtml(c.ketua)}</div><div class="result-track"><i style="width:0%; background-color: ${c.color}"></i></div></div><strong>0</strong></div>`;
+    return `<div class="result-row"><div class="result-avatar" style="--rot:${rot}deg; background-color: ${c.color}">0${c.id}</div><div><div style="font-size:12px; font-weight:bold;">${escapeHtml(c.ketua)}</div><div class="result-track"><i style="width:0%; background-color: ${c.color}"></i></div></div><strong>0</strong></div>`;
   }).join('');
 
   if (resultsContainer) resultsContainer.innerHTML = buildResultRows();
   if (reportResultsContainer) reportResultsContainer.innerHTML = buildResultRows();
 
   if (reportCardsGrid) {
-    reportCardsGrid.innerHTML = CANDIDATES_CONFIG.map(c => `
-      <div class="paslon-report-card" data-report-card="${c.id}">
-        <span class="badge-paslon">PASLON 0${c.id}</span>
-        <div class="paslon-report-photos">
-          <div class="paslon-report-photo"><img src="${c.photoKetua}"/></div><div class="paslon-report-photo"><img src="${c.photoWakil}"/></div>
-        </div>
-        <div class="candidate-names" style="font-size:13px; margin: 4px 0;"><div>${escapeHtml(c.ketua)}</div><div>${escapeHtml(c.wakil)}</div></div>
-        <p class="team">${escapeHtml(c.team)}</p>
-        <div class="paslon-report-votes"><div class="vote-num" id="reportCount_${c.id}">0</div><div class="vote-pct" id="reportPct_${c.id}">0%</div></div>
-      </div>`).join('');
+    reportCardsGrid.innerHTML = CANDIDATES_CONFIG.map(c => `<div class="paslon-report-card" data-report-card="${c.id}"><span class="badge-paslon">PASLON 0${c.id}</span><div class="paslon-report-photos"><div class="paslon-report-photo"><img src="${c.photoKetua}"/></div><div class="paslon-report-photo"><img src="${c.photoWakil}"/></div></div><div class="candidate-names" style="font-size:13px; margin: 4px 0;"><div>${escapeHtml(c.ketua)}</div><div>${escapeHtml(c.wakil)}</div></div><p class="team">${escapeHtml(c.team)}</p><div class="paslon-report-votes"><div class="vote-num" id="reportCount_${c.id}">0</div><div class="vote-pct" id="reportPct_${c.id}">0%</div></div></div>`).join('');
   }
   
-  $$('.candidate').forEach(card => card.addEventListener('click', () => openConfirmVoteModal(Number(card.dataset.candidate), card))); }  function openConfirmVoteModal(candidateId, cardEl) {   if (!state.participantName \vert{}\vert{} !state.participantClass) return;   const candidate = CANDIDATES_CONFIG.find(c => c.id === candidateId);   if (!candidate) return;   state.selected = candidateId;   $$
+  $$('.candidate').forEach(card => card.addEventListener('click', () => openConfirmVoteModal(Number(card.dataset.candidate), card)));
+}
 ('.candidate').forEach(c => c.classList.remove('selected'));
   if (cardEl) cardEl.classList.add('selected');
   $('#confirmCandidateTitle').textContent = `Berkas 0${candidate.id} · ${candidate.team}`;
