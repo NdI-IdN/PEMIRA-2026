@@ -1283,14 +1283,17 @@ $('#startBtn').addEventListener('click', async () => {
   btn.innerHTML = 'Memverifikasi Server...';
   btn.disabled = true;
 
-  // Nembak ke API Check
+ // Ganti bagian fetch di event listener $('#startBtn').addEventListener('click', async () => { ... })
+  
+  // Nembak ke API Check (Tambahkan action: 'check')
   const { ok, data } = await api('/api/vote', {
     method: 'POST',
-    body: JSON.stringify({ name, class: className, booth: BOOTH_ID })
+    body: JSON.stringify({ name, class: className, booth: BOOTH_ID, action: 'check' })
   });
 
   btn.innerHTML = ogText;
   btn.disabled = false;
+  // ... (sisa kodenya tetap sama)
 
   let valid = false;
   if (ok) {
