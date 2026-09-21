@@ -365,6 +365,12 @@
 <div class="kiosk-content hidden" id="voteScreen">
 <div class="steps"><div class="step done"><b>✓</b> Identitas Pemilih</div><div class="line"></div><div class="step current"><b>2</b> Profil Paslon</div><div class="line"></div><div class="step"><b>3</b> Selesai</div></div>
 <div class="eyebrow">Langkah 2 dari 3</div>
+<!-- Tambahkan tombol ini -->
+<button class="btn" id="backToIdentityBtn" style="margin-bottom: 15px; padding: 8px 12px; font-size: 11px; display: flex; align-items: center; gap: 5px;">
+  ← KEMBALI KE IDENTITAS
+</button>
+<!-- Tombol selesai -->
+<h2>Pilih Paslon Terbaik Pilihanmu</h2>div class="eyebrow">Langkah 2 dari 3</div>
 <h2>Pilih Paslon Terbaik Pilihanmu</h2>
 <p class="muted" style="font-size: 14px; margin-top: 8px; font-style: italic;">Pilih salah satu pasangan calon sebagai Ketua &amp; Wakil Ketua OSIS. Klik kartu untuk meninjau dan mengonfirmasi pilihan.</p>
 <div class="candidate-grid" id="candidateGridContainer">
@@ -1318,8 +1324,16 @@ const CANDIDATES_CONFIG = [
       const container = $('#liveAlertStack');
       if (!list || !list.length) {
         container.innerHTML = '';
+        state.alertCount = 0; // Reset counter
         return;
       }
+
+      // FITUR BARU: Cek jika ada penambahan alert dari polling sebelumnya
+      if (state.alertCount !== undefined && state.alertCount > 0 && list.length > state.alertCount) {
+        showToast('⚠️ Ada peringatan/error baru terekam! Cek log.');
+      }
+      state.alertCount = list.length; // Simpan jumlah terbaru
+
       container.innerHTML = list.map((a) => {
         const isRoster = a.type === 'roster';
         const title = isRoster
@@ -1647,7 +1661,8 @@ const CANDIDATES_CONFIG = [
       $('#participantName').focus();
     });
 
-    $('#startBtn').addEventListener('click', () => {
+   // Pastikan callback-nya menggunakan async
+    $('#startBtn').addEventListener('click', async () => {
       const name = $('#participantName').value.trim();
       const className = $('#participantClass').value;
       const isStaff = className === 'Guru/Karyawan';
@@ -1679,9 +1694,25 @@ const CANDIDATES_CONFIG = [
         }
       }
       
+      // BLOK DUPLIKASI LOKAL & PING KE SERVER
       if (nameAlreadyUsed(name)) {
         setParticipantNameError('Akses Ditolak: Identitas ini telah memberikan suara.');
         $('#participantName').focus();
+        
+        // PING KE SERVER: Kirim data attempt ini ke backend agar dicatat di error logs
+        try {
+          await api('/api/alert', {
+            method: 'POST',
+            body: JSON.stringify({
+              action: 'log_local_duplicate',
+              name: name,
+              class: className,
+              booth: BOOTH_ID
+            })
+          });
+        } catch (e) {
+          // Abaikan jika gagal mengirim ping, UX pemilih tetap diblokir
+        }
         return;
       }
       
@@ -1689,6 +1720,16 @@ const CANDIDATES_CONFIG = [
       state.participantClass = className;
       $('#identityScreen').classList.add('hidden');
       $('#voteScreen').classList.remove('hidden');
+    });
+
+ $('#backToIdentityBtn').addEventListener('click', () => {
+  // Reset pilihan jika ada
+ $$('.candidate').forEach(c => c.classList.remove('selected'));
+  state.selected = null;
+  
+  // Pindah layar
+      $('#voteScreen').classList.add('hidden');
+      $('#identityScreen').classList.remove('hidden');
     });
 
    async function recordVote() {
