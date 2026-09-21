@@ -230,8 +230,60 @@
     .admin-actions { display:flex; gap:10px; align-items:center; }
     .select { border:1px solid var(--line); padding:10px 12px; border-radius:4px; color:var(--ink); background:rgba(255,255,255,0.7); font-size:12px; font-family: var(--typewriter); }
     
-    .toast { position:fixed; right:25px; bottom:25px; background:var(--navy); color:#fff; border-radius:4px; padding:15px 20px; font-size:13px; font-weight:bold; font-family: var(--typewriter); box-shadow:var(--shadow); opacity:0; transform:translateY(12px); pointer-events:none; transition:.25s; z-index:50; border: 1px solid #334; }
-    .toast.show { opacity:1; transform:none; }
+   /* Wadah notifikasi mengambang di atas tengah */
+    #toastContainer {
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      pointer-events: none; /* Supaya klik bisa tembus ke bawah jika area kosong */
+      align-items: center;
+    }
+    
+    /* Desain notifikasi individu ala mobile */
+    .toast-msg {
+      background: var(--white);
+      color: var(--navy);
+      border-left: 4px solid var(--red);
+      border-right: 1px solid var(--line);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px 20px;
+      font-size: 13px;
+      font-weight: bold;
+      font-family: var(--typewriter);
+      box-shadow: 0 12px 30px rgba(55, 45, 31, 0.25);
+      opacity: 0;
+      transform: translateY(-20px) scale(0.95);
+      transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Efek mantul halus */
+      pointer-events: auto; 
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 280px;
+      max-width: 90vw;
+    }
+    
+    .toast-msg.show {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    
+    .toast-msg .toast-icon {
+      display: grid;
+      place-items: center;
+      width: 24px;
+      height: 24px;
+      background: rgba(158,54,59,0.1);
+      color: var(--red);
+      border-radius: 50%;
+      font-size: 14px;
+    }
     
     .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(25,37,60,.7); z-index:40; place-items:center; padding:20px; backdrop-filter: blur(4px); }
     .modal-backdrop.open { display:grid; }
@@ -605,7 +657,7 @@
 </section>
 </main>
 </div>
-<div class="toast" id="toast"></div>
+<div id="toastContainer"></div>
 <!-- MODAL KONFIRMASI PEMILIHAN PASLON -->
 <div class="modal-backdrop" id="confirmVoteModal">
 <div class="modal">
@@ -1453,31 +1505,45 @@ const CANDIDATES_CONFIG = [
       }
     }
     
-    function simulateBoothActivity() {
+    async function simulateBoothActivity() {
+      // Ambil data status real-time dari server
+      const { ok, data } = await api('/api/booth');
+      const activeBooths = data && data.booths ? data.booths : {};
       const now = Date.now();
-      const activeBooths = new Set();
-      state.allActivityData.forEach(a => {
-          if (a.timestamp && (now - a.timestamp) < 30000 && a.booth) {
-              activeBooths.add(a.booth);
-          }
-      });
-      
-      const currentBoothParam = new URLSearchParams(location.search).get('booth');
-      if (currentBoothParam) activeBooths.add(currentBoothParam);
+      let countActive = 0;
 
-      if($('#activeBoothCount')) $('#activeBoothCount').textContent = `${activeBooths.size}/${state.config.boothCount}`;
-      
       $$('.booth').forEach((b) => {
         const boothNum = b.dataset.booth;
-        const isBusy = activeBooths.has(boothNum);
-        if (isBusy) {
+        const bData = activeBooths[boothNum];
+        const textEl = b.querySelector('p');
+        const iconEl = b.querySelector('.booth-icon');
+        
+        b.classList.remove('busy');
+
+        // Jika tidak ada data atau ping terakhir lebih dari 15 detik yg lalu (tab ditutup/mati)
+        if (!bData || (now - bData.lastPing > 15000)) {
+          textEl.textContent = 'Offline';
+          textEl.style.color = 'var(--muted)';
+          iconEl.textContent = '✗';
+        } 
+        // Jika sedang mengisi form / milih paslon
+        else if (bData.status === 'Terpakai') {
           b.classList.add('busy');
-          b.querySelector('p').textContent = 'Terpakai';
-        } else {
-          b.classList.remove('busy');
-          b.querySelector('p').textContent = 'Standby';
+          textEl.textContent = 'Terpakai';
+          textEl.style.color = 'var(--orange)';
+          iconEl.textContent = '✎';
+          countActive++;
+        } 
+        // Jika sedang diam di layar awal
+        else {
+          textEl.textContent = 'Standby';
+          textEl.style.color = 'var(--mint)';
+          iconEl.textContent = '✓';
+          countActive++;
         }
       });
+
+      if($('#activeBoothCount')) $('#activeBoothCount').textContent = `${countActive}/${state.config.boothCount}`;
     }
 
     function renderResults(d) {
@@ -1720,10 +1786,6 @@ const CANDIDATES_CONFIG = [
               class: className,
               booth: BOOTH_ID
             })
-              // (Di dalam event listener startBtn, bagian paling bawah)
-      state.boothStatus = 'Terpakai'; // Ubah status karena lagi milih paslon
-      $('#identityScreen').classList.add('hidden');
-      $('#voteScreen').classList.remove('hidden');
           });
         } catch (e) {
           // Abaikan jika gagal mengirim ping, UX pemilih tetap diblokir
@@ -1731,10 +1793,17 @@ const CANDIDATES_CONFIG = [
         return;
       }
       
+     // ... validasi NIS di atasnya ...
+      
       state.participantName = name;
       state.participantClass = className;
+      
+      // KODE DITAMBAHKAN DI SINI
+      state.boothStatus = 'Terpakai'; 
+      
       $('#identityScreen').classList.add('hidden');
       $('#voteScreen').classList.remove('hidden');
+    }); // <-- Ini adalah penutup fungsi $('#startBtn')
     });
 
  $('#backToIdentityBtn').addEventListener('click', () => {
@@ -1807,7 +1876,9 @@ const CANDIDATES_CONFIG = [
     }
 
     function startAutoReset() {
+      state.boothStatus = 'Standby'; // Kembalikan ke Standby saat sukses
       let remaining = 5;
+      // ... sisa kodenya ...
       $('#resetCountdown').textContent = remaining;
       state.resetTimer = setInterval(() => {
         remaining -= 1;
@@ -1820,8 +1891,32 @@ const CANDIDATES_CONFIG = [
     }
 
     function showToast(message) {
-      const toast = $('#toast'); toast.textContent = message; toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 2800);
+      // Pastikan container ada, jika tidak, buat baru
+      let container = $('#toastContainer');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'toastContainer';
+        document.body.appendChild(container);
+      }
+      
+      // Buat elemen notifikasi baru
+      const toast = document.createElement('div');
+      toast.className = 'toast-msg';
+      toast.innerHTML = `<span class="toast-icon">!</span> <span>${escapeHtml(message)}</span>`;
+      
+      // Masukkan ke dalam wadah (prepend agar yang terbaru muncul di urutan paling atas)
+      container.prepend(toast);
+      
+      // Animasi masuk (beri sedikit jeda agar transisi CSS terbaca)
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => toast.classList.add('show'));
+      });
+
+      // Hilangkan otomatis setelah 3.5 detik
+      setTimeout(() => {
+        toast.classList.remove('show');
+        toast.addEventListener('transitionend', () => toast.remove());
+      }, 3500);
     }
   </script>
 </body></html>
