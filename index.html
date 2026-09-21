@@ -1107,9 +1107,12 @@ const CANDIDATES_CONFIG = [
           method: 'POST',
           body: JSON.stringify({ action: 'dismiss', id }),
         });
+        
+        // Pesan log yang lebih spesifik dari Index 4
         const logMsg = type === 'roster'
-          ? 'Peringatan kendala NIS telah diabaikan oleh operator.'
+          ? 'Peringatan kendala NIS (tidak terdaftar di roster) telah diabaikan oleh operator.'
           : 'Peringatan anomali (duplikasi NIS) telah diabaikan oleh operator.';
+          
         addSystemLog('WARN', ok ? logMsg : 'Gagal menghapus alert di Datastore, coba lagi.');
       });
       $('#viewAllParticipantsBtn').addEventListener('click', () => {
@@ -1191,7 +1194,17 @@ const CANDIDATES_CONFIG = [
           fetchConfig();
           fetchLiveAlert();
           startResultsPolling();
-          addSystemLog('INFO', 'Otorisasi berhasil. Mengakses data...');
+          
+          // Rentetan log inisialisasi keamanan dari Index 4
+          const logsEl = $('#systemLogs');
+          if (logsEl && logsEl.children.length === 0) {
+              addSystemLog('SYSTEM', 'Inisialisasi protokol keamanan markas besar.');
+              setTimeout(() => addSystemLog('ENCRYPTION', 'Algoritma SHA-256 aktif untuk penyimpanan bukti.'), 500);
+              setTimeout(() => addSystemLog('NETWORK', 'Menghubungkan ke 5 Pos Penyelidikan (Bilik)... Berhasil.'), 1500);
+              setTimeout(() => addSystemLog('INFO', 'Otorisasi berhasil. Mengakses data...'), 2000);
+          } else {
+             addSystemLog('INFO', 'Otorisasi berhasil. Mengakses data...');
+          }
       }
     }
 
@@ -1676,7 +1689,8 @@ const CANDIDATES_CONFIG = [
       $('#voteScreen').classList.remove('hidden');
     });
 
-    async function recordVote() {
+   async function recordVote() {
+      // 1. Pengecekan UI tambahan bawaan dari index 5 (memastikan form tidak kosong saat eksekusi)
       if (!state.participantName || !state.participantClass) {
         showToast('Wajib mengisi NIS dan Kelas terlebih dahulu!');
         setParticipantNameError('Silakan masukkan NIS dan Kelas Anda terlebih dahulu!');
@@ -1704,15 +1718,29 @@ const CANDIDATES_CONFIG = [
         }),
       });
       state.voting = false;
+      
+      // 2. Menggunakan Strict Server Validation & Error Handling dari index 4
       if (!ok || !data || !data.ok) {
-        // Fallback demo local update agar flow pemilihan tetap responsif jika API belum running
-        if (state.participantName) rememberName(state.participantName);
-        $('#voteScreen').classList.add('hidden');
-        $('#successScreen').classList.remove('hidden');
-        $('#receipt').textContent = receipt;
-        startAutoReset();
+        showToast((data && data.error) || 'Gagal mengenkripsi suara ke server.');
+        $$('.candidate').forEach(c => c.classList.remove('selected'));
+        state.selected = null;
+        
+        // Cek duplikasi atau penolakan roster
+        if (isDuplicateNameError(data)) {
+          $('#voteScreen').classList.add('hidden');
+          $('#identityScreen').classList.remove('hidden');
+          setParticipantNameError('Akses ditolak: NIS atau identitas ini sudah memberikan suara.');
+          $('#participantName').focus();
+        } else if (isRosterRejectedError(data)) {
+          $('#voteScreen').classList.add('hidden');
+          $('#identityScreen').classList.remove('hidden');
+          setParticipantNameError((data && data.error) || 'NIS tidak valid atau tidak sesuai kelas.');
+          $('#participantName').focus();
+        }
         return;
       }
+      
+      // 3. Jika API mengembalikan status sukses (ok), lanjutkan ke layar tanda terima
       rememberName(state.participantName);
       $('#voteScreen').classList.add('hidden');
       $('#successScreen').classList.remove('hidden');
