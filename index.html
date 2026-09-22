@@ -810,20 +810,15 @@ async function api(path, options) {
 })();
 
 // PING SYSTEM
-if (BOOTH_ID) {
-  if (BOOTH_ID !== 'Pribadi') {
-    if (!PANITIA_MODE) {
-      if (!LIVEREPORT_MODE) {
-        if (!ERRORLOGS_MODE) {
-          if (!EVIDENCE_MODE) {
-            setInterval(() => {
-              api('/api/vote', { method: 'POST', body: JSON.stringify({ booth: BOOTH_ID, status: state.boothStatus }) });
-            }, 5000);
-          }
-        }
-      }
-    }
-  }
+// PING STATUS BOOTH KE SERVER SECARA BERKALA
+if (BOOTH_ID && BOOTH_ID !== 'Pribadi' && !PANITIA_MODE && !LIVEREPORT_MODE && !ERRORLOGS_MODE && !EVIDENCE_MODE) {
+  // Kirim status awal saat halaman dimuat
+  api('/api/vote', { method: 'POST', body: JSON.stringify({ booth: BOOTH_ID, status: state.boothStatus }) });
+
+  // Kirim ping setiap 5 detik untuk menjaga status "Standby" atau "Terpakai" tetap sinkron di panitia
+  setInterval(() => {
+    api('/api/vote', { method: 'POST', body: JSON.stringify({ booth: BOOTH_ID, status: state.boothStatus }) });
+  }, 5000);
 }
 
 if (LIVEREPORT_MODE) {
@@ -1344,7 +1339,9 @@ async function proceedToVerification(name, className) {
   $('#voteScreen').classList.remove('hidden');
 }
 
-// 2. Event Listener Tombol "Akses Arsip Calon"
+// ==========================================
+// BLOK VALIDASI & TOMBOL AKSES ARSIP CALON (STARTBTN)
+// ==========================================
 $('#startBtn').addEventListener('click', async () => {
   const name = $('#participantName').value.trim();
   const className = $('#participantClass').value;
@@ -1361,78 +1358,84 @@ $('#startBtn').addEventListener('click', async () => {
     return; 
   }
 
-  // VALIDASI KHUSUS GURU / KARYAWAN
-  if (className === 'Guru/Karyawan') {
-    // Kriteria NIP dianggap tidak standar jika panjang angka < 7 atau tidak hanya berisi angka
+  // Validasi khusus NIP Guru jika formatnya tidak standar dan belum dikonfirmasi
+  if (className === 'Guru/Karyawan' && !isNipWarningConfirmed) {
     const isNumberOnly = /^\d+$/.test(name);
     const isStandardLength = name.length >= 4 && name.length <= 18;
-
-    if ((!isStandardLength || !isNumberOnly) && !isNipWarningConfirmed) {
+    if (!isStandardLength || !isNumberOnly) {
       $('#nipWarningValue').textContent = name;
       $('#nipWarningModal').classList.add('open');
-      return; // Tampilkan modal warning terlebih dahulu
+      return; // Berhenti sebentar, tunggu konfirmasi modal NIP
     }
   }
 
-  // Jika NIS / NIP valid atau pengguna memilih "YES/LANJUTKAN" pada modal warning NIP
-  await proceedToVerification(name, className);
-});
-
-// 3. Event Listener Tombol Modal Warning NIP
-$('#cancelNipBtn').addEventListener('click', () => {
-  $('#nipWarningModal').classList.remove('open');
-  $('#participantName').focus();
-});
-
-$('#confirmNipBtn').addEventListener('click', async () => {
-  $('#nipWarningModal').classList.remove('open');
-  isNipWarningConfirmed = true; // Set flag bahwa user memilih 'YES'
-  
-  const name = $('#participantName').value.trim();
-  const className = $('#participantClass').value;
-  await proceedToVerification(name, className);
-});
-
-$('#briefingBtn').addEventListener('click', () => { $('#welcomeScreen').classList.add('hidden'); $('#briefingScreen').classList.remove('hidden'); });
-$('#readyBtn').addEventListener('click', () => { $('#briefingScreen').classList.add('hidden'); $('#identityScreen').classList.remove('hidden'); });
-
-$('#backToIdentityBtn').addEventListener('click', () => {      $$('.candidate').forEach(c => c.classList.remove('selected'));
-  state.selected = null;
-  state.boothStatus = 'Standby'; 
-  $('#voteScreen').classList.add('hidden');
-  $('#identityScreen').classList.remove('hidden');
-});
-
-// LOGIKA BARU: CEK LANGSUNG KE SERVER (DATASTORE)
-$('#startBtn').addEventListener('click', async () => {
-  const name = $('#participantName').value.trim();
-  const className = $('#participantClass').value;
-  clearParticipantNameError();
-  
-  if (!name) { 
-    setParticipantNameError('Wajib memasukkan NIS.'); 
-    $('#participantName').focus(); 
-    return; 
-  }
-  if (!className) { 
-    showToast('Kelas belum dipilih.'); 
-    $('#participantClass').focus(); 
-    return; 
-  }
-  
-  // Efek Loading
+  // Efek Loading pada Tombol
   const btn = $('#startBtn');
   const ogText = btn.innerHTML;
   btn.innerHTML = 'Memverifikasi Server...';
   btn.disabled = true;
 
- // Ganti bagian fetch di event listener $('#startBtn').addEventListener('click', async () => { ... })
-  
-  // Nembak ke API Check (Tambahkan action: 'check')
+  // Lakukan pengecekan ketersediaan NIS/NIP ke server
   const { ok, data } = await api('/api/vote', {
     method: 'POST',
     body: JSON.stringify({ name, class: className, booth: BOOTH_ID, action: 'check' })
   });
+
+  btn.innerHTML = ogText;
+  btn.disabled = false;
+
+  let valid = (ok && data && data.ok);
+
+  if (!valid) {
+    if (isDuplicateNameError(data)) {
+      setParticipantNameError(
+        className === 'Guru/Karyawan' 
+          ? 'Akses Ditolak: NIP telah terpakai di perangkat/bilik lain.' 
+          : 'Akses Ditolak: NIS telah terpakai di perangkat/bilik lain.'
+      );
+      try { 
+        await api('/api/alert', { method: 'POST', body: JSON.stringify({ action: 'log_local_duplicate', name, class: className, booth: BOOTH_ID }) }); 
+      } catch (e) {}
+    } else if (isRosterRejectedError(data)) {
+      setParticipantNameError((data && data.error) ? data.error : (className === 'Guru/Karyawan' ? 'NIP tidak valid atau tidak sesuai.' : 'NIS tidak valid atau tidak sesuai.'));
+    } else {
+      showToast('Koneksi ke server gagal.');
+    }
+    return;
+  }
+  
+  // Jika valid, ubah status state dan paksa kirim sinyal 'Terpakai' ke server agar dashboard panitia langsung sinkron
+  state.participantName = name; 
+  state.participantClass = className;
+  state.boothStatus = 'Terpakai';
+  
+  await api('/api/vote', { 
+    method: 'POST', 
+    body: JSON.stringify({ booth: BOOTH_ID, status: 'Terpakai' }) 
+  });
+
+  // Pindah ke halaman pemilihan paslon
+  $('#identityScreen').classList.add('hidden');
+  $('#voteScreen').classList.remove('hidden');
+});
+
+$('#briefingBtn').addEventListener('click', () => { $('#welcomeScreen').classList.add('hidden'); $('#briefingScreen').classList.remove('hidden'); });
+$('#readyBtn').addEventListener('click', () => { $('#briefingScreen').classList.add('hidden'); $('#identityScreen').classList.remove('hidden'); });
+
+$('#backToIdentityBtn').addEventListener('click', async () => {
+  $$('.candidate').forEach(c => c.classList.remove('selected'));
+  state.selected = null;
+  state.boothStatus = 'Standby';
+  
+  // Beritahu server bahwa bilik ini kembali Standby
+  await api('/api/vote', { 
+    method: 'POST', 
+    body: JSON.stringify({ booth: BOOTH_ID, status: 'Standby' }) 
+  });
+  
+  $('#voteScreen').classList.add('hidden');
+  $('#identityScreen').classList.remove('hidden');
+});
 
   btn.innerHTML = ogText;
   btn.disabled = false;
