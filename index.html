@@ -1342,6 +1342,7 @@ async function proceedToVerification(name, className) {
 // ==========================================
 // BLOK VALIDASI & TOMBOL AKSES ARSIP CALON (STARTBTN)
 // ==========================================
+// Validasi dan Tombol Akses Arsip Calon
 $('#startBtn').addEventListener('click', async () => {
   const name = $('#participantName').value.trim();
   const className = $('#participantClass').value;
@@ -1365,17 +1366,16 @@ $('#startBtn').addEventListener('click', async () => {
     if (!isStandardLength || !isNumberOnly) {
       $('#nipWarningValue').textContent = name;
       $('#nipWarningModal').classList.add('open');
-      return; // Berhenti sebentar, tunggu konfirmasi modal NIP
+      return; 
     }
   }
 
-  // Efek Loading pada Tombol
   const btn = $('#startBtn');
   const ogText = btn.innerHTML;
   btn.innerHTML = 'Memverifikasi Server...';
   btn.disabled = true;
 
-  // Lakukan pengecekan ketersediaan NIS/NIP ke server
+  // Pemanggilan api menggunakan await (aman karena fungsi sudah async)
   const { ok, data } = await api('/api/vote', {
     method: 'POST',
     body: JSON.stringify({ name, class: className, booth: BOOTH_ID, action: 'check' })
@@ -1404,7 +1404,7 @@ $('#startBtn').addEventListener('click', async () => {
     return;
   }
   
-  // Jika valid, ubah status state dan paksa kirim sinyal 'Terpakai' ke server agar dashboard panitia langsung sinkron
+  // Jika valid, ubah status state dan kirim sinyal 'Terpakai' ke server
   state.participantName = name; 
   state.participantClass = className;
   state.boothStatus = 'Terpakai';
@@ -1414,7 +1414,6 @@ $('#startBtn').addEventListener('click', async () => {
     body: JSON.stringify({ booth: BOOTH_ID, status: 'Terpakai' }) 
   });
 
-  // Pindah ke halaman pemilihan paslon
   $('#identityScreen').classList.add('hidden');
   $('#voteScreen').classList.remove('hidden');
 });
@@ -1427,7 +1426,7 @@ $('#backToIdentityBtn').addEventListener('click', async () => {
   state.selected = null;
   state.boothStatus = 'Standby';
   
-  // Beritahu server bahwa bilik ini kembali Standby
+  // Beritahu server bahwa bilik kembali Standby menggunakan await
   await api('/api/vote', { 
     method: 'POST', 
     body: JSON.stringify({ booth: BOOTH_ID, status: 'Standby' }) 
