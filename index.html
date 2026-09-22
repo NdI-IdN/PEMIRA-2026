@@ -1093,21 +1093,27 @@ async function simulateBoothActivity() {
 }
 
 function renderResults(d) {
-  const counts = d.counts || {}; 
-  const total = d.totalVoters || state.config.totalVoters; 
+  const counts = d.counts || {};
+  const total = d.totalVoters || state.config.totalVoters;
   const votesIn = d.votesIn || 0;
-  
+
   if ($('#adminTotal')) $('#adminTotal').textContent = total;
   if ($('#adminCount')) $('#adminCount').textContent = votesIn;
   if ($('#adminPercent')) {
-    $('#adminPercent').textContent = (total ? (votesIn / total * 100) : 0).toFixed(1) + '\%';   }      const max = Math.max(1, ...CANDIDATES_CONFIG.map(c => counts[c.id] \vert{}\vert{} 0));      $$('#resultList .result-row').forEach((row, idx) => {
+    $('#adminPercent').textContent = (total ? (votesIn / total * 100) : 0).toFixed(1) + '%';
+  }
+
+  const max = Math.max(1, ...CANDIDATES_CONFIG.map(c => counts[c.id] || 0));
+
+  $$('#resultList .result-row').forEach((row, idx) => {
     const c = counts[idx + 1] || 0;
     const bar = row.querySelector('.result-track i');
     const num = row.querySelector('strong');
+
     if (bar) bar.style.width = Math.round(c / max * 100) + '%';
     if (num) num.textContent = c;
   });
-
+}
   if (d.activity && Array.isArray(d.activity)) {
     state.allActivityData = d.activity;
     renderParticipantTable(d.activity);
