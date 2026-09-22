@@ -1,35 +1,51 @@
-// Whitelist NIS: memvalidasi NIS peserta terhadap data siswa resmi
-// (Data/SpreadsheetNIS/nis.json) sebelum vote direkam.
+// Whitelist NIS & NIP: memvalidasi NIS/NIP peserta terhadap data resmi
+// (Data/nis_only.json dan Data/nip_only.json) sebelum vote direkam.
 // File diawali "_" -> Vercel tidak menjadikannya route.
 const fs = require('fs');
 const path = require('path');
 
-const ROSTER_PATH = path.join(process.cwd(), 'Data', 'nis.json');
+const NIS_ROSTER_PATH = path.join(process.cwd(), 'Data', 'nis.json');
+const NIP_ROSTER_PATH = path.join(process.cwd(), 'Data', 'nip.json');
 
-// Key kelas di nis.json memakai format yang sama persis dengan value
-// <option> di index.html ("XA", "XI IPA 1", "XII Teknik 1", dst),
-// jadi tidak perlu tabel terjemahan terpisah.
-
-let cache = null; // Map<nis, kelasRoster>
+let cache = null; // { nisMap: Map<nis, kelasRoster>, nipSet: Set<nip> }
 
 function loadRoster() {
   if (cache) return cache;
-  const byNis = new Map();
+  
+  const nisMap = new Map();
+  const nipSet = new Set();
+
+  // Load NIS Data
   try {
-    const raw = fs.readFileSync(ROSTER_PATH, 'utf8');
-    const data = JSON.parse(raw);
-    for (const kelasDict of Object.values(data)) {
+    const rawNis = fs.readFileSync(NIS_ROSTER_PATH, 'utf8');
+    const nisData = JSON.parse(rawNis);
+    for (const kelasDict of Object.values(nisData)) {
       for (const [kelas, list] of Object.entries(kelasDict)) {
         for (const nis of list) {
           const key = String(nis).trim();
-          if (key) byNis.set(key, kelas);
+          if (key) nisMap.set(key, kelas);
         }
       }
     }
   } catch (e) {
-    // Roster belum ada / gagal dibaca -> Map kosong, ditangani oleh caller.
+    // Roster NIS belum ada / gagal dibaca
   }
-  cache = byNis;
+
+  // Load NIP Data
+  try {
+    const rawNip = fs.readFileSync(NIP_ROSTER_PATH, 'utf8');
+    const nipData = JSON.parse(rawNip);
+    // Mendukung struktur array langsung atau di dalam objek GuruKaryawan
+    const nipList = Array.isArray(nipData) ? nipData : (nipData.GuruKaryawan || []);
+    for (const nip of nipList) {
+      const key = String(nip).trim();
+      if (key) nipSet.add(key);
+    }
+  } catch (e) {
+    // Roster NIP belum ada / gagal dibaca
+  }
+
+  cache = { nisMap, nipSet };
   return cache;
 }
 
@@ -38,19 +54,15 @@ function clearRosterCache() {
   cache = null;
 }
 
-// Mengembalikan:
-//  { ok: true }                                   - NIS & kelas cocok
-//  { ok: false, reason: 'ROSTER_UNAVAILABLE' }     - file roster tidak ada/kosong
-//  { ok: false, reason: 'NOT_FOUND' }               - NIS tidak terdaftar sama sekali
-//  { ok: false, reason: 'CLASS_MISMATCH', actualClass }
+// Validasi NIS (Siswa)
 function checkVoterNIS(nis, uiClassName) {
-  const roster = loadRoster();
-  if (!roster.size) {
+  const { nisMap } = loadRoster();
+  if (!nisMap.size) {
     return { ok: false, reason: 'ROSTER_UNAVAILABLE' };
   }
 
   const cleanNis = String(nis || '').trim();
-  const actualClass = roster.get(cleanNis);
+  const actualClass = nisMap.get(cleanNis);
   if (!actualClass) {
     return { ok: false, reason: 'NOT_FOUND' };
   }
@@ -63,4 +75,19 @@ function checkVoterNIS(nis, uiClassName) {
   return { ok: true };
 }
 
-module.exports = { checkVoterNIS, loadRoster, clearRosterCache };
+// Validasi NIP (Guru & Karyawan)
+function checkVoterNIP(nip) {
+  const { nipSet } = loadRoster();
+  if (!nipSet.size) {
+    return { ok: false, reason: 'ROSTER_UNAVAILABLE' };
+  }
+
+  const cleanNip = String(nip || '').trim();
+  if (!nipSet.has(cleanNip)) {
+    return { ok: false, reason: 'NOT_FOUND' };
+  }
+
+  return { ok: true };
+}
+
+module.exports = { checkVoterNIS, checkVoterNIP, loadRoster, clearRosterCache };
