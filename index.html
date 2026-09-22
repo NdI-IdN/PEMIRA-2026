@@ -620,7 +620,7 @@ const CANDIDATES_CONFIG = [
     id: 1, 
     ketua: "Revalin Syahira Mustofa", 
     wakil: "Akmal Khalifa Ahmad", 
-    team: "01: AKSI NYATA YANG PASTI, BERI BUKTI TANpa BASA-BASI!", 
+    team: "01: AKSI NYATA YANG PASTI, BERI BUKTI TANPA BASA-BASI!", 
     photoKetua: "Foto/Paslon1A.png",
     photoWakil: "Foto/Paslon1B.png",
     vision: "Mewujudkan OSIS SMAIT Nurul Fikri sebagai organisasi yang profesional, transparan, dan kolaboratif dalam mewadahi aspirasi serta pengembangan potensi siswa sehingga menciptakan lingkungan sekolah yang inklusif, adaptif, inovatif, dan berdampak nyata bagi seluruh warga sekolah.", 
@@ -671,7 +671,7 @@ const CANDIDATES_CONFIG = [
 ];
 
 // 2. UTILITIES & STATE
-const $= (s) => document.querySelector(s);  const$$ = (s) => [...document.querySelectorAll(s)];
+const $ = (s) => document.querySelector(s);  const $$ = (s) => [...document.querySelectorAll(s)];
 function escapeHtml(str) { 
   const div = document.createElement('div'); 
   div.textContent = String(str == null ? '' : str); 
@@ -759,7 +759,7 @@ function setupCandidates() {
       </div>`).join('');
   }
   
-  $$('.candidate').forEach(card => card.addEventListener('click', () => {      if (state.voting) return;      openConfirmVoteModal(Number(card.dataset.candidate), card);    }));  }  function openConfirmVoteModal(candidateId, cardEl) {    if (!state.participantName) return;    if (!state.participantClass) return;       const candidate = CANDIDATES_CONFIG.find(c => c.id === candidateId);   if (!candidate) return;       state.selected = candidateId;    $$
+  $$('.candidate').forEach(card => card.addEventListener('click', () => {      if (state.voting) return;      openConfirmVoteModal(Number(card.dataset.candidate), card);    }));  }  function openConfirmVoteModal(candidateId, cardEl) {    if (!state.participantName) return;    if (!state.participantClass) return;       const candidate = CANDIDATES_CONFIG.find(c => c.id === candidateId);    if (!candidate) return;       state.selected = candidateId;    $$
 ('.candidate').forEach(c => c.classList.remove('selected'));
   if (cardEl) cardEl.classList.add('selected');
   
@@ -809,12 +809,21 @@ async function api(path, options) {
   }
 })();
 
-// PING STATUS BOOTH KE SERVER SECARA BERKALA
-if (BOOTH_ID && BOOTH_ID !== 'Pribadi' && !PANITIA_MODE && !LIVEREPORT_MODE && !ERRORLOGS_MODE && !EVIDENCE_MODE) {
-  api('/api/vote', { method: 'POST', body: JSON.stringify({ booth: BOOTH_ID, status: state.boothStatus }) });
-  setInterval(() => {
-    api('/api/vote', { method: 'POST', body: JSON.stringify({ booth: BOOTH_ID, status: state.boothStatus }) });
-  }, 5000);
+// PING SYSTEM
+if (BOOTH_ID) {
+  if (BOOTH_ID !== 'Pribadi') {
+    if (!PANITIA_MODE) {
+      if (!LIVEREPORT_MODE) {
+        if (!ERRORLOGS_MODE) {
+          if (!EVIDENCE_MODE) {
+            setInterval(() => {
+              api('/api/vote', { method: 'POST', body: JSON.stringify({ booth: BOOTH_ID, status: state.boothStatus }) });
+            }, 5000);
+          }
+        }
+      }
+    }
+  }
 }
 
 if (LIVEREPORT_MODE) {
@@ -953,7 +962,11 @@ async function loginPanitia() {
   const { ok, data } = await api('/api/login', { method: 'POST', body: JSON.stringify({ username, password }) });
   
   let valid = false;
-  if (ok && data && data.ok) valid = true;
+  if (ok) {
+    if (data) {
+      if (data.ok) valid = true;
+    }
+  }
   
   if (!valid) { 
     $('#panitiaLoginError').textContent = 'Akses Ditolak. Kredensial tidak valid.'; 
@@ -971,10 +984,14 @@ async function logoutPanitia() {
 async function fetchConfig() {
   try {
     const { ok, data } = await api('/api/config');
-    if (ok && data && data.config) {
-      state.config = data.config;
-      applySettings();
-      renderBoothsGrid(state.config.boothCount);
+    if (ok) {
+      if (data) {
+        if (data.config) {
+          state.config = data.config;
+          applySettings();
+          renderBoothsGrid(state.config.boothCount);
+        }
+      }
     }
   } catch (e) {}
 }
@@ -1000,32 +1017,41 @@ function renderBoothsGrid(count) {
 async function fetchLiveAlert() {
   try {
     const { ok, data } = await api('/api/alert');
-    if (ok && data) {
-      const alerts = data.alerts ? data.alerts : [];
-      renderLiveAlertStack(alerts);
+    if (ok) {
+      if (data) {
+        const alerts = data.alerts ? data.alerts : [];
+        renderLiveAlertStack(alerts);
+      }
     }
   } catch (e) {}
 }
 
 function renderLiveAlertStack(list) {
   const container = $('#liveAlertStack');
-  if (!list || !list.length) {
-    if (container) container.innerHTML = ''; 
+  if (!list) {
+    container.innerHTML = ''; 
+    state.alertCount = 0; 
+    return; 
+  }
+  if (!list.length) { 
+    container.innerHTML = ''; 
     state.alertCount = 0; 
     return; 
   }
   
-  if (state.alertCount !== undefined && state.alertCount > 0 && list.length > state.alertCount) {
-    showToast('⚠️ Ada peringatan/error baru terekam! Cek log.');
+  if (state.alertCount !== undefined) {
+    if (state.alertCount > 0) {
+      if (list.length > state.alertCount) {
+        showToast('⚠️ Ada peringatan/error baru terekam! Cek log.');
+      }
+    }
   }
   state.alertCount = list.length;
   
-  if (container) {
-    container.innerHTML = list.map((a) => {
-      const title = a.type === 'roster' ? `KENDALA DI POS ${escapeHtml(a.booth)}` : 'ANOMALI DUPLIKASI!';
-      return `<div class="live-alert" data-alert-id="${escapeHtml(a.id)}"><div class="live-alert-icon">!</div><div class="live-alert-content"><strong>${title}</strong><div class="live-alert-details"><span>ID/NIS: <b>${escapeHtml(a.name)}</b></span></div></div><button class="live-alert-x" data-dismiss-id="${escapeHtml(a.id)}">×</button></div>`;
-    }).join('');
-  }
+  container.innerHTML = list.map((a) => {
+    const title = a.type === 'roster' ? `KENDALA DI POS ${escapeHtml(a.booth)}` : 'ANOMALI DUPLIKASI!';
+    return `<div class="live-alert" data-alert-id="${escapeHtml(a.id)}"><div class="live-alert-icon">!</div><div class="live-alert-content"><strong>${title}</strong><div class="live-alert-details"><span>ID/NIS: <b>${escapeHtml(a.name)}</b></span></div></div><button class="live-alert-x" data-dismiss-id="${escapeHtml(a.id)}">×</button></div>`;
+  }).join('');
 }
 
 function renderAlertLog(list) {
@@ -1035,7 +1061,7 @@ function renderAlertLog(list) {
   if (list.length) {
     tbody.innerHTML = list.map((a) => {
       const reason = a.reasonText ? a.reasonText : 'Anomali tercatat.';
-      return `<tr><td>${formatTimestamp(a.createdAt)}</td><td><span class="badge red">${escapeHtml(a.type)}</span></td><td>${escapeHtml(a.name)}</td><td>${escapeHtml(a.class)}</td><td>Pos ${escapeHtml(a.booth)}</td><td>${escapeHtml(reason)}</td></tr>`;
+      return `<tr><td>${formatTimestamp(a.createdAt)}</td><td><span class="badge red">${a.type}</span></td><td>${escapeHtml(a.name)}</td><td>${escapeHtml(a.class)}</td><td>Pos ${escapeHtml(a.booth)}</td><td>${escapeHtml(reason)}</td></tr>`;
     }).join('');
   } else {
     tbody.innerHTML = '<tr><td colspan="6" class="muted" style="text-align:center;">Kosong</td></tr>';
@@ -1044,9 +1070,11 @@ function renderAlertLog(list) {
 
 async function loadErrorLogsPage() { 
   const { ok, data } = await api('/api/alert?full=1'); 
-  if (ok && data) {
-    const logData = data.log ? data.log : [];
-    renderAlertLog(logData);
+  if (ok) {
+    if (data) {
+      const logData = data.log ? data.log : [];
+      renderAlertLog(logData);
+    }
   }
 }
 
@@ -1060,9 +1088,11 @@ async function fetchResults() {
   fetchLiveAlert(); 
   fetchConfig();
   const { ok, data } = await api('/api/results');
-  if (ok && data) {
-    renderResults(data); 
-    simulateBoothActivity();
+  if (ok) {
+    if (data) {
+      renderResults(data); 
+      simulateBoothActivity();
+    }
   } else {
     showPanitiaLogin();
   }
@@ -1070,61 +1100,68 @@ async function fetchResults() {
 
 async function simulateBoothActivity() {
   const { ok, data } = await api('/api/vote');
-  let activeBooths = (data && data.booths) ? data.booths : {};
-  
+
+  let activeBooths = {};
+
+  if (data) {
+    if (data.booths) activeBooths = data.booths;
+  }
+
   const now = Date.now();
   let countActive = 0;
-  
+
   $$('.booth').forEach((b) => {
     const bData = activeBooths[b.dataset.booth];
+
     const textEl = b.querySelector('p');
     const iconEl = b.querySelector('.booth-icon');
     b.classList.remove('busy');
     
-    if (!bData || (now - bData.lastPing > 15000)) { 
+    if (!bData) { 
       textEl.textContent = 'Offline'; textEl.style.color = 'var(--muted)'; iconEl.textContent = '✗'; 
+    } else if ((now - bData.lastPing > 15000)) {
+      textEl.textContent = 'Offline'; textEl.style.color = 'var(--muted)'; iconEl.textContent = '✗';
     } else if (bData.status === 'Terpakai') { 
       b.classList.add('busy'); textEl.textContent = 'Terpakai'; textEl.style.color = 'var(--orange)'; iconEl.textContent = '✎'; countActive++; 
     } else { 
       textEl.textContent = 'Standby'; textEl.style.color = 'var(--mint)'; iconEl.textContent = '✓'; countActive++; 
     }
   });
-  if ($('#activeBoothCount')) $('#activeBoothCount').textContent = `${countActive}/${state.config.boothCount}`;
+  if($('#activeBoothCount')) $('#activeBoothCount').textContent = `${countActive}/${state.config.boothCount}`;
 }
 
+// 6 & 7. PERBAIKAN RENDER HASIL & TABEL RIWAYAT SUARA
 function renderResults(d) {
-  const counts = d.counts || {};
-  const total = d.totalVoters || state.config.totalVoters;
+  const counts = d.counts || {}; 
+  const total = d.totalVoters || state.config.totalVoters; 
   const votesIn = d.votesIn || 0;
-
+  
   if ($('#adminTotal')) $('#adminTotal').textContent = total;
   if ($('#adminCount')) $('#adminCount').textContent = votesIn;
-
   if ($('#adminPercent')) {
-    $('#adminPercent').textContent =
-      (total ? (votesIn / total * 100) : 0).toFixed(1) + '%';
+    $('#adminPercent').textContent = (total ? (votesIn / total * 100) : 0).toFixed(1) + '%';
   }
-
-  const max = Math.max(
-    1,
-    ...CANDIDATES_CONFIG.map(c => counts[c.id] || 0)
-  );
-
+  
+  const max = Math.max(1, ...CANDIDATES_CONFIG.map(c => counts[c.id] || 0));
+  
+  // Render Baris Diagram Paslon
   $$('#resultList .result-row').forEach((row, idx) => {
     const c = counts[idx + 1] || 0;
     const bar = row.querySelector('.result-track i');
     const num = row.querySelector('strong');
-
     if (bar) bar.style.width = Math.round(c / max * 100) + '%';
     if (num) num.textContent = c;
   });
-}
+
+  // Render Tabel Riwayat Suara Terkini & Statistik Kelas
   if (d.activity && Array.isArray(d.activity)) {
     state.allActivityData = d.activity;
     renderParticipantTable(d.activity);
     renderClassStats(d.activity);
   }
+}
 
+// Tambahkan fungsi maskName di sini
 function maskName(name) {
   const str = String(name || '').trim();
   if (str.length <= 4) return str;
@@ -1147,6 +1184,7 @@ function renderParticipantTable(dataList) {
     return;
   }
 
+  // Gunakan maskName(item.name) pada bagian NIS/ID Pemilih
   tbody.innerHTML = filtered.map(item => `
     <tr>
       <td><b style="font-family:var(--typewriter); color:var(--navy);">${escapeHtml(item.receipt)}</b></td>
@@ -1163,6 +1201,7 @@ function renderClassStats(dataList) {
   const grid = $('#classStatsGrid');
   if (!grid) return;
 
+  // Hitung jumlah suara per kelas secara otomatis dari activity
   const countsByClass = {};
   dataList.forEach(item => {
     const cls = item.class || 'Lainnya';
@@ -1189,6 +1228,7 @@ function renderClassStats(dataList) {
   }).join('');
 }
 
+// Event listener buat filter kelas di tabel riwayat
 if ($('#participantClassFilter')) {
   $('#participantClassFilter').addEventListener('change', () => {
     renderParticipantTable(state.allActivityData);
@@ -1206,29 +1246,45 @@ function clearParticipantNameError() {
 }
 
 function isDuplicateNameError(data) { 
-  if (data && data.code === 'DUPLICATE_VOTER') return true;
+  if (data) {
+    if (data.code === 'DUPLICATE_VOTER') return true;
+  }
   const errText = data?.error ? data.error : '';
-  return /duplicate|already/i.test(errText);
+  if (/duplicate/i.test(errText)) return true;
+  if (/already/i.test(errText)) return true;
+  return false;
 }
 
 function isRosterRejectedError(data) { 
-  if (data && ['NIS_NOT_REGISTERED', 'NIS_CLASS_MISMATCH', 'ROSTER_UNAVAILABLE'].includes(data.code)) return true;
+  if (data) {
+    if (data.code === 'NIS_NOT_REGISTERED') return true;
+    if (data.code === 'NIS_CLASS_MISMATCH') return true;
+    if (data.code === 'ROSTER_UNAVAILABLE') return true;
+  }
   const errText = data?.error ? data.error : '';
-  return /tidak valid|tidak sesuai|roster|belum terdaftar|tidak ditemukan/i.test(errText);
+  if (/tidak valid/i.test(errText)) return true;
+  if (/tidak sesuai/i.test(errText)) return true;
+  if (/roster/i.test(errText)) return true;
+  if (/belum terdaftar/i.test(errText)) return true;
+  if (/tidak ditemukan/i.test(errText)) return true;
+  return false;
 }
 
+// Tambahkan script kecil ini di bagian JavaScript index (8).html
+// Variable temporary untuk menyimpan flag konfirmasi NIP
 let isNipWarningConfirmed = false;
 
+// 1. Dinamisasi Label, Placeholder, dan MaxLength berdasarkan Kelas/Unit
 $('#participantClass').addEventListener('change', (e) => {
   const inputField = $('#participantName');
   const labelField = $('#participantNameLabel');
   const hintField = $('#participantNameHint');
   clearParticipantNameError();
-  isNipWarningConfirmed = false;
+  isNipWarningConfirmed = false; // Reset flag jika unit diubah
 
   if (e.target.value === 'Guru/Karyawan') {
     labelField.textContent = 'Nomor Induk Pegawai (NIP)';
-    inputField.maxLength = 18;
+    inputField.maxLength = 18; // Menyesuaikan batas maksimum NIP
     inputField.placeholder = 'Contoh: 1234567890';
     hintField.textContent = 'Masukkan NIP / NIPY / ID Karyawan.';
   } else {
@@ -1239,11 +1295,58 @@ $('#participantClass').addEventListener('change', (e) => {
   }
 });
 
+// Reset flag peringatan NIP jika pengguna mengetik ulang NIP
 $('#participantName').addEventListener('input', () => {
   isNipWarningConfirmed = false;
 });
 
-// Event Listener Utama: StartBtn (Akses Arsip Calon)
+// Function untuk melakukan verifikasi ke server dan pindah halaman
+async function proceedToVerification(name, className) {
+  const btn = $('#startBtn');
+  const ogText = btn.innerHTML;
+  btn.innerHTML = 'Memverifikasi Server...';
+  btn.disabled = true;
+
+  const { ok, data } = await api('/api/vote', {
+    method: 'POST',
+    body: JSON.stringify({ name, class: className, booth: BOOTH_ID, action: 'check' })
+  });
+
+  btn.innerHTML = ogText;
+  btn.disabled = false;
+
+  let valid = false;
+  if (ok && data && data.ok) {
+    valid = true;
+  }
+
+  if (!valid) {
+    if (isDuplicateNameError(data)) {
+      setParticipantNameError(
+        className === 'Guru/Karyawan' 
+          ? 'Akses Ditolak: NIP telah terpakai di perangkat/bilik lain.' 
+          : 'Akses Ditolak: NIS telah terpakai di perangkat/bilik lain.'
+      );
+      try { 
+        await api('/api/alert', { method: 'POST', body: JSON.stringify({ action: 'log_local_duplicate', name, class: className, booth: BOOTH_ID }) }); 
+      } catch (e) {}
+    } else if (isRosterRejectedError(data)) {
+      setParticipantNameError((data && data.error) ? data.error : (className === 'Guru/Karyawan' ? 'NIP tidak valid/sesuai.' : 'NIS tidak valid/sesuai.'));
+    } else {
+      showToast('Koneksi ke server gagal.');
+    }
+    return;
+  }
+  
+  // Berhasil verifikasi
+  state.participantName = name; 
+  state.participantClass = className;
+  state.boothStatus = 'Terpakai';
+  $('#identityScreen').classList.add('hidden');
+  $('#voteScreen').classList.remove('hidden');
+}
+
+// 2. Event Listener Tombol "Akses Arsip Calon"
 $('#startBtn').addEventListener('click', async () => {
   const name = $('#participantName').value.trim();
   const className = $('#participantClass').value;
@@ -1260,78 +1363,24 @@ $('#startBtn').addEventListener('click', async () => {
     return; 
   }
 
-  if (className === 'Guru/Karyawan' && !isNipWarningConfirmed) {
+  // VALIDASI KHUSUS GURU / KARYAWAN
+  if (className === 'Guru/Karyawan') {
+    // Kriteria NIP dianggap tidak standar jika panjang angka < 7 atau tidak hanya berisi angka
     const isNumberOnly = /^\d+$/.test(name);
     const isStandardLength = name.length >= 4 && name.length <= 18;
-    if (!isStandardLength || !isNumberOnly) {
+
+    if ((!isStandardLength || !isNumberOnly) && !isNipWarningConfirmed) {
       $('#nipWarningValue').textContent = name;
       $('#nipWarningModal').classList.add('open');
-      return; 
+      return; // Tampilkan modal warning terlebih dahulu
     }
   }
 
-  const btn = $('#startBtn');
-  const ogText = btn.innerHTML;
-  btn.innerHTML = 'Memverifikasi Server...';
-  btn.disabled = true;
-
-  const { ok, data } = await api('/api/vote', {
-    method: 'POST',
-    body: JSON.stringify({ name, class: className, booth: BOOTH_ID, action: 'check' })
-  });
-
-  btn.innerHTML = ogText;
-  btn.disabled = false;
-
-  let valid = (ok && data && data.ok);
-
-  if (!valid) {
-    if (isDuplicateNameError(data)) {
-      setParticipantNameError(
-        className === 'Guru/Karyawan' 
-          ? 'Akses Ditolak: NIP telah terpakai di perangkat/bilik lain.' 
-          : 'Akses Ditolak: NIS telah terpakai di perangkat/bilik lain.'
-      );
-      try { 
-        await api('/api/alert', { method: 'POST', body: JSON.stringify({ action: 'log_local_duplicate', name, class: className, booth: BOOTH_ID }) }); 
-      } catch (e) {}
-    } else if (isRosterRejectedError(data)) {
-      setParticipantNameError((data && data.error) ? data.error : (className === 'Guru/Karyawan' ? 'NIP tidak valid atau tidak sesuai.' : 'NIS tidak valid atau tidak sesuai.'));
-    } else {
-      showToast('Koneksi ke server gagal.');
-    }
-    return;
-  }
-  
-  state.participantName = name; 
-  state.participantClass = className;
-  state.boothStatus = 'Terpakai';
-  
-  await api('/api/vote', { 
-    method: 'POST', 
-    body: JSON.stringify({ booth: BOOTH_ID, status: 'Terpakai' }) 
-  });
-
-  $('#identityScreen').classList.add('hidden');
-  $('#voteScreen').classList.remove('hidden');
+  // Jika NIS / NIP valid atau pengguna memilih "YES/LANJUTKAN" pada modal warning NIP
+  await proceedToVerification(name, className);
 });
 
-$('#briefingBtn').addEventListener('click', () => { $('#welcomeScreen').classList.add('hidden'); $('#briefingScreen').classList.remove('hidden'); });
-$('#readyBtn').addEventListener('click', () => { $('#briefingScreen').classList.add('hidden'); $('#identityScreen').classList.remove('hidden'); });
-
-$('#backToIdentityBtn').addEventListener('click', async () => {   $$('.candidate').forEach(c => c.classList.remove('selected'));
-  state.selected = null;
-  state.boothStatus = 'Standby';
-  
-  await api('/api/vote', { 
-    method: 'POST', 
-    body: JSON.stringify({ booth: BOOTH_ID, status: 'Standby' }) 
-  });
-  
-  $('#voteScreen').classList.add('hidden');
-  $('#identityScreen').classList.remove('hidden');
-});
-
+// 3. Event Listener Tombol Modal Warning NIP
 $('#cancelNipBtn').addEventListener('click', () => {
   $('#nipWarningModal').classList.remove('open');
   $('#participantName').focus();
@@ -1339,17 +1388,49 @@ $('#cancelNipBtn').addEventListener('click', () => {
 
 $('#confirmNipBtn').addEventListener('click', async () => {
   $('#nipWarningModal').classList.remove('open');
-  isNipWarningConfirmed = true;
+  isNipWarningConfirmed = true; // Set flag bahwa user memilih 'YES'
   
   const name = $('#participantName').value.trim();
   const className = $('#participantClass').value;
+  await proceedToVerification(name, className);
+});
+
+$('#briefingBtn').addEventListener('click', () => { $('#welcomeScreen').classList.add('hidden'); $('#briefingScreen').classList.remove('hidden'); });
+$('#readyBtn').addEventListener('click', () => { $('#briefingScreen').classList.add('hidden'); $('#identityScreen').classList.remove('hidden'); });
+
+$('#backToIdentityBtn').addEventListener('click', () => {      $$('.candidate').forEach(c => c.classList.remove('selected'));
+  state.selected = null;
+  state.boothStatus = 'Standby'; 
+  $('#voteScreen').classList.add('hidden');
+  $('#identityScreen').classList.remove('hidden');
+});
+
+// LOGIKA BARU: CEK LANGSUNG KE SERVER (DATASTORE)
+$('#startBtn').addEventListener('click', async () => {
+  const name = $('#participantName').value.trim();
+  const className = $('#participantClass').value;
+  clearParticipantNameError();
   
-  // Lanjutkan verifikasi langsung
+  if (!name) { 
+    setParticipantNameError('Wajib memasukkan NIS.'); 
+    $('#participantName').focus(); 
+    return; 
+  }
+  if (!className) { 
+    showToast('Kelas belum dipilih.'); 
+    $('#participantClass').focus(); 
+    return; 
+  }
+  
+  // Efek Loading
   const btn = $('#startBtn');
   const ogText = btn.innerHTML;
   btn.innerHTML = 'Memverifikasi Server...';
   btn.disabled = true;
 
+ // Ganti bagian fetch di event listener $('#startBtn').addEventListener('click', async () => { ... })
+  
+  // Nembak ke API Check (Tambahkan action: 'check')
   const { ok, data } = await api('/api/vote', {
     method: 'POST',
     body: JSON.stringify({ name, class: className, booth: BOOTH_ID, action: 'check' })
@@ -1357,30 +1438,47 @@ $('#confirmNipBtn').addEventListener('click', async () => {
 
   btn.innerHTML = ogText;
   btn.disabled = false;
+  // ... (sisa kodenya tetap sama)
 
-  if (ok && data && data.ok) {
-    state.participantName = name; 
-    state.participantClass = className;
-    state.boothStatus = 'Terpakai';
-    
-    await api('/api/vote', { 
-      method: 'POST', 
-      body: JSON.stringify({ booth: BOOTH_ID, status: 'Terpakai' }) 
-    });
+  let valid = false;
+  if (ok) {
+    if (data) {
+      if (data.ok) valid = true;
+    }
+  }
 
-    $('#identityScreen').classList.add('hidden');
-    $('#voteScreen').classList.remove('hidden');   } else {     setParticipantNameError('NIP tidak valid atau telah terpakai.');   } });  async function recordVote() {   if (state.voting) return;    state.voting = true;    const receipt = createReceipt();      const { ok, data } = await api('/api/vote', {      method: 'POST',      body: JSON.stringify({ receipt, candidate: state.selected, name: state.participantName, class: state.participantClass, booth: BOOTH_ID, timestamp: Date.now() })    });      state.voting = false;   let success = (ok && data && data.ok);      if (!success) {     const errMsg = (data && data.error) ? data.error : 'Gagal tersambung ke server.';     showToast(errMsg);     $$('.candidate').forEach(c => c.classList.remove('selected')); 
+  // Kalau server menolak (Duplikat)
+  if (!valid) {
+    if (isDuplicateNameError(data)) {
+      setParticipantNameError('Akses Ditolak: NIS telah terpakai di perangkat/bilik lain.');
+      try { 
+        await api('/api/alert', { method: 'POST', body: JSON.stringify({ action: 'log_local_duplicate', name, class: className, booth: BOOTH_ID }) }); 
+      } catch (e) {}
+    } else if (isRosterRejectedError(data)) {
+      setParticipantNameError((data && data.error) ? data.error : 'NIS tidak valid/sesuai.');
+    } else {
+      showToast('Koneksi ke server gagal.');
+    }
+    return;
+  }
+  
+  // Kalau server ngasih izin masuk
+  state.participantName = name; 
+  state.participantClass = className;
+  state.boothStatus = 'Terpakai';
+  $('#identityScreen').classList.add('hidden');
+  $('#voteScreen').classList.remove('hidden');  });    async function recordVote() {      if (state.voting) return;      state.voting = true;      const receipt = createReceipt();            const { ok, data } = await api('/api/vote', {           method: 'POST',           body: JSON.stringify({ receipt, candidate: state.selected, name: state.participantName, class: state.participantClass, booth: BOOTH_ID, timestamp: Date.now() })       });            state.voting = false;            let success = false;   if (ok) {     if (data) {       if (data.ok) success = true;     }   }      if (!success) {          const errMsg = (data && data.error) ? data.error : 'Gagal tersambung ke server.';     showToast(errMsg);          $$('.candidate').forEach(c => c.classList.remove('selected')); 
     state.selected = null; 
     state.boothStatus = 'Standby';
     
     if (isDuplicateNameError(data)) { 
       $('#voteScreen').classList.add('hidden'); 
       $('#identityScreen').classList.remove('hidden'); 
-      setParticipantNameError('Akses ditolak: ID/NIS sudah memilih.'); 
+      setParticipantNameError('Akses ditolak: NIS sudah memilih.'); 
     } else if (isRosterRejectedError(data)) { 
       $('#voteScreen').classList.add('hidden'); 
       $('#identityScreen').classList.remove('hidden'); 
-      setParticipantNameError((data && data.error) ? data.error : 'ID/NIS tidak valid/sesuai.'); 
+      setParticipantNameError((data && data.error) ? data.error : 'NIS tidak valid/sesuai.'); 
     }
     return;
   }
