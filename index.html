@@ -347,19 +347,22 @@
 <h2>Verifikasi Identitas</h2>
 <p class="muted" style="font-size: 14px; margin-top: 10px; line-height: 1.6; font-style: italic;">Silakan identifikasi dirimu untuk mengakses data Paslon. Masukkan Nomor Induk Siswa Nasional (NIS) dan Kelas.</p>
 <div class="identity-box" style="margin-top: 20px;">
-<label class="form-label" for="participantName">Nomor Induk Siswa Peserta</label>
-<input autocomplete="off" id="participantName" inputmode="numeric" maxlength="9" placeholder="Contoh: 252612102" type="text"/>
-<p class="field-hint" id="participantNameHint">Gunakan 9 digit NIS sesuai data peserta.</p>
-<p class="field-error" id="participantNameError" role="alert"></p>
-<label class="form-label" for="participantClass" style="margin-top: 20px;">KELAS / UNIT</label>
-<select class="select" id="participantClass">
-<option value="">Pilih Kelas/Unit</option>
-<optgroup label="Grade 10"><option>XA</option><option>XB</option><option>XC</option><option>XD</option><option>XE</option><option>XF</option><option>XG</option><option>XH</option></optgroup>
-<optgroup label="Grade 11"><option>XI IPA 1</option><option>XI IPA 2</option><option>XI IPA 3</option><option>XI IPA 4</option><option>XI IPA 5</option><option>XI IPA 6</option><option>XI IPS 1</option><option>XI IPS 2</option><option>XI IPS 3</option></optgroup>
-<optgroup label="Grade 12"><option>XII Teknik 1</option><option>XII Teknik 2</option><option>XII Kesehatan 1</option><option>XII Kesehatan 2</option><option>XII Sosial 1</option><option>XII Sosial 2</option></optgroup>
-<optgroup label="Staf"><option>Guru/Karyawan</option></optgroup>
-</select>
-<button class="btn primary full" id="startBtn" style="margin-top: 25px;">Akses Arsip Calon →</button>
+  <!-- Label dinamis (NIS / NIP) -->
+  <label class="form-label" for="participantName" id="participantNameLabel">Nomor Induk Siswa Peserta</label>
+  <input autocomplete="off" id="participantName" inputmode="numeric" maxlength="9" placeholder="Contoh: 252612102" type="text"/>
+  <p class="field-hint" id="participantNameHint">Gunakan 9 digit NIS sesuai data peserta.</p>
+  <p class="field-error" id="participantNameError" role="alert"></p>
+
+  <label class="form-label" for="participantClass" style="margin-top: 20px;">KELAS / UNIT</label>
+  <select class="select" id="participantClass">
+    <option value="">Pilih Kelas/Unit</option>
+    <optgroup label="Grade 10"><option>XA</option><option>XB</option><option>XC</option><option>XD</option><option>XE</option><option>XF</option><option>XG</option><option>XH</option></optgroup>
+    <optgroup label="Grade 11"><option>XI IPA 1</option><option>XI IPA 2</option><option>XI IPA 3</option><option>XI IPA 4</option><option>XI IPA 5</option><option>XI IPA 6</option><option>XI IPS 1</option><option>XI IPS 2</option><option>XI IPS 3</option></optgroup>
+    <optgroup label="Grade 12"><option>XII Teknik 1</option><option>XII Teknik 2</option><option>XII Kesehatan 1</option><option>XII Kesehatan 2</option><option>XII Sosial 1</option><option>XII Sosial 2</option></optgroup>
+    <optgroup label="Staf"><option>Guru/Karyawan</option></optgroup>
+  </select>
+
+  <button class="btn primary full" id="startBtn" style="margin-top: 25px;">Akses Arsip Calon →</button>
 </div>
 </div>
 
@@ -1251,18 +1254,128 @@ function isRosterRejectedError(data) {
 }
 
 // Tambahkan script kecil ini di bagian JavaScript index (8).html
+// Variable temporary untuk menyimpan flag konfirmasi NIP
+let isNipWarningConfirmed = false;
+
+// 1. Dinamisasi Label, Placeholder, dan MaxLength berdasarkan Kelas/Unit
 $('#participantClass').addEventListener('change', (e) => {
   const inputField = $('#participantName');
+  const labelField = $('#participantNameLabel');
   const hintField = $('#participantNameHint');
+  clearParticipantNameError();
+  isNipWarningConfirmed = false; // Reset flag jika unit diubah
+
   if (e.target.value === 'Guru/Karyawan') {
-    inputField.maxLength = 10;
-    inputField.placeholder = 'Contoh: 1234567';
-    hintField.textContent = 'Masukkan 7 digit NIPY atau ID Karyawan.';
+    labelField.textContent = 'Nomor Induk Pegawai (NIP)';
+    inputField.maxLength = 18; // Menyesuaikan batas maksimum NIP
+    inputField.placeholder = 'Contoh: 1234567890';
+    hintField.textContent = 'Masukkan NIP / NIPY / ID Karyawan.';
   } else {
+    labelField.textContent = 'Nomor Induk Siswa Peserta';
     inputField.maxLength = 9;
     inputField.placeholder = 'Contoh: 252612102';
     hintField.textContent = 'Gunakan 9 digit NIS sesuai data peserta.';
   }
+});
+
+// Reset flag peringatan NIP jika pengguna mengetik ulang NIP
+$('#participantName').addEventListener('input', () => {
+  isNipWarningConfirmed = false;
+});
+
+// Function untuk melakukan verifikasi ke server dan pindah halaman
+async function proceedToVerification(name, className) {
+  const btn = $('#startBtn');
+  const ogText = btn.innerHTML;
+  btn.innerHTML = 'Memverifikasi Server...';
+  btn.disabled = true;
+
+  const { ok, data } = await api('/api/vote', {
+    method: 'POST',
+    body: JSON.stringify({ name, class: className, booth: BOOTH_ID, action: 'check' })
+  });
+
+  btn.innerHTML = ogText;
+  btn.disabled = false;
+
+  let valid = false;
+  if (ok && data && data.ok) {
+    valid = true;
+  }
+
+  if (!valid) {
+    if (isDuplicateNameError(data)) {
+      setParticipantNameError(
+        className === 'Guru/Karyawan' 
+          ? 'Akses Ditolak: NIP telah terpakai di perangkat/bilik lain.' 
+          : 'Akses Ditolak: NIS telah terpakai di perangkat/bilik lain.'
+      );
+      try { 
+        await api('/api/alert', { method: 'POST', body: JSON.stringify({ action: 'log_local_duplicate', name, class: className, booth: BOOTH_ID }) }); 
+      } catch (e) {}
+    } else if (isRosterRejectedError(data)) {
+      setParticipantNameError((data && data.error) ? data.error : (className === 'Guru/Karyawan' ? 'NIP tidak valid/sesuai.' : 'NIS tidak valid/sesuai.'));
+    } else {
+      showToast('Koneksi ke server gagal.');
+    }
+    return;
+  }
+  
+  // Berhasil verifikasi
+  state.participantName = name; 
+  state.participantClass = className;
+  state.boothStatus = 'Terpakai';
+  $('#identityScreen').classList.add('hidden');
+  $('#voteScreen').classList.remove('hidden');
+}
+
+// 2. Event Listener Tombol "Akses Arsip Calon"
+$('#startBtn').addEventListener('click', async () => {
+  const name = $('#participantName').value.trim();
+  const className = $('#participantClass').value;
+  clearParticipantNameError();
+  
+  if (!name) { 
+    setParticipantNameError(className === 'Guru/Karyawan' ? 'Wajib memasukkan NIP.' : 'Wajib memasukkan NIS.'); 
+    $('#participantName').focus(); 
+    return; 
+  }
+  if (!className) { 
+    showToast('Kelas / Unit belum dipilih.'); 
+    $('#participantClass').focus(); 
+    return; 
+  }
+
+  // VALIDASI KHUSUS GURU / KARYAWAN
+  if (className === 'Guru/Karyawan') {
+    // Kriteria NIP dianggap tidak standar jika panjang angka < 7 atau tidak hanya berisi angka
+    const isNumberOnly = /^\d+$/.test(name);
+    const isStandardLength = name.length >= 4 && name.length <= 18;
+
+    if ((!isStandardLength || !isNumberOnly) && !isNipWarningConfirmed) {
+      $('#nipWarningValue').textContent = name;
+      $('#nipWarningModal').classList.add('open');
+      return; // Tampilkan modal warning terlebih dahulu
+    }
+  }
+
+  // Jika NIS / NIP valid atau pengguna memilih "YES/LANJUTKAN" pada modal warning NIP
+  await proceedToVerification(name, className);
+});
+
+// 3. Event Listener Tombol Modal Warning NIP
+$('#cancelNipBtn').addEventListener('click', () => {
+  $('#nipWarningModal').classList.remove('open');
+  $('#participantName').focus();
+});
+
+$('#confirmNipBtn').addEventListener('click', async () => {
+  $('#nipWarningModal').classList.remove('open');
+  isNipWarningConfirmed = true; // Set flag bahwa user memilih 'YES'
+  
+  const name = $('#participantName').value.trim();
+  const className = $('#participantClass').value;
+  await proceedToVerification(name, className);
 });
 
 $('#briefingBtn').addEventListener('click', () => { $('#welcomeScreen').classList.add('hidden'); $('#briefingScreen').classList.remove('hidden'); });
