@@ -4,7 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const NIS_ROSTER_PATH = path.join(process.cwd(), 'Data', 'nis.json');
+const NIS_ROSTER_PATH = path.join(process.cwd(), 'Data', 'nissusulan.json');
 const NIP_ROSTER_PATH = path.join(process.cwd(), 'Data', 'nip.json');
 
 let cache = null; // { nisMap: Map<nis, kelasRoster>, nipSet: Set<nip> }
