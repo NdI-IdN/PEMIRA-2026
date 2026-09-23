@@ -283,8 +283,87 @@ async function getAlertLog(n) {
   return n ? log.slice(0, n) : log;
 }
 
+async function deleteSingleVote(receipt) {
+  const normalizedReceipt = String(receipt || '').trim().toUpperCase();
+  if (!normalizedReceipt) return { success: false, message: 'Kode receipt tidak valid.' };
+
+  // -------------------------------------------------------------
+  // 1. OPSI REDIS KV (Vercel Storage)
+  // -------------------------------------------------------------
+  if (kvConfigured()) {
+    // Ambil semua aktivitas dari Redis
+    const rawActivity = await kv('LRANGE', 'pemira:activity', '0', '-1');
+    if (!Array.isArray(rawActivity)) return { success: false, message: 'Data tidak ditemukan.' };
+
+    let targetItem = null;
+    let targetRaw = null;
+
+    for (const s of rawActivity) {
+      try {
+        const item = JSON.parse(s);
+        if (item && String(item.receipt || '').trim().toUpperCase() === normalizedReceipt) {
+          targetItem = item;
+          targetRaw = s;
+          break;
+        }
+      } catch (e) {}
+    }
+
+    if (!targetItem) return { success: false, message: 'Data dengan receipt tersebut tidak ditemukan.' };
+
+    // A. Hapus item dari list activity
+    await kv('LREM', 'pemira:activity', 0, targetRaw);
+
+    // B. Kurangi perolehan suara paslon terkait & total suara
+    if (targetItem.candidate) {
+      await kv('HINCRBY', 'pemira:votes', String(targetItem.candidate), -1);
+      await kv('DECR', 'pemira:total');
+    }
+
+    // C. Hapus status voter id agar NIS/NIP tersebut bisa memilih kembali
+    if (targetItem.name) {
+      const key = voterKey(targetItem.name);
+      await kv('DEL', key);
+      await kv('SREM', VOTER_KEYS, key);
+    }
+
+    return { success: true };
+  }
+
+  // -------------------------------------------------------------
+  // 2. OPSI FILE JSON LOKAL (db.json)
+  // -------------------------------------------------------------
+  return withFileLock(() => {
+    const db = readFileDb();
+    const index = db.activity.findIndex(
+      (item) => String(item.receipt || '').trim().toUpperCase() === normalizedReceipt
+    );
+
+    if (index === -1) return { success: false, message: 'Data dengan receipt tersebut tidak ditemukan.' };
+
+    const targetItem = db.activity[index];
+
+    // A. Hapus 1 data dari array activity
+    db.activity.splice(index, 1);
+
+    // B. Kurangi perolehan suara paslon
+    if (targetItem.candidate && db.votes[targetItem.candidate]) {
+      db.votes[targetItem.candidate] = Math.max(0, Number(db.votes[targetItem.candidate]) - 1);
+    }
+
+    // C. Hapus data voter dari objek voters agar NIS/NIP bisa memilih lagi
+    if (targetItem.name) {
+      const key = voterKey(targetItem.name);
+      delete db.voters[key];
+    }
+
+    writeFileDb(db);
+    return { success: true };
+  });
+}
+
 module.exports = {
   incrVote, pushActivity, recordVote, getCounts, getActivity, findByReceipt, reset, usingKv: kvConfigured,
   addLiveAlert, getLiveAlerts, dismissLiveAlert, pushAlertLog, getAlertLog,
-  getConfig, setConfig,
+  getConfig, setConfig, deleteSingleVote,
 };
