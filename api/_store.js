@@ -57,12 +57,12 @@ async function incrVote(candidate) {
 async function pushActivity(entry) {
   if (kvConfigured()) {
     await kv('LPUSH', 'pemira:activity', JSON.stringify(entry));
-    await kv('LTRIM', 'pemira:activity', '0', '199');
+    await kv('LTRIM', 'pemira:activity', '0', '999');
     return;
   }
   const db = readFileDb();
   db.activity.unshift(entry);
-  db.activity = db.activity.slice(0, 200);
+  db.activity = db.activity.slice(0, 1000);
   writeFileDb(db);
 }
 
@@ -115,7 +115,7 @@ async function recordVote(identity, candidate, entry) {
     db.voters[voterKey(normalizedIdentity)] = entry.receipt;
     db.votes[candidate] = (Number(db.votes[candidate]) || 0) + 1;
     db.activity.unshift(entry);
-    db.activity = db.activity.slice(0, 200);
+    db.activity = db.activity.slice(0, 1000);
     writeFileDb(db);
     return { created: true };
   });
