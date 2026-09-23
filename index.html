@@ -1347,38 +1347,38 @@ async function proceedToVerification(name, className) {
 }
 
 // 2. Event Listener Tombol "Akses Arsip Calon"
-$('#startBtn').addEventListener('click', async () => {
-  const name = $('#participantName').value.trim();
-  const className = $('#participantClass').value;
-  clearParticipantNameError();
-  
-  if (!name) { 
-    setParticipantNameError(className === 'Guru/Karyawan' ? 'Wajib memasukkan NIP.' : 'Wajib memasukkan NIS.'); 
-    $('#participantName').focus(); 
-    return; 
-  }
-  if (!className) { 
-    showToast('Kelas / Unit belum dipilih.'); 
-    $('#participantClass').focus(); 
-    return; 
-  }
-
-  // VALIDASI KHUSUS GURU / KARYAWAN
-  if (className === 'Guru/Karyawan') {
-    // Kriteria NIP dianggap tidak standar jika panjang angka < 7 atau tidak hanya berisi angka
-    const isNumberOnly = /^\d+$/.test(name);
-    const isStandardLength = name.length >= 4 && name.length <= 18;
-
-    if ((!isStandardLength || !isNumberOnly) && !isNipWarningConfirmed) {
-      $('#nipWarningValue').textContent = name;
-      $('#nipWarningModal').classList.add('open');
-      return; // Tampilkan modal warning terlebih dahulu
+if ($('#startBtn')) {
+  $('#startBtn').addEventListener('click', async () => {
+    const name = $('#participantName').value.trim();
+    const className = $('#participantClass').value;
+    clearParticipantNameError();
+    
+    if (!name) { 
+      setParticipantNameError(className === 'Guru/Karyawan' ? 'Wajib memasukkan NIP.' : 'Wajib memasukkan NIS.'); 
+      $('#participantName').focus(); 
+      return; 
     }
-  }
+    if (!className) { 
+      showToast('Kelas / Unit belum dipilih.'); 
+      $('#participantClass').focus(); 
+      return; 
+    }
 
-  // Jika NIS / NIP valid atau pengguna memilih "YES/LANJUTKAN" pada modal warning NIP
-  await proceedToVerification(name, className);
-});
+    if (className === 'Guru/Karyawan') {
+      const isNumberOnly = /^\d+$/.test(name);
+      const isStandardLength = name.length >= 4 && name.length <= 18;
+
+      if ((!isStandardLength || !isNumberOnly) && !isNipWarningConfirmed) {
+        $('#nipWarningValue').textContent = name;
+        $('#nipWarningModal').classList.add('open');
+        // Tampilkan modal warning terlebih dahulu
+        return;
+      }
+    }
+      
+    await proceedToVerification(name, className);
+  });
+}
 
 // 3. Event Listener Tombol Modal Warning NIP
 $('#cancelNipBtn').addEventListener('click', () => {
