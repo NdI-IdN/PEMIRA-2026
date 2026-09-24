@@ -57,7 +57,7 @@ async function incrVote(candidate) {
 async function pushActivity(entry) {
   if (kvConfigured()) {
     await kv('LPUSH', 'pemira:activity', JSON.stringify(entry));
-    await kv('LTRIM', 'pemira:activity', '0', '199');
+    await kv('LTRIM', 'pemira:activity', '0', '999');
     return;
   }
   const db = readFileDb();
