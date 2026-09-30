@@ -70,6 +70,16 @@
     .view { display: none; }
     .view.active { display: block; animation: enter .35s ease both; }
     .hidden { display: none !important; }
+    .count-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:16px; margin-bottom:20px; }
+    .count-card { background:#faf6ed; border:1px solid var(--line); border-radius:8px; padding:20px 16px; text-align:center; box-shadow:2px 4px 10px rgba(105,87,65,.15); transition:transform .12s, box-shadow .12s; position:relative; z-index:2; }
+    .count-card.flash { transform:scale(1.03); box-shadow:0 0 0 3px var(--orange); }
+    .count-card.win { box-shadow:0 0 0 4px var(--mint); }
+    .count-card .no { display:inline-block; font-family:var(--typewriter); font-size:11px; font-weight:bold; color:#fff; background:var(--navy); padding:3px 8px; border-radius:4px; margin-bottom:10px; }
+    .count-photos { display:flex; justify-content:center; gap:8px; margin-bottom:10px; }
+    .count-names { font-size:12px; font-family:var(--typewriter); color:var(--navy); line-height:1.5; min-height:38px; }
+    .count-num { font-family:var(--typewriter); font-size:clamp(52px,7vw,92px); font-weight:bold; color:var(--navy); line-height:1.1; margin:8px 0 2px; }
+    .count-pct { font-family:var(--typewriter); font-size:12px; color:var(--muted); margin-bottom:8px; }
+    .count-winner { padding:18px; border:2px solid var(--mint); border-radius:8px; background:rgba(74,102,91,.1); font-family:var(--typewriter); text-align:center; line-height:1.7; margin-top:20px; }
     
     @keyframes enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
     
@@ -500,6 +510,17 @@
 </div>
 </div>
 </div>
+<div class="hidden" id="perhitunganDashboard">
+<div class="hero"><div><div class="eyebrow">Markas Besar · Penghitungan</div><h1>Penghitungan Suara.</h1><p>Surat suara dibuka satu per satu di hadapan guru dan saksi. Data dikunci saat penghitungan dimulai.</p></div>
+<div class="admin-actions"><span class="pill info" id="countStatus">Siap dimulai</span><select class="select" id="countSpeed"><option value="900">Lambat</option><option value="350" selected>Sedang</option><option value="100">Cepat</option></select><button class="btn" id="countFullscreenBtn">⛶ Layar Penuh</button><button class="btn dark" id="perhitunganLogoutBtn">Tutup Akses</button></div></div>
+<div class="panel" style="margin-bottom:20px;"><div class="panel-body">
+<div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; font-family:var(--typewriter); font-size:12px; margin-bottom:6px;"><b id="countProgressText">Belum dimulai</b><span id="countMeta" class="muted"></span></div>
+<div class="result-track"><i id="countProgressBar" style="width:0%"></i></div>
+<div class="admin-actions" style="margin-top:14px;"><button class="btn primary" id="countStartBtn">▶ Mulai Penghitungan</button><button class="btn" id="countSkipBtn" disabled>⏭ Tampilkan Hasil Akhir</button><button class="btn" id="countResetBtn">↺ Reset</button></div>
+</div></div>
+<div class="count-grid" id="countCards"></div>
+<div class="count-winner hidden" id="countWinner"></div>
+</div>
 </section>
 
 <!-- VIEW LIVE REPORT PUBLIK (?livereport) -->
@@ -686,6 +707,7 @@ const PANITIA_MODE = urlParams.has('panitia');
 const EVIDENCE_MODE = urlParams.has('evidence');
 const ERRORLOGS_MODE = urlParams.has('errorlogs');
 const LIVEREPORT_MODE = urlParams.has('livereport');
+const PERHITUNGAN_MODE = urlParams.has('perhitungan');
 const POLL_MS = 5000;
 
 const state = { 
@@ -804,6 +826,8 @@ async function api(path, options) {
     badge.classList.add('info'); dot.classList.add('hidden'); text.textContent = 'Admin Akses'; badge.classList.remove('hidden'); 
   } else if (ERRORLOGS_MODE) { 
     badge.classList.add('info'); dot.classList.add('hidden'); text.textContent = 'Admin Akses'; badge.classList.remove('hidden'); 
+  } else if (PERHITUNGAN_MODE) { 
+    badge.classList.add('info'); dot.classList.add('hidden'); text.textContent = 'Penghitungan'; badge.classList.remove('hidden'); 
   } else if (BOOTH_ID !== 'Pribadi') { 
     badge.classList.add('live'); dot.classList.remove('hidden'); text.textContent = 'Pos ' + BOOTH_ID; badge.classList.remove('hidden'); 
   }
@@ -815,7 +839,7 @@ if (BOOTH_ID) {
     if (!PANITIA_MODE) {
       if (!LIVEREPORT_MODE) {
         if (!ERRORLOGS_MODE) {
-          if (!EVIDENCE_MODE) {
+          if (!EVIDENCE_MODE && !PERHITUNGAN_MODE) {
             setInterval(() => {
               api('/api/vote', { method: 'POST', body: JSON.stringify({ booth: BOOTH_ID, status: state.boothStatus }) });
             }, 5000);
@@ -839,6 +863,10 @@ if (LIVEREPORT_MODE) {
   $('#panitiaView').classList.remove('hidden'); $('#panitiaView').classList.add('active');
   initPanitia();
 } else if (ERRORLOGS_MODE) {
+  $('#clientView').classList.remove('active'); $('#clientView').classList.add('hidden');
+  $('#panitiaView').classList.remove('hidden'); $('#panitiaView').classList.add('active');
+  initPanitia();
+} else if (PERHITUNGAN_MODE) {
   $('#clientView').classList.remove('active'); $('#clientView').classList.add('hidden');
   $('#panitiaView').classList.remove('hidden'); $('#panitiaView').classList.add('active');
   initPanitia();
@@ -885,6 +913,102 @@ function renderLiveReport(d) {
   });
 }
 
+// 5b. PERHITUNGAN SUARA (?perhitungan)
+const counting = { queue: [], tally: {}, total: 0, snapTotalVoters: 0, timer: null, running: false, started: false, done: false };
+
+function stopCounting() { clearInterval(counting.timer); counting.timer = null; counting.running = false; }
+
+function buildPerhitungan() {
+  stopCounting();
+  Object.assign(counting, { queue: [], tally: {}, total: 0, started: false, done: false });
+  CANDIDATES_CONFIG.forEach(c => { counting.tally[c.id] = 0; });
+  const photo = (src, name) => `<div class="candidate-photo" style="width:72px; height:88px; margin:0;"><img alt="${escapeHtml(name)}" src="${src}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random'"/></div>`;
+  $('#countCards').innerHTML = CANDIDATES_CONFIG.map(c => `
+    <div class="count-card" id="countCard_${c.id}">
+      <span class="no">PASLON 0${c.id}</span>
+      <div class="count-photos">${photo(c.photoKetua, c.ketua)}${photo(c.photoWakil, c.wakil)}</div>
+      <div class="count-names">${escapeHtml(c.ketua)}<br/>${escapeHtml(c.wakil)}</div>
+      <div class="count-num" id="countNum_${c.id}">0</div>
+      <div class="count-pct" id="countPct_${c.id}">0.0%</div>
+      <div class="result-track"><i id="countBar_${c.id}" style="width:0%"></i></div>
+    </div>`).join('');
+  $('#countWinner').classList.add('hidden');
+  updateCountUI();
+}
+
+function updateCountUI() {
+  const opened = counting.total - counting.queue.length;
+  $('#countProgressText').textContent = counting.started ? `Surat suara dibuka: ${opened} / ${counting.total}` : 'Belum dimulai';
+  $('#countMeta').textContent = counting.started ? `Target saksi: ${counting.snapTotalVoters} · Partisipasi: ${counting.snapTotalVoters ? (counting.total / counting.snapTotalVoters * 100).toFixed(1) : '0.0'}%` : '';
+  $('#countProgressBar').style.width = (counting.total ? opened / counting.total * 100 : 0) + '%';
+  CANDIDATES_CONFIG.forEach(c => {
+    const v = counting.tally[c.id] || 0;
+    $(`#countNum_${c.id}`).textContent = v;
+    $(`#countPct_${c.id}`).textContent = (opened ? v / opened * 100 : 0).toFixed(1) + '%';
+    $(`#countBar_${c.id}`).style.width = (counting.total ? v / counting.total * 100 : 0) + '%';
+  });
+  $('#countStartBtn').textContent = counting.done ? '↺ Hitung Ulang' : !counting.started ? '▶ Mulai Penghitungan' : counting.running ? '⏸ Jeda' : '▶ Lanjutkan';
+  $('#countSkipBtn').disabled = !(counting.started && !counting.done);
+  $('#countStatus').textContent = counting.done ? 'Selesai' : counting.running ? 'Sedang menghitung' : counting.started ? 'Dijeda' : 'Siap dimulai';
+}
+
+function runCountTimer() {
+  clearInterval(counting.timer);
+  counting.running = true;
+  counting.timer = setInterval(countTick, parseInt($('#countSpeed').value, 10) || 350);
+  updateCountUI();
+}
+
+async function onCountStartClick() {
+  if (!counting.started || counting.done) return beginCounting();
+  if (counting.running) { stopCounting(); updateCountUI(); } else runCountTimer();
+}
+
+async function beginCounting() {
+  const { ok, data } = await api('/api/results');
+  if (!ok) { showPanitiaLogin(); return; }
+  const counts = (data && data.counts) ? data.counts : {};
+  const queue = [];
+  CANDIDATES_CONFIG.forEach(c => { for (let i = 0; i < (Number(counts[c.id]) || 0); i++) queue.push(c.id); });
+  if (!queue.length) { showToast('Belum ada suara masuk untuk dihitung.'); return; }
+  // Urutan buka surat suara diacak (hanya tampilan); total tiap paslon tetap sama dengan data server.
+  const r = new Uint32Array(1);
+  for (let i = queue.length - 1; i > 0; i--) { crypto.getRandomValues(r); const j = r[0] % (i + 1); [queue[i], queue[j]] = [queue[j], queue[i]]; }
+  buildPerhitungan();
+  Object.assign(counting, { queue, total: queue.length, snapTotalVoters: Number(data.totalVoters) || state.config.totalVoters, started: true, done: false });
+  runCountTimer();
+}
+
+function countTick() {
+  if (!counting.queue.length) { finishCounting(); return; }
+  const id = counting.queue.pop();
+  counting.tally[id]++;
+  const card = $(`#countCard_${id}`);
+  if (card) { card.classList.add('flash'); setTimeout(() => card.classList.remove('flash'), 110); }
+  updateCountUI();
+  if (!counting.queue.length) finishCounting();
+}
+
+function skipCounting() {
+  while (counting.queue.length) counting.tally[counting.queue.pop()]++;
+  finishCounting();
+}
+
+function finishCounting() {
+  stopCounting();
+  counting.done = true;
+  updateCountUI();
+  const max = Math.max(...CANDIDATES_CONFIG.map(c => counting.tally[c.id]));
+  const winners = CANDIDATES_CONFIG.filter(c => counting.tally[c.id] === max);
+  winners.forEach(c => $(`#countCard_${c.id}`).classList.add('win'));
+  const pct = (max / counting.total * 100).toFixed(1);
+  const box = $('#countWinner');
+  box.innerHTML = winners.length === 1
+    ? `<b>PEROLEHAN SUARA TERBANYAK</b><br/>Paslon 0${winners[0].id} — ${escapeHtml(winners[0].ketua)} &amp; ${escapeHtml(winners[0].wakil)}<br/>${max} dari ${counting.total} suara sah (${pct}%)`
+    : `<b>HASIL SERI</b><br/>Paslon ${winners.map(c => '0' + c.id).join(' &amp; ')} masing-masing ${max} dari ${counting.total} suara sah`;
+  box.classList.remove('hidden');
+}
+
 // 6. PANITIA LOGIC
 function initPanitia() {
   $('#panitiaLoginBtn').addEventListener('click', loginPanitia);
@@ -928,6 +1052,17 @@ function initPanitia() {
   on('#evidenceLogoutBtn', 'click', logoutPanitia);
   on('#searchEvidenceBtn', 'click', searchEvidence);
   on('#receiptSearch', 'keydown', (e) => { if (e.key === 'Enter') searchEvidence(); });
+
+  // Halaman Penghitungan (?perhitungan)
+  on('#countStartBtn', 'click', onCountStartClick);
+  on('#countSkipBtn', 'click', skipCounting);
+  on('#countResetBtn', 'click', buildPerhitungan);
+  on('#countSpeed', 'change', () => { if (counting.running) runCountTimer(); });
+  on('#countFullscreenBtn', 'click', () => {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen().catch(() => {});
+  });
+  on('#perhitunganLogoutBtn', 'click', logoutPanitia);
 
   checkPanitiaAuth();
 }
@@ -1037,9 +1172,10 @@ async function checkPanitiaAuth() {
 }
 
 function showPanitiaLogin() {
+  stopCounting();
   clearInterval(state.pollTimer);
   clearInterval(state.errorLogsPollTimer);
-  ['#panitiaDashboard', '#evidenceDashboard', '#errorLogsDashboard'].forEach(sel => { const el = $(sel); if (el) el.classList.add('hidden'); });
+  ['#panitiaDashboard', '#evidenceDashboard', '#errorLogsDashboard', '#perhitunganDashboard'].forEach(sel => { const el = $(sel); if (el) el.classList.add('hidden'); });
   ['#settingsModal', '#allParticipantsModal'].forEach(sel => { const el = $(sel); if (el) el.classList.remove('open'); });
   $('#panitiaLoginScreen').classList.remove('hidden');
 }
@@ -1050,6 +1186,9 @@ function showPanitiaDashboard() {
     $('#errorLogsDashboard').classList.remove('hidden');
     loadErrorLogsPage();
     state.errorLogsPollTimer = setInterval(loadErrorLogsPage, POLL_MS);
+  } else if (PERHITUNGAN_MODE) {
+    $('#perhitunganDashboard').classList.remove('hidden');
+    buildPerhitungan();
   } else if (EVIDENCE_MODE) {
     $('#evidenceDashboard').classList.remove('hidden');
   } else {
