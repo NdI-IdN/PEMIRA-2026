@@ -898,7 +898,124 @@ function initPanitia() {
     const { ok } = await api('/api/alert', { method: 'POST', body: JSON.stringify({ action: 'dismiss', id: btn.getAttribute('data-dismiss-id') }) });
     addSystemLog('WARN', ok ? 'Peringatan diabaikan operator.' : 'Gagal menghapus alert.');
   });
+
+  // --- Tombol dashboard panitia (sebelumnya belum punya handler) ---
+  const on = (sel, evt, fn) => { const el = $(sel); if (el) el.addEventListener(evt, fn); };
+
+  // Konfigurasi
+  on('#panitiaSettingsBtn', 'click', openSettingsModal);
+  on('#cancelSettingsBtn', 'click', closeSettingsModal);
+  on('#saveSettingsBtn', 'click', saveSettings);
+
+  // Arsip Lengkap
+  on('#viewAllParticipantsBtn', 'click', openAllParticipantsModal);
+  on('#closeAllParticipantsBtn', 'click', closeAllParticipantsModal);
+
+  // Klik area gelap di luar modal = tutup
+  on('#settingsModal', 'click', (e) => { if (e.target.id === 'settingsModal') closeSettingsModal(); });
+  on('#allParticipantsModal', 'click', (e) => { if (e.target.id === 'allParticipantsModal') closeAllParticipantsModal(); });
+
+  // Log Peringatan (buka halaman ?errorlogs di tab baru supaya dashboard tetap live)
+  on('#viewAlertLogHeaderBtn', 'click', () => {
+    window.open(location.pathname + '?errorlogs', '_blank', 'noopener');
+  });
+
+  // Halaman Error Log
+  on('#refreshErrorLogsBtn', 'click', loadErrorLogsPage);
+  on('#errorLogsLogoutBtn', 'click', logoutPanitia);
+
+  // Halaman Verifikasi Bukti
+  on('#evidenceLogoutBtn', 'click', logoutPanitia);
+  on('#searchEvidenceBtn', 'click', searchEvidence);
+  on('#receiptSearch', 'keydown', (e) => { if (e.key === 'Enter') searchEvidence(); });
+
   checkPanitiaAuth();
+}
+
+// ---- Modal Konfigurasi ----
+function openSettingsModal() {
+  $('#settingsSessionName').value = state.config.sessionName || '';
+  $('#settingsTotalVoters').value = state.config.totalVoters || '';
+  $('#settingsBoothCount').value = state.config.boothCount || '';
+  $('#settingsSaved').textContent = '';
+  $('#settingsModal').classList.add('open');
+}
+function closeSettingsModal() { $('#settingsModal').classList.remove('open'); }
+
+async function saveSettings() {
+  const sessionName = $('#settingsSessionName').value.trim();
+  const totalVoters = parseInt($('#settingsTotalVoters').value, 10);
+  const boothCount = parseInt($('#settingsBoothCount').value, 10);
+
+  if (!sessionName) { showToast('Nama sandi operasi tidak boleh kosong.'); return; }
+  if (!Number.isInteger(totalVoters) || totalVoters < 1) { showToast('Target kapasitas saksi harus angka minimal 1.'); return; }
+  if (!Number.isInteger(boothCount) || boothCount < 1 || boothCount > 30) { showToast('Jumlah pos/bilik harus antara 1 - 30.'); return; }
+
+  const btn = $('#saveSettingsBtn');
+  btn.disabled = true;
+  const newConfig = { sessionName, totalVoters, boothCount };
+  const { ok, data } = await api('/api/config', { method: 'POST', body: JSON.stringify(newConfig) });
+  btn.disabled = false;
+
+  if (!ok) {
+    showToast((data && data.error) ? data.error : 'Gagal menyimpan konfigurasi.');
+    return;
+  }
+  state.config = (data && data.config) ? data.config : Object.assign({}, state.config, newConfig);
+  applySettings();
+  renderBoothsGrid(state.config.boothCount);
+  simulateBoothActivity();
+  $('#settingsSaved').textContent = '✓ Konfigurasi tersimpan.';
+  addSystemLog('INFO', 'Konfigurasi operasi diperbarui.');
+  setTimeout(closeSettingsModal, 800);
+}
+
+// ---- Modal Arsip Lengkap ----
+function renderAllParticipants() {
+  const tbody = $('#allParticipantsTableBody');
+  if (!tbody) return;
+  const list = state.allActivityData || [];
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="muted" style="text-align:center; padding:20px; font-style:italic;">Belum ada suara masuk.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(item => `
+    <tr>
+      <td><b style="font-family:var(--typewriter); color:var(--navy);">${escapeHtml(item.receipt)}</b></td>
+      <td><div class="person"><div class="person-avatar">ID</div><span>${escapeHtml(maskName(item.name))}</span></div></td>
+      <td>${escapeHtml(item.class)}</td>
+      <td><span class="badge green">SAH</span></td>
+      <td>${escapeHtml(item.time || formatTimestamp(item.timestamp))}</td>
+      <td>Pos ${escapeHtml(item.booth)}</td>
+    </tr>`).join('');
+}
+function openAllParticipantsModal() { renderAllParticipants(); $('#allParticipantsModal').classList.add('open'); }
+function closeAllParticipantsModal() { $('#allParticipantsModal').classList.remove('open'); }
+
+// ---- Verifikasi Bukti (cari receipt) ----
+async function searchEvidence() {
+  const code = $('#receiptSearch').value.trim().toUpperCase();
+  const box = $('#evidenceResult');
+  if (!code) { showToast('Masukkan nomor receipt dulu.'); return; }
+
+  const { ok, data } = await api('/api/results');
+  if (!ok) { showPanitiaLogin(); return; }
+
+  const list = (data && Array.isArray(data.activity)) ? data.activity : [];
+  const found = list.find(i => String(i.receipt).toUpperCase() === code);
+  box.classList.remove('hidden');
+  if (found) {
+    box.innerHTML = `<div style="padding:15px; border:1px solid var(--mint); border-radius:6px; background:rgba(74,102,91,0.08); font-family:var(--typewriter); font-size:12px; line-height:1.8;">
+      <span class="badge green">BUKTI VALID</span><br/>
+      Receipt: <b>${escapeHtml(found.receipt)}</b><br/>
+      Pemilih: ${escapeHtml(maskName(found.name))}<br/>
+      Kelas: ${escapeHtml(found.class)}<br/>
+      Waktu: ${escapeHtml(found.time || formatTimestamp(found.timestamp))}<br/>
+      Pos: ${escapeHtml(found.booth)}</div>`;
+  } else {
+    box.innerHTML = `<div style="padding:15px; border:1px solid var(--red); border-radius:6px; background:rgba(158,54,59,0.08); font-family:var(--typewriter); font-size:12px;">
+      <span class="badge red">TIDAK DITEMUKAN</span><br/>Receipt <b>${escapeHtml(code)}</b> tidak terdaftar di sistem.</div>`;
+  }
 }
 
 function addSystemLog(type, msg) {
@@ -920,8 +1037,11 @@ async function checkPanitiaAuth() {
 }
 
 function showPanitiaLogin() {
+  clearInterval(state.pollTimer);
+  clearInterval(state.errorLogsPollTimer);
+  ['#panitiaDashboard', '#evidenceDashboard', '#errorLogsDashboard'].forEach(sel => { const el = $(sel); if (el) el.classList.add('hidden'); });
+  ['#settingsModal', '#allParticipantsModal'].forEach(sel => { const el = $(sel); if (el) el.classList.remove('open'); });
   $('#panitiaLoginScreen').classList.remove('hidden');
-  $('#panitiaDashboard').classList.add('hidden');
 }
 
 function showPanitiaDashboard() {
@@ -978,6 +1098,7 @@ async function loginPanitia() {
 async function logoutPanitia() { 
   await api('/api/logout', { method: 'POST' }); 
   clearInterval(state.pollTimer); 
+  clearInterval(state.errorLogsPollTimer);
   showPanitiaLogin(); 
 }
 
@@ -1158,6 +1279,7 @@ function renderResults(d) {
     state.allActivityData = d.activity;
     renderParticipantTable(d.activity);
     renderClassStats(d.activity);
+    if ($('#allParticipantsModal') && $('#allParticipantsModal').classList.contains('open')) renderAllParticipants();
   }
 }
 
