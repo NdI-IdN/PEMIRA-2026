@@ -62,6 +62,7 @@
     .brand small { display: block; color: var(--muted); font-weight: 600; letter-spacing: 0; font-size: 11px; margin-top: 2px; font-family: Georgia, serif; }
     .detective-icon { width:58%; height:58%; display:block; }
     .detective-icon circle, .detective-icon path { fill:none; stroke:currentColor; stroke-linecap:round; stroke-linejoin:round; }
+    .detective-icon rect { fill:none; stroke:currentColor; stroke-width:2.8; stroke-linejoin:round; }
     .detective-icon circle { stroke-width:2.4; }
     .detective-icon path { stroke-width:2.8; }
     
@@ -328,6 +329,18 @@
 <section class="view active" id="clientView">
 <div class="kiosk-layout">
 <div class="kiosk-card">
+<div class="kiosk-content center hidden" id="closedScreen">
+<div class="welcome-mark">
+<svg class="detective-icon" viewbox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+</div>
+<div class="eyebrow">Pemilihan Raya 2026</div>
+<h1>AKSES PEMILIHAN<br/>SUDAH DITUTUP</h1>
+<p class="lead" style="margin-bottom:8px;">Maaf, akses ini sudah ditutup.<br/>Terima kasih bagi yang sudah memberikan suaranya!</p>
+<p class="muted" style="font-size:13px; font-family:var(--typewriter); margin-bottom:14px;">Saksikan nanti pengumuman hasilnya ya.</p>
+<p class="muted" style="font-size:12px; font-family:var(--typewriter); text-transform:uppercase;"><strong>Presented by Dewan Perwakilan Siswa</strong></p>
+<p class="lead" style="margin-top:6px;">“Smart Voters, Strong Leader”</p>
+</div>
+
 <div class="kiosk-content center" id="welcomeScreen">
 <div class="welcome-mark">
 <svg class="detective-icon" viewbox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.1"></circle><path d="m15.4 15.4 5 5"></path></svg>
@@ -428,6 +441,8 @@
 <div><div class="eyebrow">Markas Besar · Live monitoring</div><h1 id="panitiaDashboardTitle">Dashboard Investigasi.</h1><p>Pantau seluruh aktivitas pengumpulan bukti dan data saksi secara real-time.</p></div>
 <div class="admin-actions">
 <span class="pill live"><span class="dot"></span> Jaringan Aman</span>
+<span class="pill" id="votingStatusPill">Pemilihan Dibuka</span>
+<button class="btn" id="toggleVotingBtn">🔒 Tutup Akses Pemilihan</button>
 <button class="btn" id="panitiaSettingsBtn">⚙ Konfigurasi</button>
 <button class="btn dark" id="panitiaLogoutBtn">Tutup Akses</button>
 </div>
@@ -611,7 +626,7 @@
 <div class="modal large-modal">
 <div class="panel-head" style="padding:0 0 16px; margin-bottom:16px; background: transparent; border-bottom: 2px solid var(--navy);">
 <h2>Data Peserta Pemilihan (Arsip Lengkap)</h2>
-<div class="admin-actions"><button class="btn" id="closeAllParticipantsBtn">Tutup Arsip</button></div>
+<div class="admin-actions"><button class="btn primary" id="downloadArchivePdfBtn">⬇ Unduh PDF</button><button class="btn" id="closeAllParticipantsBtn">Tutup Arsip</button></div>
 </div>
 <div class="table-wrap" style="max-height:400px; border: 1px solid var(--line);">
 <table>
@@ -714,7 +729,7 @@ const state = {
   selected: null, participantName: '', participantClass: '', resetTimer: null, voting: false, 
   pollTimer: null, errorLogsPollTimer: null, liveReportPollTimer: null, allActivityData: [], 
   classFilter: '', reportClassFilter: '', alertLogData: [], alertCount: 0, boothStatus: 'Standby',
-  config: { sessionName: 'PEMIRA 2026', totalVoters: 240, boothCount: 5 } 
+  config: { sessionName: 'PEMIRA 2026', totalVoters: 240, boothCount: 5, votingClosed: false } 
 };
 
 function formatTimestamp(dateObj) {
@@ -870,6 +885,8 @@ if (LIVEREPORT_MODE) {
   $('#clientView').classList.remove('active'); $('#clientView').classList.add('hidden');
   $('#panitiaView').classList.remove('hidden'); $('#panitiaView').classList.add('active');
   initPanitia();
+} else {
+  initClientGate();
 }
 
 // 5. LIVE REPORT LOGIC
@@ -1028,12 +1045,14 @@ function initPanitia() {
 
   // Konfigurasi
   on('#panitiaSettingsBtn', 'click', openSettingsModal);
+  on('#toggleVotingBtn', 'click', toggleVoting);
   on('#cancelSettingsBtn', 'click', closeSettingsModal);
   on('#saveSettingsBtn', 'click', saveSettings);
 
   // Arsip Lengkap
   on('#viewAllParticipantsBtn', 'click', openAllParticipantsModal);
   on('#closeAllParticipantsBtn', 'click', closeAllParticipantsModal);
+  on('#downloadArchivePdfBtn', 'click', downloadArchivePdf);
 
   // Klik area gelap di luar modal = tutup
   on('#settingsModal', 'click', (e) => { if (e.target.id === 'settingsModal') closeSettingsModal(); });
@@ -1124,6 +1143,63 @@ function renderAllParticipants() {
       <td>Pos ${escapeHtml(item.booth)}</td>
     </tr>`).join('');
 }
+function loadScriptOnce(src) {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector(`script[src="${src}"]`)) return resolve();
+    const el = document.createElement('script');
+    el.src = src; el.onload = resolve; el.onerror = () => reject(new Error('Gagal memuat ' + src));
+    document.head.appendChild(el);
+  });
+}
+
+// Unduh seluruh arsip (semua baris, atas sampai bawah) sebagai PDF
+async function downloadArchivePdf() {
+  const btn = $('#downloadArchivePdfBtn');
+  const label = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Menyiapkan PDF...';
+  try {
+    await loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+    await loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js');
+
+    // Ambil data terbaru supaya arsip yang diunduh selalu lengkap
+    let list = state.allActivityData || [];
+    const { ok, data } = await api('/api/results');
+    if (ok && data && Array.isArray(data.activity)) list = data.activity;
+    if (!list.length) { showToast('Belum ada data untuk diunduh.'); return; }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+    const now = new Intl.DateTimeFormat('id-ID', { dateStyle: 'long', timeStyle: 'short', timeZone: 'Asia/Jakarta' }).format(new Date());
+
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(15);
+    doc.text('Arsip Lengkap Data Peserta Pemilihan', 40, 44);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
+    doc.text((state.config.sessionName || 'PEMIRA') + '  |  Dicetak: ' + now + ' WIB', 40, 62);
+    doc.text('Total suara sah tercatat: ' + list.length, 40, 76);
+
+    doc.autoTable({
+      startY: 90,
+      head: [['No', 'Kode Receipt', 'ID / NIS Pemilih', 'Departemen / Kelas', 'Status', 'Waktu', 'Pos']],
+      body: list.map((it, i) => [i + 1, it.receipt || '-', maskName(it.name), it.class || '-', 'SAH', it.time || formatTimestamp(it.timestamp) || '-', 'Pos ' + (it.booth || '-')]),
+      styles: { fontSize: 8.5, cellPadding: 4 },
+      headStyles: { fillColor: [35, 52, 79], textColor: 255 },
+      alternateRowStyles: { fillColor: [247, 243, 233] },
+      margin: { left: 40, right: 40, bottom: 40 },
+      didDrawPage: () => {
+        const pg = doc.internal.getCurrentPageInfo().pageNumber;
+        doc.setFontSize(8);
+        doc.text('Halaman ' + pg, doc.internal.pageSize.getWidth() - 40, doc.internal.pageSize.getHeight() - 20, { align: 'right' });
+      }
+    });
+
+    doc.save('arsip-pemilihan-' + new Date().toISOString().slice(0, 10) + '.pdf');
+  } catch (e) {
+    showToast('Gagal membuat PDF. Pastikan perangkat terhubung ke internet lalu coba lagi.');
+  } finally {
+    btn.disabled = false; btn.textContent = label;
+  }
+}
+
 function openAllParticipantsModal() { renderAllParticipants(); $('#allParticipantsModal').classList.add('open'); }
 function closeAllParticipantsModal() { $('#allParticipantsModal').classList.remove('open'); }
 
@@ -1227,7 +1303,7 @@ async function loginPanitia() {
     }
   }
   
-  if (!valid) { 
+  if (!valid) {
     $('#panitiaLoginError').textContent = 'Akses Ditolak. Kredensial tidak valid.'; 
     return; 
   }
@@ -1258,6 +1334,52 @@ async function fetchConfig() {
 
 function applySettings() { 
   if ($('#adminTotal')) $('#adminTotal').textContent = state.config.totalVoters; 
+  const closed = !!state.config.votingClosed;
+  const btn = $('#toggleVotingBtn'), pill = $('#votingStatusPill');
+  if (btn) {
+    btn.textContent = closed ? '🔓 Buka Kembali Pemilihan' : '🔒 Tutup Akses Pemilihan';
+    btn.style.cssText = closed ? '' : 'color:var(--red); border-color:var(--red);';
+  }
+  if (pill) {
+    pill.textContent = closed ? 'Pemilihan Ditutup' : 'Pemilihan Dibuka';
+    pill.style.cssText = closed ? 'background:rgba(158,54,59,.12); color:var(--red); border:1px solid var(--red);' : '';
+  }
+}
+
+async function toggleVoting() {
+  const closing = !state.config.votingClosed;
+  const msg = closing
+    ? 'Tutup akses pemilihan?\n\nSetelah ditutup, server tidak akan menerima suara baru dan pengunjung akan melihat halaman "akses ditutup".'
+    : 'Buka kembali akses pemilihan?\n\nPemilih bisa mengirim suara lagi.';
+  if (!confirm(msg)) return;
+  const btn = $('#toggleVotingBtn');
+  btn.disabled = true;
+  const { ok, data } = await api('/api/config', { method: 'POST', body: JSON.stringify({ votingClosed: closing }) });
+  btn.disabled = false;
+  if (!ok || !data || !data.config || (!!data.config.votingClosed) !== closing) {
+    showToast((data && data.error) ? data.error : 'Gagal mengubah status pemilihan. Pastikan backend sudah mendukung votingClosed.');
+    return;
+  }
+  state.config = data.config;
+  applySettings();
+  addSystemLog('WARN', closing ? 'Akses pemilihan DITUTUP oleh panitia.' : 'Akses pemilihan DIBUKA kembali oleh panitia.');
+}
+
+// ---- Gerbang kiosk pemilih: tampilkan layar "ditutup" kalau pemilihan sudah ditutup ----
+function showClosedScreen() {
+  if (!$('#successScreen').classList.contains('hidden')) return; // jangan ganggu pemilih yang baru selesai
+  $$('.kiosk-content').forEach(el => el.classList.add('hidden'));
+  $('#closedScreen').classList.remove('hidden');
+}
+async function checkVotingGate() {
+  try {
+    const { ok, data } = await api('/api/config');
+    if (ok && data && data.config && data.config.votingClosed) showClosedScreen();
+  } catch (e) {}
+}
+function initClientGate() {
+  checkVotingGate();
+  setInterval(checkVotingGate, 15000);
 }
 
 function renderBoothsGrid(count) {
@@ -1582,6 +1704,7 @@ async function proceedToVerification(name, className) {
   }
 
   if (!valid) {
+    if (data && data.closed) { showClosedScreen(); return; }
     if (isDuplicateNameError(data)) {
       setParticipantNameError(
         className === 'Guru/Karyawan' 
@@ -1710,6 +1833,7 @@ $('#startBtn').addEventListener('click', async () => {
 
   // Kalau server menolak (Duplikat)
   if (!valid) {
+    if (data && data.closed) { showClosedScreen(); return; }
     if (isDuplicateNameError(data)) {
       setParticipantNameError('Akses Ditolak: NIS telah terpakai di perangkat/bilik lain.');
       try { 
@@ -1728,7 +1852,7 @@ $('#startBtn').addEventListener('click', async () => {
   state.participantClass = className;
   state.boothStatus = 'Terpakai';
   $('#identityScreen').classList.add('hidden');
-  $('#voteScreen').classList.remove('hidden');  });    async function recordVote() {      if (state.voting) return;      state.voting = true;      const receipt = createReceipt();            const { ok, data } = await api('/api/vote', {           method: 'POST',           body: JSON.stringify({ receipt, candidate: state.selected, name: state.participantName, class: state.participantClass, booth: BOOTH_ID, timestamp: Date.now() })       });            state.voting = false;            let success = false;   if (ok) {     if (data) {       if (data.ok) success = true;     }   }      if (!success) {          const errMsg = (data && data.error) ? data.error : 'Gagal tersambung ke server.';     showToast(errMsg);          $$('.candidate').forEach(c => c.classList.remove('selected')); 
+  $('#voteScreen').classList.remove('hidden');  });    async function recordVote() {      if (state.voting) return;      state.voting = true;      const receipt = createReceipt();            const { ok, data } = await api('/api/vote', {           method: 'POST',           body: JSON.stringify({ receipt, candidate: state.selected, name: state.participantName, class: state.participantClass, booth: BOOTH_ID, timestamp: Date.now() })       });            state.voting = false;            let success = false;   if (ok) {     if (data) {       if (data.ok) success = true;     }   }      if (!success) {          if (data && data.closed) { showClosedScreen(); return; } const errMsg = (data && data.error) ? data.error : 'Gagal tersambung ke server.';     showToast(errMsg);          $$('.candidate').forEach(c => c.classList.remove('selected')); 
     state.selected = null; 
     state.boothStatus = 'Standby';
     
@@ -1763,6 +1887,24 @@ function startAutoReset() {
     } 
   }, 1000);
 }
+
+// CONSOLE: hapus 1 suara pakai kode receipt (harus sudah login sebagai panitia di tab ini)
+// Cara pakai (F12 > Console):  hapusSuara('PM-123456', 2)   <- angka kedua = nomor paslon yang dipilih suara itu
+window.hapusSuara = async function (receipt, candidate) {
+  receipt = String(receipt || '').trim().toUpperCase();
+  if (!/^PM-\d{6}$/.test(receipt)) { console.error('Format receipt salah. Contoh: hapusSuara("PM-123456", 2)'); return; }
+  const cand = (candidate === undefined || candidate === null || candidate === '') ? undefined : String(candidate);
+  if (cand !== undefined && !['1', '2', '3', '4'].includes(cand)) { console.error('Nomor paslon harus 1-4.'); return; }
+  if (!confirm('Hapus suara ' + receipt + (cand ? ' (Paslon ' + cand + ')' : '') + '?\n\nTindakan ini tidak bisa dibatalkan.')) { console.log('Dibatalkan.'); return; }
+  const body = { receipt }; if (cand) body.candidate = cand;
+  const { ok, data } = await api('/api/vote', { method: 'DELETE', body: JSON.stringify(body) });
+  if (ok && data && data.ok) {
+    console.log('%cBerhasil: suara ' + receipt + ' dihapus.', 'color:green;font-weight:bold');
+    if (PANITIA_MODE || PERHITUNGAN_MODE) fetchResults();
+  } else {
+    console.error('Gagal: ' + ((data && data.error) ? data.error : 'tidak tersambung ke server atau belum login panitia.'));
+  }
+};
 
 // 8. TOAST NOTIFICATION
 function showToast(message) {
