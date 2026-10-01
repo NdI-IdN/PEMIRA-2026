@@ -1,5 +1,5 @@
-// GET  /api/config  -> { ok:true, config:{ sessionName, totalVoters, boothCount } }   (PUBLIC - dibaca kiosk & panitia)
-// POST /api/config  { sessionName?, totalVoters?, boothCount? } -> update             (khusus panitia login)
+// GET  /api/config  -> { ok:true, config:{ sessionName, totalVoters, boothCount, votingClosed } }   (PUBLIC - dibaca kiosk & panitia)
+// POST /api/config  { sessionName?, totalVoters?, boothCount?, votingClosed? } -> update             (khusus panitia login)
 //
 // Disimpan di Datastore (KV), bukan localStorage, supaya semua device panitia
 // melihat & mengubah konfigurasi yang sama. boothCount di-clamp 1..MAX_BOOTHS
@@ -55,6 +55,11 @@ module.exports = async (req, res) => {
       if (n < 1) n = 1;
       if (n > MAX_BOOTHS) n = MAX_BOOTHS;
       patch.boothCount = n;
+    }
+
+    // Tutup/buka akses pemilihan. Penolakan suara dilakukan di /api/vote (server-side).
+    if (body.votingClosed !== undefined) {
+      patch.votingClosed = body.votingClosed === true || body.votingClosed === 'true';
     }
 
     try {
